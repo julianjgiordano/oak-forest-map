@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Oak Forest, Pennsylvania: Who Owns the Village?</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="An interactive property map of Oak Forest, Greene County, Pennsylvania, showing who owns the village's land and how it changed hands.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.4/mapbox-gl.js"></script>
+<script src="data.js"></script>
+<style>
+:root{--ink:#22201c;--muted:#6b665d;--line:#e4dfd4;--paper:#fbf9f4;--coal:#b8352a;--coal-dk:#7b1e14;--cream:#efe2c2;--cream-dk:#8a7550;--accent:#2c5d73;
+ --serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,-apple-system,sans-serif}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;color:var(--ink);font-family:var(--sans);font-size:14px}
+#map{position:absolute;inset:0 0 0 360px}
+#side{position:absolute;top:0;left:0;bottom:0;width:360px;background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:2}
+header{padding:20px 20px 14px;border-bottom:1px solid var(--line)}
+header h1{font-family:var(--serif);font-weight:600;font-size:22px;line-height:1.2;margin:0}
+header p{margin:6px 0 0;color:var(--muted);line-height:1.45}
+.controls{padding:12px 20px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:10px}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:6px 10px;font-size:12.5px}
+.legend span{display:flex;align-items:center;gap:7px}
+.sw{width:14px;height:14px;border-radius:3px;flex:none;border:1.5px solid}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;align-self:flex-start;background:#fff}
+.seg button{font:inherit;font-size:12.5px;border:0;background:none;padding:5px 12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--ink);color:#fff}
+#body{flex:1;overflow-y:auto;scroll-behavior:smooth}
+.search{position:sticky;top:0;background:var(--paper);padding:12px 20px 8px;z-index:1}
+.search input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff;outline:none}
+.search input:focus{border-color:var(--accent)}
+.grp{padding:8px 20px 2px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.item{display:flex;gap:10px;align-items:flex-start;padding:8px 20px;cursor:pointer;border-left:3px solid transparent}
+.item:hover,.item:focus{background:#f2eee4;outline:none}
+.item.sel{background:#efe9dc;border-left-color:var(--ink)}
+.item .sw{margin-top:2px}
+.item b{font-weight:500;display:block}
+.item small{color:var(--muted)}
+.empty{padding:14px 20px;color:var(--muted)}
+/* detail view */
+#detail{padding:16px 20px 28px;display:none;animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.back{font:inherit;font-size:13px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;margin-bottom:12px}
+.back:hover{text-decoration:underline}
+#detail h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 4px;line-height:1.25}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px}
+.tag.coal{background:#f6dcd8;color:var(--coal-dk)}.tag.other{background:#efe6cf;color:#5e4d2c}.tag.nb{background:#e9e9e9;color:#555}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:6px 0 12px}
+.facts dt{color:var(--muted)}.facts dd{margin:0}
+.photo{width:100%;border-radius:8px;margin:4px 0 10px;display:block}
+.hist{font-family:var(--serif);font-size:15px;line-height:1.55;margin:4px 0 14px;white-space:pre-line}
+h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px;font-weight:600}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line)}
+.tl li{position:relative;padding:0 0 14px 6px}
+.tl li::before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--muted)}
+.tl li.coal::before{border-color:var(--coal);background:var(--coal)}
+.tl .d{font-size:12px;color:var(--muted)}
+.tl .o{font-weight:500}
+.tl .m{font-size:12px;color:var(--muted)}
+.tl .m a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.tl li.first::before{border-style:dashed}
+.note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
+.note a{color:var(--accent)}
+footer{padding:10px 20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.4}
+/* map ui */
+.tip{position:absolute;pointer-events:none;background:rgba(34,32,28,.92);color:#fff;font-size:12px;padding:5px 8px;border-radius:5px;white-space:nowrap;z-index:3;transform:translate(12px,-50%);display:none}
+.tip small{opacity:.75}
+.mapboxgl-ctrl-group button.reset{font-size:15px;line-height:29px}
+#toggle{display:none}
+@media (max-width:760px){
+ #map{inset:0 0 46vh 0}
+ #side{top:auto;height:46vh;width:100%;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12);border-radius:12px 12px 0 0}
+ header{padding:12px 16px 8px}header h1{font-size:18px}header p{display:none}
+ .controls{padding:8px 16px}.search{padding:8px 16px 6px}.item,.grp{padding-left:16px;padding-right:16px}#detail{padding:12px 16px 24px}
+ footer{display:none}
+}
+</style>
+</head>
+<body>
+<div id="map" role="region" aria-label="Map of Oak Forest parcels"></div>
+<aside id="side">
+ <header>
+  <h1>Oak Forest, Pennsylvania</h1>
+  <p>Who owns the village? Select a parcel on the map or in the list to see how its land changed hands.</p>
+ </header>
+ <div class="controls">
+  <div class="legend">
+   <span><i class="sw" style="background:var(--coal);border-color:var(--coal-dk)"></i>Coal company</span>
+   <span><i class="sw" style="background:var(--cream);border-color:var(--cream-dk)"></i>Other owner</span>
+   <span><i class="sw" style="background:rgba(184,53,42,.3);border-color:rgba(123,30,20,.5)"></i>Coal, outside village</span>
+   <span><i class="sw" style="background:rgba(255,255,255,.6);border-color:#999"></i>Other, outside village</span>
+  </div>
+  <div class="seg" role="group" aria-label="Base map"><button data-s="streets" class="on">Map</button><button data-s="sat">Satellite</button></div>
+ </div>
+ <div id="body">
+  <div id="list">
+   <div class="search"><input id="q" type="search" placeholder="Search by owner or parcel number" aria-label="Search parcels"></div>
+   <div id="items"></div>
+  </div>
+  <div id="detail"></div>
+ </div>
+ <footer>Ownership chains are partial: earlier owners not yet traced. Deeds read at the Greene County Recorder of Deeds by Julian Giordano; acreage and coal classification from county assessment records (Nov 2026).</footer>
+</aside>
+<div class="tip" id="tip"></div>
+<script>
+mapboxgl.accessToken='pk.eyJ1IjoiampnaW9yZGFubyIsImEiOiJjbXdteTQ3NmUwNGJuMnpvaW9lcGxvdmk5In0.ujgkiJUkOnFg2VDLRX2anA';
+// View: south edge = old Willow Inn land (PID 4826); north edge = Pursley Creek bridge
+const BOUNDS=[[-80.2465,39.8395],[-80.2330,39.8450]];
+const STY={streets:'mapbox://styles/mapbox/outdoors-v12',sat:'mapbox://styles/mapbox/satellite-streets-v12'};
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const tax=t=>String(t||'').replace(/\s/g,'').replace(/\/+$/,'');
+const title=s=>String(s||'').toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\b(Llc|Inc|Co|Lp|Ii|Iii)\b/g,m=>m.toUpperCase()).replace(/\bEt Ux\b/,'et ux').replace(/\bEt Al\b/,'et al');
+const COAL_RE=/coal|mining|contura|cumberland|cyprus|rag |pennsylvania land|penn land|penna land|alpha|foundation|iron senergy|consol|henderson|realty resources|u s steel|united states steel/i;
+const byPid={};PARCELS.features.forEach(f=>{byPid[f.properties.pid]=f});
+let style='streets',sel=null,hov=null;
+const map=new mapboxgl.Map({container:'map',style:STY.streets,bounds:BOUNDS,fitBoundsOptions:{padding:24},attributionControl:true});
+map.addControl(new mapboxgl.NavigationControl({showCompass:false}),'top-right');
+map.addControl(new mapboxgl.ScaleControl({unit:'imperial'}),'bottom-right');
+class Reset{onAdd(m){const d=document.createElement('div');d.className='mapboxgl-ctrl mapboxgl-ctrl-group';d.innerHTML='<button class="reset" title="Back to village view" aria-label="Back to village view">⌂</button>';d.onclick=()=>m.fitBounds(BOUNDS,{padding:24});return d}onRemove(){}}
+map.addControl(new Reset(),'top-right');
+
+function addLayers(){
+ if(map.getSource('parcels'))return;
+ const sat=style==='sat';
+ const before=(map.getStyle().layers.find(l=>l.type==='symbol')||{}).id;
+ map.addSource('parcels',{type:'geojson',data:PARCELS,promoteId:'pid'});
+ map.addLayer({id:'fill',type:'fill',source:'parcels',paint:{
+  'fill-color':['match',['get','map_class'],'village_coal','#b8352a','village_other','#efe2c2','neighbor_coal','#b8352a','#ffffff'],
+  'fill-opacity':['case',['boolean',['feature-state','hover'],false],
+     ['match',['get','map_class'],'village_coal',0.8,'village_other',0.85,0.5],
+     ['match',['get','map_class'],'village_coal',sat?0.5:0.6,'village_other',sat?0.5:0.65,'neighbor_coal',sat?0.22:0.25,sat?0.0:0.15]],
+  'fill-opacity-transition':{duration:150}}},before);
+ map.addLayer({id:'line',type:'line',source:'parcels',paint:{
+  'line-color':['match',['get','map_class'],'village_coal','#7b1e14','village_other','#8a7550',sat?'rgba(255,255,255,.7)':'#8c8c8c'],
+  'line-width':['interpolate',['linear'],['zoom'],14,['case',['==',['get','in_village'],1],0.8,0.5],17,['case',['==',['get','in_village'],1],1.8,0.7]]}},before);
+ map.addLayer({id:'sel',type:'line',source:'parcels',filter:['==',['get','pid'],sel||''],paint:{'line-color':sat?'#ffffff':'#22201c','line-width':3.2}},before);
+ map.addLayer({id:'lab',type:'symbol',source:'parcels',filter:['==',['get','in_village'],1],minzoom:16.3,
+  layout:{'text-field':['get','pid'],'text-size':11,'text-font':['DIN Pro Medium','Arial Unicode MS Regular'],'text-allow-overlap':false},
+  paint:{'text-color':'#22201c','text-halo-color':'rgba(255,255,255,.9)','text-halo-width':1.4}});
+}
+map.on('style.load',addLayers);
+map.once('load',()=>{map.resize();if(!location.hash)map.fitBounds(BOUNDS,{padding:24,duration:0});else fromHash(true);});
+
+// basemap switch
+document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
+ if(b.dataset.s===style)return;style=b.dataset.s;
+ document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
+ map.setStyle(STY[style]);
+});
+
+// hover tooltip
+const tip=document.getElementById('tip');
+map.on('mousemove','fill',e=>{
+ const p=e.features[0].properties;map.getCanvas().style.cursor='pointer';
+ if(hov!==p.pid){if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=p.pid;map.setFeatureState({source:'parcels',id:hov},{hover:true});}
+ tip.innerHTML=`${esc(title(p.owner))} <small>· ${esc(p.pid)}</small>`;
+ const r=map.getContainer().getBoundingClientRect();tip.style.left=(r.left+e.point.x)+'px';tip.style.top=(r.top+e.point.y)+'px';tip.style.display='block';
+});
+map.on('mouseleave','fill',()=>{map.getCanvas().style.cursor='';tip.style.display='none';if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=null;});
+map.on('click','fill',e=>select(e.features[0].properties.pid,false));
+
+// list
+const items=document.getElementById('items'),q=document.getElementById('q');
+function sw(c){return c==='village_coal'?'background:var(--coal);border-color:var(--coal-dk)':c==='village_other'?'background:var(--cream);border-color:var(--cream-dk)':c==='neighbor_coal'?'background:rgba(184,53,42,.3);border-color:rgba(123,30,20,.5)':'background:#fff;border-color:#999'}
+function renderList(){
+ const t=q.value.trim().toLowerCase();
+ const all=PARCELS.features.map(f=>f.properties).filter(p=>!t||p.pid.includes(t)||String(p.owner).toLowerCase().includes(t));
+ const groups=[['In the village: coal companies',p=>p.map_class==='village_coal'],['In the village: other owners',p=>p.map_class==='village_other'],['Surrounding parcels',p=>!+p.in_village]];
+ let h='';
+ for(const [g,fn] of groups){
+  const ps=all.filter(fn).sort((a,b)=>String(a.owner).localeCompare(String(b.owner))||a.pid-b.pid);
+  if(!ps.length)continue;
+  h+=`<div class="grp">${g} (${ps.length})</div>`+ps.map(p=>`<div class="item${p.pid===sel?' sel':''}" tabindex="0" data-pid="${esc(p.pid)}"><i class="sw" style="${sw(p.map_class)}"></i><div><b>${esc(title(p.owner))}</b><small>Parcel ${esc(p.pid)} · ${esc(p.acres)} ac</small></div></div>`).join('');
+ }
+ items.innerHTML=h||'<div class="empty">No parcels match.</div>';
+}
+items.addEventListener('click',e=>{const it=e.target.closest('.item');if(it)select(it.dataset.pid,true)});
+items.addEventListener('keydown',e=>{if(e.key==='Enter'){const it=e.target.closest('.item');if(it)select(it.dataset.pid,true)}});
+q.addEventListener('input',renderList);
+renderList();
+
+// detail
+const list=document.getElementById('list'),detail=document.getElementById('detail'),body=document.getElementById('body');
+function bbox(f){let b=[180,90,-180,-90];const walk=c=>typeof c[0]==='number'?(b=[Math.min(b[0],c[0]),Math.min(b[1],c[1]),Math.max(b[2],c[0]),Math.max(b[3],c[1])]):c.forEach(walk);walk(f.geometry.coordinates);return [[b[0],b[1]],[b[2],b[3]]]}
+function select(pid,fly){
+ const f=byPid[pid];if(!f)return;sel=pid;const p=f.properties;
+ if(map.getLayer('sel'))map.setFilter('sel',['==',['get','pid'],pid]);
+ const vill=+p.in_village===1,coal=String(p.map_class).endsWith('coal');
+ const deeds=(DEEDS[pid]||[]);
+ let h=`<button class="back">← All parcels</button><h2>${esc(title(p.owner))}</h2>`;
+ h+=`<span class="tag ${coal?'coal':vill?'other':'nb'}">${coal?'Coal company · '+esc(p.coal_owner_class||''):vill?'Private owner':'Outside the village'}${!vill&&coal?' · outside village':''}</span>`;
+ if(p.photo)h+=`<img class="photo" src="${esc(p.photo)}" alt="Photograph of parcel ${esc(pid)}">`;
+ h+=`<dl class="facts"><dt>Parcel</dt><dd>${esc(pid)}</dd><dt>Tax ID</dt><dd>${esc(tax(p.taxid))}</dd><dt>Acreage</dt><dd>${esc(p.acres)} acres</dd>`;
+ if(p.year_built)h+=`<dt>Building</dt><dd>dated ${esc(p.year_built)} (county)</dd>`;
+ if(p.owner_1876_atlas)h+=`<dt>1876 atlas</dt><dd>${esc(p.owner_1876_atlas)}</dd>`;
+ h+='</dl>';
+ if(p.history_text)h+=`<div class="hist">${esc(p.history_text)}</div>`;
+ if(deeds.length){
+  h+='<h3>Owners over time</h3><ol class="tl">'+deeds.map(r=>{
+   const also=(r.same_deed_also_covers||'').split(/[,;\s]+/).filter(x=>byPid[x]);
+   return `<li class="${COAL_RE.test(r.owner_after_sale)?'coal':''}"><div class="d">${esc(r.date_as_written)} · deed ${esc(r.book_page)}</div><div class="o">${esc(title(r.owner_after_sale))}</div><div class="m">${esc(r.price_as_written)}${also.length?' · same deed covered '+also.map(x=>`<a data-go="${x}">${x}</a>`).join(', '):''}</div></li>`}).join('');
+  if(p.earliest_owner)h+=`<li class="first"><div class="d">Earliest owner listed</div><div class="o">${esc(title(p.earliest_owner))}</div></li>`;
+  h+='</ol><div class="note">This chain of title is partial: earlier owners have not yet been traced. Prices are as recorded; $0, $1 and $10 sums are usually mergers, family transfers or nominal consideration, and multi-parcel deeds give one total.</div>';
+ }else if(p.latest_sale_date){
+  h+=`<h3>Latest recorded sale</h3><div>${esc(p.latest_sale_date)} · ${esc(p.latest_sale_price)}</div><div class="note">Outside the village: county assessment data only; deeds not yet researched.</div>`;
+ }
+ h+=`<div class="note"><a href="${esc(p.url)}" target="_blank" rel="noopener">Greene County assessment record ↗</a></div>`;
+ detail.innerHTML=h;list.style.display='none';detail.style.display='block';body.scrollTop=0;
+ detail.querySelector('.back').onclick=clearSel;
+ detail.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>select(a.dataset.go,true));
+ history.replaceState(null,'','#'+pid);
+ if(fly){const b=bbox(f);map.fitBounds(b,{padding:80,maxZoom:18,duration:700});}
+}
+function clearSel(){
+ sel=null;if(map.getLayer('sel'))map.setFilter('sel',['==',['get','pid'],'']);
+ detail.style.display='none';list.style.display='block';renderList();
+ history.replaceState(null,'',location.pathname+location.search);
+}
+function fromHash(fly){const pid=location.hash.slice(1);if(byPid[pid])select(pid,fly)}
+addEventListener('keydown',e=>{if(e.key==='Escape'&&sel)clearSel()});
+</script>
+</body>
+</html>
