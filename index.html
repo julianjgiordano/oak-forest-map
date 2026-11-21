@@ -155,7 +155,7 @@ map.once('load',()=>{map.resize();if(!location.hash)map.fitBounds(BOUNDS,{paddin
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{
  if(b.dataset.s===style)return;style=b.dataset.s;
  document.querySelectorAll('.seg button').forEach(x=>x.classList.toggle('on',x===b));
- map.setStyle(STY[style]);
+ map.setStyle(STY[style],{diff:false});
 });
 
 // hover tooltip
