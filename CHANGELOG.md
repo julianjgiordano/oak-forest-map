@@ -2,6 +2,9 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.2.1 (21 Nov 2026)
+- Through Time: removed 1904, 1961 and 2004 (not presentable); added 1982 (NHAP, placed by feature matching to 1992, black and white with contrast stretch). Older PennPilot years (1939–1967) not yet placed.
+
 ## v1.2 (21 Nov 2026)
 - New page: Oak Forest Through Time (/through-time/): 11 views, 1992–2022 (aerial photographs 1992–2022 from USGS, USDA NAIP, PAMAP and PEMA), with timeline/play, swipe and lens modes, optional property lines. Tiles in through-time/tiles/<year> (WebP, ~47 MB), made with GDAL from the files in the Oak Forest folder.
 - Property map links to the new page.

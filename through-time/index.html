@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <title>Oak Forest Through Time</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from 1992 to 2022. Slide through the years, swipe between two, or look through a lens.">
+<meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from 1982 to 2022. Slide through the years, swipe between two, or look through a lens.">
 <meta property="og:title" content="Oak Forest Through Time">
-<meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1992–2022.">
+<meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1982–2022.">
 <meta property="og:image" content="https://oakforest.juliangiordano.com/through-time/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,7 +62,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 
 <div id="card">
  <h1>Oak Forest Through Time</h1>
- <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, seen from above across three decades: aerial photographs from 1992 to 2022, with older views to come.</p>
+ <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, seen from above across three decades: aerial photographs from 1982 to 2022, with older views to come.</p>
  <div class="seg" role="group" aria-label="View mode" id="mode"><button data-m="timeline" class="on" aria-pressed="true">Timeline</button><button data-m="swipe" aria-pressed="false">Swipe</button><button data-m="lens" aria-pressed="false">Lens</button></div>
  <div class="row" id="pair" style="display:none"><span id="pairlabel">Compare</span><select id="yearA" aria-label="First year"></select><span>with</span><select id="yearB" aria-label="Second year"></select></div>
  <div class="row"><label class="chk"><input type="checkbox" id="outlines"> Property lines</label><label class="chk"><input type="checkbox" id="labels" checked> Place names</label></div>
@@ -78,6 +78,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 <script>
 // Years cut to the village area; tiles in tiles/<id>/{z}/{x}/{y}.webp (made with GDAL from the files in "Oak Forest Through Time").
 const YEARS=[
+ {id:'1982',label:'1982',max:18,src:'USGS National High Altitude Photography (NHAP), 1982; color-infrared photograph shown in black and white',note:'Placed on the map by matching it to the 1992 orthophoto (about 3 m average error). The village still lines the road.'},
  {id:'1992',label:'1992',max:18,src:'USGS digital orthophoto, 29 March 1992',note:'Black-and-white aerial photograph, taken before the leaves were out.'},
  {id:'2006',label:'2006',max:18,src:'PAMAP orthoimagery, Pennsylvania, 2006'},
  {id:'2008',label:'2008',max:18,src:'USDA NAIP, 15 July 2008'},
@@ -138,7 +139,7 @@ function render(){
   meta(YEARS[a],YEARS[b]);}
 }
 // ticks and selects
-YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind==='map')s.classList.add('map');if(['1992','2010','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
+YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind==='map')s.classList.add('map');if(['1982','1992','2010','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
  ['yearA','yearB'].forEach(k=>{const o=document.createElement('option');o.value=i;o.textContent=y.label;$(k).appendChild(o)})});
 $('slider').max=YEARS.length-1;$('yearA').value=a;$('yearB').value=b;
 $('slider').oninput=e=>{stop();idx=+e.target.value;render()};
