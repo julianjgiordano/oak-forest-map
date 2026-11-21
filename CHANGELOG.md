@@ -2,6 +2,9 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.1.1 (21 Nov 2026)
+- Custom domain oakforest.juliangiordano.com (CNAME added by Julian in GitHub settings); preview image and citation now use it.
+
 ## v1.1 (21 Nov 2026)
 - Switched from Mapbox GL JS to MapLibre GL JS. Street map: OpenFreeMap vector tiles (sharp at every zoom, no key). Topographic: shaded relief and contour lines in feet, drawn in the browser from AWS Terrain Tiles (USGS 3DEP). Satellite: Mapbox imagery.
 - Headline finding at the top; "About this map" panel (findings, definition of a coal company, sources, limits, privacy note, glossary, citation, downloads).
