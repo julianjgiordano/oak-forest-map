@@ -2,6 +2,9 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.3 (21 Nov 2026)
+- Through Time: added the 1876 county atlas plat of Oak Forest (Caldwell's atlas, p. 124; David Rumsey Map Collection scan) as the earliest view. Georeferenced by a similarity fit (scale, rotation, shift) to five street points from the 1992 orthophoto: RMSE about 4 m; plat drawn at about 177 ft to the inch (printed: 260). Clipped to the Oak Forest panel; tiles z14-19. 1876 street names (Main, Broad, Water, South) shown with modern equivalents when "Place names" is on.
+
 ## v1.2.1 (21 Nov 2026)
 - Through Time: removed 1904, 1961 and 2004 (not presentable); added 1982 (NHAP, placed by feature matching to 1992, black and white with contrast stretch). Older PennPilot years (1939–1967) not yet placed.
 
