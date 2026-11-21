@@ -93,7 +93,7 @@ footer{padding:10px 20px;border-top:1px solid var(--line);font-size:11.5px;color
    <span><i class="sw" style="background:rgba(184,53,42,.3);border-color:rgba(123,30,20,.5)"></i>Coal, outside village</span>
    <span><i class="sw" style="background:rgba(255,255,255,.6);border-color:#999"></i>Other, outside village</span>
   </div>
-  <div class="seg" role="group" aria-label="Base map"><button data-s="streets" class="on">Map</button><button data-s="sat">Satellite</button></div>
+  <div class="seg" role="group" aria-label="Base map"><button data-s="streets" class="on">Map</button><button data-s="topo">Topographic</button><button data-s="sat">Satellite</button></div>
  </div>
  <div id="body">
   <div id="list">
@@ -109,7 +109,14 @@ footer{padding:10px 20px;border-top:1px solid var(--line);font-size:11.5px;color
 mapboxgl.accessToken='pk.eyJ1IjoiampnaW9yZGFubyIsImEiOiJjbXdteTQ3NmUwNGJuMnpvaW9lcGxvdmk5In0.ujgkiJUkOnFg2VDLRX2anA';
 // View: south edge = old Willow Inn land (PID 4826); north edge = Pursley Creek bridge
 const BOUNDS=[[-80.2465,39.8395],[-80.2330,39.8450]];
-const STY={streets:'mapbox://styles/mapbox/outdoors-v12',sat:'mapbox://styles/mapbox/satellite-streets-v12'};
+const GLYPHS='https://fonts.openmaptiles.org/{fontstack}/{range}.pbf';
+const raster=(id,tiles,attr,maxzoom)=>({version:8,glyphs:GLYPHS,sources:{[id]:{type:'raster',tiles,tileSize:256,maxzoom,attribution:attr}},layers:[{id:'bg',type:'background',paint:{'background-color':'#f2efe9'}},{id,type:'raster',source:id}]});
+// Base maps that need no Mapbox token (so they work in every browser); satellite stays on Mapbox
+const STY={
+ streets:raster('carto',['a','b','c','d'].map(s=>`https://${s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png`),'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',20),
+ topo:raster('usgs',['https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}'],'Topographic base: <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">USGS The National Map</a>',16),
+ sat:'mapbox://styles/mapbox/satellite-streets-v12'};
+const FONT=()=>style==='sat'?['DIN Pro Medium','Arial Unicode MS Regular']:['Open Sans Semibold'];
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tax=t=>String(t||'').replace(/\s/g,'').replace(/\/+$/,'');
 const title=s=>String(s||'').toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\b(Llc|Inc|Co|Lp|Ii|Iii)\b/g,m=>m.toUpperCase()).replace(/\bEt Ux\b/,'et ux').replace(/\bEt Al\b/,'et al');
@@ -131,14 +138,14 @@ function addLayers(){
   'fill-color':['match',['get','map_class'],'village_coal','#b8352a','village_other','#efe2c2','neighbor_coal','#b8352a','#ffffff'],
   'fill-opacity':['case',['boolean',['feature-state','hover'],false],
      ['match',['get','map_class'],'village_coal',0.8,'village_other',0.85,0.5],
-     ['match',['get','map_class'],'village_coal',sat?0.5:0.6,'village_other',sat?0.5:0.65,'neighbor_coal',sat?0.22:0.25,sat?0.0:0.15]],
+     ['match',['get','map_class'],'village_coal',sat?0.45:0.55,'village_other',sat?0.45:0.6,'neighbor_coal',sat?0.2:0.22,sat?0.0:0.1]],
   'fill-opacity-transition':{duration:150}}},before);
  map.addLayer({id:'line',type:'line',source:'parcels',paint:{
   'line-color':['match',['get','map_class'],'village_coal','#7b1e14','village_other','#8a7550',sat?'rgba(255,255,255,.7)':'#8c8c8c'],
   'line-width':['interpolate',['linear'],['zoom'],14,['case',['==',['get','in_village'],1],0.8,0.5],17,['case',['==',['get','in_village'],1],1.8,0.7]]}},before);
  map.addLayer({id:'sel',type:'line',source:'parcels',filter:['==',['get','pid'],sel||''],paint:{'line-color':sat?'#ffffff':'#22201c','line-width':3.2}},before);
  map.addLayer({id:'lab',type:'symbol',source:'parcels',filter:['==',['get','in_village'],1],minzoom:16.3,
-  layout:{'text-field':['get','pid'],'text-size':11,'text-font':['DIN Pro Medium','Arial Unicode MS Regular'],'text-allow-overlap':false},
+  layout:{'text-field':['get','pid'],'text-size':11,'text-font':FONT(),'text-allow-overlap':false},
   paint:{'text-color':'#22201c','text-halo-color':'rgba(255,255,255,.9)','text-halo-width':1.4}});
 }
 map.on('style.load',addLayers);
