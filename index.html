@@ -113,7 +113,7 @@ const GLYPHS='https://fonts.openmaptiles.org/{fontstack}/{range}.pbf';
 const raster=(id,tiles,attr,maxzoom)=>({version:8,glyphs:GLYPHS,sources:{[id]:{type:'raster',tiles,tileSize:256,maxzoom,attribution:attr}},layers:[{id:'bg',type:'background',paint:{'background-color':'#f2efe9'}},{id,type:'raster',source:id}]});
 // Base maps that need no Mapbox token (so they work in every browser); satellite stays on Mapbox
 const STY={
- streets:raster('carto',['a','b','c','d'].map(s=>`https://${s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png`),'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',20),
+ streets:raster('osm',['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],'© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',19),
  topo:raster('usgs',['https://basemap.nationalmap.gov/arcgis/rest/services/USGSTopo/MapServer/tile/{z}/{y}/{x}'],'Topographic base: <a href="https://www.usgs.gov/programs/national-geospatial-program/national-map">USGS The National Map</a>',16),
  sat:'mapbox://styles/mapbox/satellite-streets-v12'};
 const FONT=()=>style==='sat'?['DIN Pro Medium','Arial Unicode MS Regular']:['Open Sans Semibold'];
