@@ -3,7 +3,7 @@
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
 ## v1.2 (21 Nov 2026)
-- New page: Oak Forest Through Time (/through-time/): 14 views, 1904–2022 (USGS survey maps 1904 and 1961; aerial photographs 1992–2022 from USGS, USDA NAIP, PAMAP and PEMA), with timeline/play, swipe and lens modes, optional property lines. Tiles in through-time/tiles/<year> (WebP, ~47 MB), made with GDAL from the files in the Oak Forest folder.
+- New page: Oak Forest Through Time (/through-time/): 11 views, 1992–2022 (aerial photographs 1992–2022 from USGS, USDA NAIP, PAMAP and PEMA), with timeline/play, swipe and lens modes, optional property lines. Tiles in through-time/tiles/<year> (WebP, ~47 MB), made with GDAL from the files in the Oak Forest folder.
 - Property map links to the new page.
 
 ## v1.1.1 (21 Nov 2026)

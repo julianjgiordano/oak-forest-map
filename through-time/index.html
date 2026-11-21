@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <title>Oak Forest Through Time</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from 1904 to 2022. Slide through the years, swipe between two, or look through a lens.">
+<meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from 1992 to 2022. Slide through the years, swipe between two, or look through a lens.">
 <meta property="og:title" content="Oak Forest Through Time">
-<meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1904–2022.">
+<meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1992–2022.">
 <meta property="og:image" content="https://oakforest.juliangiordano.com/through-time/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -62,7 +62,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 
 <div id="card">
  <h1>Oak Forest Through Time</h1>
- <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, seen from above across more than a century: survey maps from 1904 and 1961, then aerial photographs from 1992 to 2022.</p>
+ <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, seen from above across three decades: aerial photographs from 1992 to 2022, with older views to come.</p>
  <div class="seg" role="group" aria-label="View mode" id="mode"><button data-m="timeline" class="on" aria-pressed="true">Timeline</button><button data-m="swipe" aria-pressed="false">Swipe</button><button data-m="lens" aria-pressed="false">Lens</button></div>
  <div class="row" id="pair" style="display:none"><span id="pairlabel">Compare</span><select id="yearA" aria-label="First year"></select><span>with</span><select id="yearB" aria-label="Second year"></select></div>
  <div class="row"><label class="chk"><input type="checkbox" id="outlines"> Property lines</label><label class="chk"><input type="checkbox" id="labels" checked> Place names</label></div>
@@ -78,10 +78,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 <script>
 // Years cut to the village area; tiles in tiles/<id>/{z}/{x}/{y}.webp (made with GDAL from the files in "Oak Forest Through Time").
 const YEARS=[
- {id:'1904',label:'1904',kind:'map',max:16,src:'USGS Waynesburg topographic map, 1:62,500, surveyed 1902–03, published 1904',note:'The oldest view here: a small-scale survey map, so it blurs when you zoom in close.'},
- {id:'1961',label:'1961',kind:'map',max:17,src:'USGS Oak Forest topographic map, 1:24,000, 1961',note:'Black squares are buildings; the village lines the road beside Pursley Creek.'},
  {id:'1992',label:'1992',max:18,src:'USGS digital orthophoto, 29 March 1992',note:'Black-and-white aerial photograph, taken before the leaves were out.'},
- {id:'2004',label:'2004',max:18,src:'USDA National Agriculture Imagery Program (NAIP), 3 September 2004',note:'Color-infrared photograph: healthy vegetation appears red.'},
  {id:'2006',label:'2006',max:18,src:'PAMAP orthoimagery, Pennsylvania, 2006'},
  {id:'2008',label:'2008',max:18,src:'USDA NAIP, 15 July 2008'},
  {id:'2009',label:'2009',max:19,src:'USGS high-resolution orthoimagery, 2009',note:'Covers only part of the area.'},
@@ -97,7 +94,7 @@ const AOI=[-80.2500,39.8370,-80.2295,39.8475];
 const VIEW=[[-80.2465,39.8395],[-80.2330,39.8450]];
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 const BASE='https://tiles.openfreemap.org/styles/positron';
-let mode='timeline',idx=YEARS.length-1,a=YEARS.length-1,b=2,playing=null;
+let mode='timeline',idx=YEARS.length-1,a=YEARS.length-1,b=0,playing=null;
 const $=id=>document.getElementById(id);
 
 function addImagery(m){
@@ -141,7 +138,7 @@ function render(){
   meta(YEARS[a],YEARS[b]);}
 }
 // ticks and selects
-YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind==='map')s.classList.add('map');if(['1904','1961','1992','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
+YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind==='map')s.classList.add('map');if(['1992','2010','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
  ['yearA','yearB'].forEach(k=>{const o=document.createElement('option');o.value=i;o.textContent=y.label;$(k).appendChild(o)})});
 $('slider').max=YEARS.length-1;$('yearA').value=a;$('yearB').value=b;
 $('slider').oninput=e=>{stop();idx=+e.target.value;render()};
