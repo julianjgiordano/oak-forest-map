@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Oak Forest Through Time</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from 1904 to 2022. Slide through the years, swipe between two, or look through a lens.">
+<meta property="og:title" content="Oak Forest Through Time">
+<meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1904–2022.">
+<meta property="og:image" content="https://oakforest.juliangiordano.com/through-time/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet">
+<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<style>
+:root{--ink:#22201c;--muted:#6b665d;--paper:#fbf9f4;--line:#e4dfd4;--accent:#b8352a;--serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:#1d1c1a;color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
+.mapbox{position:absolute;inset:0}
+#top{pointer-events:none}
+#top.swipe{clip-path:inset(0 0 0 var(--x,50%))}
+#top.lens{clip-path:circle(var(--r,150px) at var(--lx,50%) var(--ly,50%))}
+#top.off{visibility:hidden}
+#divider{position:absolute;top:0;bottom:0;left:50%;width:0;z-index:3;display:none}
+#divider::before{content:"";position:absolute;top:0;bottom:0;left:-1.5px;width:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.5)}
+#divider button{position:absolute;top:50%;left:-20px;width:40px;height:40px;margin-top:-20px;border-radius:50%;border:0;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.4);cursor:ew-resize;font-size:15px;color:var(--ink)}
+#ring{position:absolute;z-index:3;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.3),0 4px 18px rgba(0,0,0,.35);pointer-events:none;display:none;transform:translate(-50%,-50%)}
+.tag{position:absolute;z-index:4;top:14px;background:rgba(20,18,15,.78);color:#fff;font:600 13px var(--sans);padding:5px 10px;border-radius:6px;pointer-events:none}
+#tagL{left:14px}#tagR{right:60px;display:none}
+#card{position:absolute;z-index:5;left:14px;top:52px;width:330px;background:var(--paper);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);padding:14px 16px}
+#card h1{font-family:var(--serif);font-size:22px;margin:0;line-height:1.2}
+#card p{margin:6px 0 0;line-height:1.45;color:#3a372f}
+#card .small{font-size:12px;color:var(--muted)}
+#card a{color:#2c5d73}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#fff;margin-top:10px}
+.seg button{font:inherit;font-size:12.5px;border:0;background:none;padding:6px 11px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--ink);color:#fff}
+.row{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:12.5px;flex-wrap:wrap}
+select{font:inherit;font-size:12.5px;padding:4px 6px;border:1px solid var(--line);border-radius:6px;background:#fff}
+label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
+#meta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12.5px;line-height:1.45}
+#meta b{font-family:var(--serif);font-size:16px}
+#timeline{position:absolute;z-index:5;left:50%;transform:translateX(-50%);bottom:22px;width:min(900px,calc(100% - 28px));background:rgba(251,249,244,.96);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);padding:10px 14px 8px;display:flex;align-items:center;gap:12px}
+#play{width:38px;height:38px;border-radius:50%;border:0;background:var(--ink);color:#fff;font-size:15px;cursor:pointer;flex:none}
+.track{position:relative;flex:1;height:44px}
+.track input{position:absolute;left:0;right:0;top:4px;width:100%;margin:0;accent-color:var(--accent)}
+.ticks{position:absolute;left:0;right:0;top:26px;height:16px;font-size:11px;color:var(--muted)}
+.ticks span{position:absolute;transform:translateX(-50%);cursor:pointer;white-space:nowrap}
+.ticks span.on{color:var(--ink);font-weight:600}
+.ticks span.map{font-style:italic}
+.maplibregl-ctrl-top-right{top:6px}
+@media (max-width:700px){#card{top:auto;bottom:96px;left:8px;right:8px;width:auto;padding:10px 12px;max-height:40vh;overflow:auto}#card p.intro{display:none}#tagR{right:14px;top:50px}.ticks span:not(.key){display:none}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div id="base" class="mapbox" role="region" aria-label="Aerial view of Oak Forest"></div>
+<div id="top" class="mapbox off" aria-hidden="true"></div>
+<div id="divider"><button aria-label="Drag to compare years" title="Drag to compare">⇆</button></div>
+<div id="ring"></div>
+<div class="tag" id="tagL"></div><div class="tag" id="tagR"></div>
+
+<div id="card">
+ <h1>Oak Forest Through Time</h1>
+ <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, seen from above across more than a century: survey maps from 1904 and 1961, then aerial photographs from 1992 to 2022.</p>
+ <div class="seg" role="group" aria-label="View mode" id="mode"><button data-m="timeline" class="on" aria-pressed="true">Timeline</button><button data-m="swipe" aria-pressed="false">Swipe</button><button data-m="lens" aria-pressed="false">Lens</button></div>
+ <div class="row" id="pair" style="display:none"><span id="pairlabel">Compare</span><select id="yearA" aria-label="First year"></select><span>with</span><select id="yearB" aria-label="Second year"></select></div>
+ <div class="row"><label class="chk"><input type="checkbox" id="outlines"> Property lines</label><label class="chk"><input type="checkbox" id="labels" checked> Place names</label></div>
+ <div id="meta" aria-live="polite"></div>
+ <p class="small" style="margin-top:8px"><a href="../">← Who owns the village? (property map)</a></p>
+</div>
+
+<div id="timeline">
+ <button id="play" aria-label="Play through the years">▶</button>
+ <div class="track"><input type="range" id="slider" min="0" max="13" step="1" value="13" aria-label="Year"><div class="ticks" id="ticks"></div></div>
+</div>
+
+<script>
+// Years cut to the village area; tiles in tiles/<id>/{z}/{x}/{y}.webp (made with GDAL from the files in "Oak Forest Through Time").
+const YEARS=[
+ {id:'1904',label:'1904',kind:'map',max:16,src:'USGS Waynesburg topographic map, 1:62,500, surveyed 1902–03, published 1904',note:'The oldest view here: a small-scale survey map, so it blurs when you zoom in close.'},
+ {id:'1961',label:'1961',kind:'map',max:17,src:'USGS Oak Forest topographic map, 1:24,000, 1961',note:'Black squares are buildings; the village lines the road beside Pursley Creek.'},
+ {id:'1992',label:'1992',max:18,src:'USGS digital orthophoto, 29 March 1992',note:'Black-and-white aerial photograph, taken before the leaves were out.'},
+ {id:'2004',label:'2004',max:18,src:'USDA National Agriculture Imagery Program (NAIP), 3 September 2004',note:'Color-infrared photograph: healthy vegetation appears red.'},
+ {id:'2006',label:'2006',max:18,src:'PAMAP orthoimagery, Pennsylvania, 2006'},
+ {id:'2008',label:'2008',max:18,src:'USDA NAIP, 15 July 2008'},
+ {id:'2009',label:'2009',max:19,src:'USGS high-resolution orthoimagery, 2009',note:'Covers only part of the area.'},
+ {id:'2010',label:'2010',max:18,src:'USDA NAIP, 2 September 2010'},
+ {id:'2013',label:'2013',max:18,src:'USDA NAIP, 21 June 2013'},
+ {id:'2015',label:'2015',max:18,src:'USDA NAIP, 31 July 2015'},
+ {id:'2017',label:'2017',max:18,src:'USDA NAIP, 9 May 2017'},
+ {id:'2018',label:'2018',max:19,src:'Pennsylvania Emergency Management Agency (PEMA) orthoimagery, spring 2018',note:'Leaf-off, high resolution: buildings show clearly.'},
+ {id:'2019',label:'2019',max:18,src:'USDA NAIP, 25 August 2019'},
+ {id:'2022',label:'2022',max:19,src:'PEMA orthoimagery, spring 2022',note:'Leaf-off, high resolution.'}
+];
+const AOI=[-80.2500,39.8370,-80.2295,39.8475];
+const VIEW=[[-80.2465,39.8395],[-80.2330,39.8450]];
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BASE='https://tiles.openfreemap.org/styles/positron';
+let mode='timeline',idx=YEARS.length-1,a=YEARS.length-1,b=2,playing=null;
+const $=id=>document.getElementById(id);
+
+function addImagery(m){
+ YEARS.forEach(y=>{
+  m.addSource('y'+y.id,{type:'raster',tiles:[`tiles/${y.id}/{z}/{x}/{y}.webp`],tileSize:256,minzoom:14,maxzoom:y.max,bounds:AOI,attribution:y.kind==='map'?'USGS':'USGS, USDA, PEMA'});
+  m.addLayer({id:'y'+y.id,type:'raster',source:'y'+y.id,layout:{visibility:'none'},paint:{'raster-opacity':0,'raster-opacity-transition':{duration:reduce?0:450},'raster-fade-duration':0}},firstSymbol(m));
+ });
+ m.addSource('parcels',{type:'geojson',data:'../data/oak_forest_parcels.geojson'});
+ m.addLayer({id:'parcels',type:'line',source:'parcels',layout:{visibility:'none'},paint:{'line-color':'#fff','line-width':['case',['==',['get','in_village'],1],1.4,0.6],'line-opacity':0.85}});
+}
+function firstSymbol(m){return (m.getStyle().layers.find(l=>l.type==='symbol')||{}).id}
+function makeMap(el,interactive){
+ const m=new maplibregl.Map({container:el,style:BASE,bounds:VIEW,fitBoundsOptions:{padding:30},minZoom:13.5,maxZoom:19.5,maxBounds:[[AOI[0]-0.03,AOI[1]-0.02],[AOI[2]+0.03,AOI[3]+0.02]],interactive,attributionControl:interactive?{compact:true}:false});
+ m.once('style.load',()=>{addImagery(m);m.getStyle().layers.forEach(l=>{if(l.type==='symbol'&&l.id!=='lab')m.setLayoutProperty(l.id,'visibility',$('labels').checked?'visible':'none')});render()});
+ return m;
+}
+const base=makeMap('base',true), topm=makeMap('top',false);
+base.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
+base.addControl(new maplibregl.ScaleControl({unit:'imperial'}),'bottom-right');
+base.on('move',()=>topm.jumpTo({center:base.getCenter(),zoom:base.getZoom(),bearing:base.getBearing(),pitch:base.getPitch()}));
+
+// only the year on screen (and the one fading out) is visible, so only its tiles load
+function show(m,id){if(!m.getLayer('y'+YEARS[0].id))return;m._cur=id;
+ YEARS.forEach(y=>{const L='y'+y.id;
+  if(y.id===id){m.setLayoutProperty(L,'visibility','visible');m.setPaintProperty(L,'raster-opacity',1)}
+  else if(m.getLayoutProperty(L,'visibility')==='visible'){m.setPaintProperty(L,'raster-opacity',0);setTimeout(()=>{if(m._cur!==y.id)m.setLayoutProperty(L,'visibility','none')},reduce?0:500)}})}
+function meta(y,y2){
+ const one=y=>`<b>${y.label}</b>${y.kind==='map'?' · survey map':''}<br>${y.src}${y.note?`<br><span style="color:var(--muted)">${y.note}</span>`:''}`;
+ $('meta').innerHTML=y2?one(y)+'<div style="height:8px"></div>'+one(y2):one(y);
+}
+function render(){
+ const top_=$('top'),div=$('divider'),ring=$('ring');
+ top_.className='mapbox'+(mode==='timeline'?' off':' '+mode);
+ div.style.display=mode==='swipe'?'block':'none';ring.style.display=mode==='lens'?'block':'none';
+ $('timeline').style.display=mode==='timeline'?'flex':'none';$('pair').style.display=mode==='timeline'?'none':'flex';
+ if(mode==='timeline'){show(base,YEARS[idx].id);show(topm,null);$('tagL').textContent=YEARS[idx].label;$('tagR').style.display='none';meta(YEARS[idx]);
+  $('slider').value=idx;[...$('ticks').children].forEach((s,i)=>s.classList.toggle('on',i===idx));}
+ else{show(base,YEARS[a].id);show(topm,YEARS[b].id);
+  if(mode==='swipe'){$('tagL').textContent=YEARS[a].label;$('tagR').textContent=YEARS[b].label;$('tagR').style.display='block';$('pairlabel').textContent='Left';}
+  else{$('tagL').textContent=YEARS[a].label+' · lens shows '+YEARS[b].label;$('tagR').style.display='none';$('pairlabel').textContent='Map';}
+  meta(YEARS[a],YEARS[b]);}
+}
+// ticks and selects
+YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind==='map')s.classList.add('map');if(['1904','1961','1992','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
+ ['yearA','yearB'].forEach(k=>{const o=document.createElement('option');o.value=i;o.textContent=y.label;$(k).appendChild(o)})});
+$('slider').max=YEARS.length-1;$('yearA').value=a;$('yearB').value=b;
+$('slider').oninput=e=>{stop();idx=+e.target.value;render()};
+$('yearA').onchange=e=>{a=+e.target.value;render()};$('yearB').onchange=e=>{b=+e.target.value;render()};
+document.querySelectorAll('#mode button').forEach(btn=>btn.onclick=()=>{stop();mode=btn.dataset.m;document.querySelectorAll('#mode button').forEach(x=>{x.classList.toggle('on',x===btn);x.setAttribute('aria-pressed',x===btn)});render()});
+// play
+function stop(){if(playing){clearInterval(playing);playing=null;$('play').textContent='▶';$('play').setAttribute('aria-label','Play through the years')}}
+$('play').onclick=()=>{if(playing)return stop();if(idx===YEARS.length-1)idx=0;render();$('play').textContent='❚❚';$('play').setAttribute('aria-label','Pause');
+ playing=setInterval(()=>{if(idx>=YEARS.length-1)return stop();idx++;render()},1800)};
+// swipe divider
+let drag=false;const setX=x=>{const w=innerWidth;x=Math.max(0,Math.min(w,x));$('top').style.setProperty('--x',x+'px');$('divider').style.left=x+'px'};
+setX(innerWidth/2);
+$('divider').querySelector('button').addEventListener('pointerdown',e=>{drag=true;e.target.setPointerCapture(e.pointerId)});
+addEventListener('pointermove',e=>{if(drag&&mode==='swipe')setX(e.clientX)});addEventListener('pointerup',()=>drag=false);
+$('divider').querySelector('button').addEventListener('keydown',e=>{const x=parseFloat($('divider').style.left);if(e.key==='ArrowLeft')setX(x-30);if(e.key==='ArrowRight')setX(x+30)});
+// lens follows the pointer; wheel + shift resizes
+let R=Math.min(170,innerWidth/4);
+function lens(x,y){$('top').style.setProperty('--lx',x+'px');$('top').style.setProperty('--ly',y+'px');$('top').style.setProperty('--r',R+'px');const r=$('ring');r.style.left=x+'px';r.style.top=y+'px';r.style.width=r.style.height=(2*R)+'px'}
+lens(innerWidth/2,innerHeight/2);
+$('base').addEventListener('pointermove',e=>{if(mode==='lens')lens(e.clientX,e.clientY)});
+$('base').addEventListener('wheel',e=>{if(mode==='lens'&&e.shiftKey){e.preventDefault();e.stopPropagation();R=Math.max(60,Math.min(400,R-e.deltaY*0.3));lens(parseFloat($('ring').style.left),parseFloat($('ring').style.top))}},{capture:true,passive:false});
+// toggles
+$('outlines').onchange=e=>[base,topm].forEach(m=>m.getLayer('parcels')&&m.setLayoutProperty('parcels','visibility',e.target.checked?'visible':'none'));
+$('labels').onchange=e=>[base,topm].forEach(m=>m.getStyle().layers.forEach(l=>{if(l.type==='symbol')m.setLayoutProperty(l.id,'visibility',e.target.checked?'visible':'none')}));
+addEventListener('keydown',e=>{if(mode!=='timeline'||e.target.tagName==='SELECT')return;if(e.key==='ArrowRight'){stop();idx=Math.min(YEARS.length-1,idx+1);render()}if(e.key==='ArrowLeft'){stop();idx=Math.max(0,idx-1);render()}});
+addEventListener('resize',()=>setX(innerWidth/2));
+</script>
+</body>
+</html>
