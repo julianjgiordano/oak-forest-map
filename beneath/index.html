@@ -6,66 +6,113 @@
 <title>Panel 75 · Oak Forest</title>
 <meta name="description" content="The Cumberland Mine's longwall panel 75 beneath Oak Forest, Pennsylvania, at its true depth. Rotate and zoom in 3D.">
 <meta property="og:title" content="Panel 75 · Oak Forest">
-<meta property="og:description" content="The Cumberland Mine's longwall panel beneath Oak Forest, seen through the ground at its true depth.">
+<meta property="og:description" content="The Cumberland Mine's longwall panel beneath Oak Forest, seen through the ground at its true depth. Rotate and zoom in 3D.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://oakforest.juliangiordano.com/beneath/">
+<meta property="og:image" content="https://oakforest.juliangiordano.com/beneath/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#F2F0EB; --ink:#1B1B1B; --grey:#8C8880; --red:#C2401C; --water:#5B7FA3; }
+  :root { --bg:#F2F0EB; --ink:#1B1B1B; --grey:#8C8880; --line:#CFCAC0; --red:#C2401C; --water:#5B7FA3; }
   * { box-sizing:border-box; }
   html, body { margin:0; height:100%; background:var(--bg); color:var(--ink); font-family:Inter, system-ui, sans-serif; overflow:hidden; }
   #stage { position:fixed; inset:0; }
   #stage canvas { display:block; outline:none; touch-action:none; }
+  #stage canvas:focus-visible { outline:2px solid var(--ink); outline-offset:-2px; }
   #labels { position:fixed; inset:0; pointer-events:none; }
   header { position:fixed; left:24px; top:20px; right:24px; pointer-events:none; }
   header h1 { margin:0; font-size:clamp(26px,4vw,44px); font-weight:700; letter-spacing:-0.01em; }
-  header p { margin:6px 0 0; font-size:clamp(13px,1.5vw,17px); max-width:min(46em, calc(100vw - 400px)); }
+  header p { margin:6px 0 0; font-size:clamp(13px,1.5vw,17px); max-width:min(46em, calc(100vw - 420px)); }
   header a { pointer-events:auto; color:var(--grey); font-size:13px; text-decoration:none; }
-  header a:hover { color:var(--ink); text-decoration:underline; }
-  .controls { position:fixed; right:20px; top:20px; display:flex; flex-direction:column; gap:8px; align-items:flex-end; font-size:13px; }
-  .controls .row { display:flex; gap:8px; align-items:center; background:rgba(242,240,235,.88); padding:6px 10px; border:1px solid #CFCAC0; border-radius:6px; }
-  .controls button { font:inherit; background:#fff; border:1px solid #CFCAC0; border-radius:5px; padding:5px 10px; cursor:pointer; color:var(--ink); }
+  header a:hover, header a:focus-visible { color:var(--ink); text-decoration:underline; }
+  .controls { position:fixed; right:20px; top:20px; display:flex; flex-direction:column; gap:8px; align-items:flex-end; font-size:13px; max-width:calc(100vw - 40px); }
+  .panel { background:rgba(242,240,235,.9); padding:6px 10px; border:1px solid var(--line); border-radius:6px; }
+  .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end; }
+  .controls button { font:inherit; background:#fff; border:1px solid var(--line); border-radius:5px; padding:5px 10px; cursor:pointer; color:var(--ink); }
   .controls button:hover, .controls button:focus-visible { border-color:var(--ink); }
+  .controls button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
   .controls input[type=range] { width:110px; accent-color:var(--ink); }
+  .controls details summary { cursor:pointer; list-style:none; user-select:none; }
+  .controls details summary::-webkit-details-marker { display:none; }
+  .controls details summary::after { content:" ▾"; color:var(--grey); }
+  .controls details[open] summary::after { content:" ▴"; }
+  .layers { display:grid; gap:4px; margin-top:6px; }
+  .layers label { display:flex; gap:6px; align-items:center; cursor:pointer; }
+  .layers input { accent-color:var(--ink); margin:0; }
+  .sw { display:inline-block; width:14px; height:3px; border-radius:2px; }
   footer { position:fixed; left:24px; right:24px; bottom:14px; font-size:12px; color:#6F6B64; pointer-events:none; }
-  footer .cap { color:var(--red); font-size:clamp(12px,1.3vw,15px); margin-bottom:6px; }
+  footer .cap { color:var(--red); font-size:clamp(12px,1.3vw,15px); margin-bottom:6px; max-width:70em; }
+  footer .cap b { font-weight:600; }
   footer details { pointer-events:auto; display:inline-block; max-width:62em; }
   footer summary { cursor:pointer; }
-  footer details p { margin:6px 0 0; background:rgba(242,240,235,.92); padding:6px 8px; border-radius:4px; line-height:1.45; }
+  footer details p { margin:6px 0 0; background:rgba(242,240,235,.94); padding:6px 8px; border-radius:4px; line-height:1.45; }
   .hint { color:var(--grey); }
-  .lbl { position:relative; width:0; height:0; overflow:visible; }
+  .lbl { position:relative; width:0; height:0; overflow:visible; transition:opacity .2s; }
+  .lbl.off { opacity:0; }
   .lbl svg { position:absolute; left:0; top:0; overflow:visible; }
   .lbl span { position:absolute; white-space:nowrap; font-size:13px; font-weight:500; transform:translate(-50%,-100%); padding-bottom:2px;
               text-shadow:0 0 3px #F2F0EB, 0 0 3px #F2F0EB, 0 0 6px #F2F0EB; }
   #loading { position:fixed; inset:0; display:grid; place-items:center; font-size:14px; color:var(--grey); pointer-events:none; }
-  @media (max-width:700px) {
+  .sr { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  @media (max-width:760px) {
+    header { top:12px; left:14px; }
     header p { display:none; }
-    .controls { top:auto; bottom:84px; right:12px; }
-    footer { left:12px; right:12px; }
+    .controls { top:auto; bottom:86px; right:10px; left:10px; flex-direction:row; flex-wrap:wrap; justify-content:flex-end; align-items:flex-end; gap:6px; font-size:12px; }
+    .controls .panel { padding:4px 7px; }
+    .controls button { padding:4px 7px; }
+    .controls input[type=range] { width:72px; }
+    #groundv { display:none; }
+    .controls details[open] { order:-1; flex-basis:100%; }
+    footer { left:12px; right:12px; bottom:10px; }
+    footer .cap { font-size:11.5px; }
     .lbl span { font-size:11px; }
   }
+  @media (prefers-reduced-motion: reduce) { .lbl { transition:none; } }
 </style>
 <script type="importmap">
 { "imports": { "three": "./vendor/three.module.min.js" } }
 </script>
 </head>
 <body>
-<div id="stage" aria-label="3D view of the land above Cumberland Mine longwall panel 75, with the panel drawn at its depth beneath the ground" role="img"></div>
+<div id="stage" role="img" aria-label="Interactive 3D view of the land above Cumberland Mine longwall panel 75, with the panel drawn at its depth beneath the ground" aria-describedby="alt"></div>
+<p id="alt" class="sr">A block of land about 2.4 miles long and half a mile wide around the village of Oak Forest, Greene County, Pennsylvania: wooded ridges and open valleys, Pursley Creek, Oak Forest Road, a 138 kV power line and the Pursley substation, and the houses of the village. Beneath it, 600 to 800 feet down and following the gentle dip of the coal seam, a red slab marks longwall panel 75 of the Cumberland Mine, 11,221 feet long and 1,393 feet wide, mined from July 2022 to January 2023. It passes under the village. A dotted red line traces its outline on the ground above.</p>
 <div id="labels"></div>
-<div id="loading">Loading the land…</div>
+<div id="loading" role="status">Loading the land…</div>
 <header>
   <h1>Panel 75</h1>
   <p>The Cumberland Mine's longwall panel beneath Oak Forest and the land around it. Drag to turn it, scroll or pinch to zoom.</p>
   <a href="../">← Oak Forest property map</a>
 </header>
 <div class="controls">
-  <div class="row"><label for="ground">Ground</label><input id="ground" type="range" min="0.15" max="1" step="0.05" value="1"><span id="groundv">solid</span></div>
-  <div class="row"><button id="reset" type="button">Reset view</button><button id="village" type="button">Oak Forest</button><button id="below" type="button">From below</button></div>
+  <div class="panel row"><label for="ground">Ground</label><input id="ground" type="range" min="0.15" max="1" step="0.05" value="1"><span id="groundv" aria-live="polite">solid</span></div>
+  <div class="panel row" role="group" aria-label="Views">
+    <button id="reset" type="button" title="The view from the poster (R)">From the south</button>
+    <button id="village" type="button">Oak Forest</button>
+    <button id="below" type="button">From below</button>
+  </div>
+  <div class="panel row" role="group" aria-label="Vertical scale">
+    <span>Height</span><button id="ve1" type="button" aria-pressed="true">True</button><button id="ve3" type="button" aria-pressed="false">3×</button>
+  </div>
+  <details class="panel"><summary>Layers</summary>
+    <div class="layers" id="layers">
+      <label><input type="checkbox" data-layer="trees" checked> Trees</label>
+      <label><input type="checkbox" data-layer="lines" checked> Roads and streams</label>
+      <label><input type="checkbox" data-layer="built" checked> Buildings and power lines</label>
+      <label><input type="checkbox" data-layer="trace" checked> <span class="sw" style="background:repeating-linear-gradient(90deg,#C2401C 0 3px,transparent 3px 6px)"></span> Panel outline on the ground</label>
+      <label><input type="checkbox" data-layer="walls" checked> Panel edges, slab to surface</label>
+      <label><input type="checkbox" data-layer="box" checked> Block sides and seam</label>
+      <label><input type="checkbox" data-layer="labels" checked> Labels</label>
+    </div>
+  </details>
 </div>
 <footer>
-  <div class="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.</div>
+  <div class="cap" id="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
   <details><summary>Sources and notes</summary>
-    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
+    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
   </details>
 </footer>
 
@@ -84,8 +131,11 @@ const C = { bg:0xF2F0EB, ink:0x1B1B1B, earth:0xE3DFD7, grey:0x8C8880, red:0xC240
 const rgb = h => [(h >> 16 & 255) / 255, (h >> 8 & 255) / 255, (h & 255) / 255];
 const TREE = rgb(0xB9BBA9), TREE_D = rgb(0xA9AC98), GROUND = rgb(0xE0DFD0), FLOOR = rgb(0xBFC1AE);
 const ZC = 700;                                   // vertical centre (ft above sea level)
-const W = (h, d, z) => new THREE.Vector3(h, z - ZC, -d);
+let VE = 1;                                       // vertical exaggeration (applies to elevations, not to tree or building heights)
+const Y = z => (z - ZC) * VE;
+const W = (h, d, z, off = 0) => new THREE.Vector3(h, Y(z) + off, -d);
 const isPhone = matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 800;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // ---------- data
 const get = async (u, kind) => { for (let k = 0; k < 3; k++) { try { const r = await fetch(u); if (r.ok) return await r[kind](); } catch (e) {} await new Promise(r => setTimeout(r, 400)); } throw new Error(u); };
@@ -107,32 +157,32 @@ const q = M.seam_q;
 function seam(h, d) { h /= 1000; d /= 1000; return q[0] + q[1] * h + q[2] * d + q[3] * h * h + q[4] * h * d + q[5] * d * d; }
 const SEAM_FT = M.seam_ft, SLAB = SEAM_FT * M.slab_scale, ZBOT = M.zbot;
 const H0 = G.h0, H1 = G.h1, D0 = G.d0, D1 = G.d1;
+const PN = M.panel, a0 = PN.h0, a1 = PN.h1, b0 = PN.d0, b1 = PN.d1;
 
 // ---------- renderer, scene
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true });
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, isPhone ? 1.5 : 2));
 renderer.setClearColor(C.bg);
 stage.appendChild(renderer.domElement);
 renderer.domElement.tabIndex = 0;
+renderer.domElement.setAttribute('aria-label', 'Panel 75 3D view. Arrow keys turn, plus and minus zoom, R resets.');
 const labelRenderer = new CSS2DRenderer({ element: document.getElementById('labels') });
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(30, 1, 20, 400000);
-scene.add(new THREE.AmbientLight(0xffffff, 0.78));
-const sun = new THREE.DirectionalLight(0xffffff, 0.42);
-sun.position.copy(W(-0.45, 0.35, ZC + 0.82)).normalize();   // from the WNW and above, as in the poster
-scene.add(sun);
 
-// ---------- terrain shading (as the poster: base colour × (0.62 + 0.48 × slope light))
+// ---------- precomputed shading (as the poster: base colour × (0.62 + 0.48 × slope light)); depends on VE
 const L = new THREE.Vector3(-0.45, 0.35, 0.82).normalize();
 const shade = new Float32Array(NH * ND);
-for (let i = 0; i < ND; i++) for (let j = 0; j < NH; j++) {
-  const gx = (zAt(i, Math.min(j + 1, NH - 1)) - zAt(i, Math.max(j - 1, 0))) / (STEP * ((j > 0 && j < NH - 1) ? 2 : 1));
-  const gd = (zAt(Math.min(i + 1, ND - 1), j) - zAt(Math.max(i - 1, 0), j)) / (STEP * ((i > 0 && i < ND - 1) ? 2 : 1));
-  const n = Math.hypot(gx, gd, 1);
-  shade[i * NH + j] = Math.min(Math.max((-gx * L.x - gd * L.y + L.z) / n, 0), 1);
+function computeShade() {   // slope light on the true (unexaggerated) surface, so the look stays the poster's
+  for (let i = 0; i < ND; i++) for (let j = 0; j < NH; j++) {
+    const gx = (zAt(i, Math.min(j + 1, NH - 1)) - zAt(i, Math.max(j - 1, 0))) / (STEP * ((j > 0 && j < NH - 1) ? 2 : 1));
+    const gd = (zAt(Math.min(i + 1, ND - 1), j) - zAt(Math.max(i - 1, 0), j)) / (STEP * ((i > 0 && i < ND - 1) ? 2 : 1));
+    shade[i * NH + j] = Math.min(Math.max((-gx * L.x - gd * L.y + L.z) / Math.hypot(gx, gd, 1), 0), 1);
+  }
 }
+computeShade();
 const forest = new Uint8Array(NH * ND);
 for (let k = 0; k < NT; k++) {
   const i = Math.round((Ti[k * 3 + 1] - D0) / STEP), j = Math.round((Ti[k * 3] - H0) / STEP);
@@ -140,13 +190,48 @@ for (let k = 0; k < NT; k++) {
 }
 const shadeAt = (h, d) => shade[Math.min(Math.max(Math.round((d - D0) / STEP), 0), ND - 1) * NH + Math.min(Math.max(Math.round((h - H0) / STEP), 0), NH - 1)];
 
+// ---------- materials shared across rebuilds
 const groundMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 1,
   polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
-{
+// roads and streams stay readable above the crowns (as on the poster): they mark the stencil, trees skip those pixels
+const treeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 1,
+  stencilWrite: true, stencilRef: 1, stencilFunc: THREE.NotEqualStencilFunc, stencilZPass: THREE.KeepStencilOp });
+// panel: drawn through everything at 28% (as the poster's composite); back faces culled so each part is blended once
+const slabMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
+const wallMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
+const faceMat = new THREE.MeshBasicMaterial({ color: C.earth, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
+let lineMats = [];
+function fatLine(pts3, { color = C.ink, width = 1, dashed = false, dash = 6, gap = 8, opacity = 1, xray = false, order = 5 } = {}) {
+  const g = new LineGeometry(); g.setPositions(pts3.flatMap(p => [p.x, p.y, p.z]));
+  const mat = new LineMaterial({ color, linewidth: width, dashed, dashSize: dash, gapSize: gap, transparent: opacity < 1 || xray, opacity,
+    depthTest: !xray, depthWrite: !xray, worldUnits: false });
+  mat.resolution.set(innerWidth, innerHeight); lineMats.push(mat);
+  const l = new Line2(g, mat); if (dashed) l.computeLineDistances(); l.renderOrder = order; return l;
+}
+function meshOf(arr, mat, order = 0) {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+  const m = new THREE.Mesh(g, mat); m.renderOrder = order; return m;
+}
+
+// ---------- layers (rebuilt when the vertical scale changes)
+const layers = {};
+const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true };
+const labelObjs = [];
+function clearLayers() {
+  for (const g of Object.values(layers)) {
+    scene.remove(g);
+    g.traverse(o => { if (o.geometry && o !== treeMesh) o.geometry.dispose(); if (o.isCSS2DObject) o.element.remove(); });
+  }
+  for (const m of lineMats) m.dispose(); lineMats = []; labelObjs.length = 0;
+}
+function addLayer(name, g) { layers[name] = g; g.visible = layerOn[name] ?? true; scene.add(g); }
+
+function buildGround() {
+  const g = new THREE.Group();
   const pos = new Float32Array(NH * ND * 3), col = new Float32Array(NH * ND * 3);
   for (let i = 0; i < ND; i++) for (let j = 0; j < NH; j++) {
-    const k = i * NH + j, h = H0 + j * STEP, d = D0 + i * STEP;
-    pos[k * 3] = h; pos[k * 3 + 1] = zAt(i, j) - ZC; pos[k * 3 + 2] = -d;
+    const k = i * NH + j;
+    pos[k * 3] = H0 + j * STEP; pos[k * 3 + 1] = Y(zAt(i, j)); pos[k * 3 + 2] = -(D0 + i * STEP);
     const base = forest[k] ? FLOOR : GROUND, f = 0.62 + 0.48 * shade[k];
     col[k * 3] = Math.min(base[0] * f, 1); col[k * 3 + 1] = Math.min(base[1] * f, 1); col[k * 3 + 2] = Math.min(base[2] * f, 1);
   }
@@ -155,132 +240,123 @@ const groundMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.
     const a = i * NH + j, b = a + 1, c = a + NH, e = c + 1;
     idx[n++] = a; idx[n++] = c; idx[n++] = b; idx[n++] = b; idx[n++] = c; idx[n++] = e;
   }
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setIndex(new THREE.BufferAttribute(idx, 1));
-  const ground = new THREE.Mesh(g, groundMat); ground.renderOrder = 1; scene.add(ground);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); geo.setIndex(new THREE.BufferAttribute(idx, 1));
+  const ground = new THREE.Mesh(geo, groundMat); ground.renderOrder = 1; g.add(ground);
+  addLayer('ground', g);
 }
 
-// ---------- trees (instanced ellipsoid crowns, poster colours shaded by slope)
-const treeGroup = new THREE.Group(); scene.add(treeGroup);
-// roads and streams stay readable above the crowns (as on the poster): they mark the stencil, trees skip those pixels
-const treeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 1,
-  stencilWrite: true, stencilRef: 1, stencilFunc: THREE.NotEqualStencilFunc, stencilZPass: THREE.KeepStencilOp });
+const treeGeo = new THREE.IcosahedronGeometry(1, isPhone ? 0 : 1);
+{ // bake soft shading into the crown (unlit, illustrated look): lighter towards the light
+  const n = treeGeo.attributes.normal, c = new Float32Array(n.count * 3), Ld = new THREE.Vector3(L.x, L.z, -L.y).normalize();
+  for (let k = 0; k < n.count; k++) { const f = 0.84 + 0.26 * Math.max(0, n.getX(k) * Ld.x + n.getY(k) * Ld.y + n.getZ(k) * Ld.z); c[k * 3] = c[k * 3 + 1] = c[k * 3 + 2] = f; }
+  treeGeo.setAttribute('color', new THREE.BufferAttribute(c, 3));
+}
+const treeMesh = new THREE.InstancedMesh(treeGeo, treeMat, NT);
 {
-  const geo = new THREE.IcosahedronGeometry(1, isPhone ? 0 : 1);
-  { // bake soft shading into the crown (unlit, illustrated look): lighter towards the light
-    const n = geo.attributes.normal, c = new Float32Array(n.count * 3), Ld = W(-0.45, 0.35, ZC + 0.82).normalize();
-    for (let k = 0; k < n.count; k++) { const f = 0.84 + 0.26 * Math.max(0, n.getX(k) * Ld.x + n.getY(k) * Ld.y + n.getZ(k) * Ld.z); c[k * 3] = c[k * 3 + 1] = c[k * 3 + 2] = f; }
-    geo.setAttribute('color', new THREE.BufferAttribute(c, 3));
+  const col = new THREE.Color(); let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let k = 0; k < NT; k++) {
+    const base = rnd() < 0.6 ? TREE : TREE_D, f = 0.70 + 0.42 * shadeAt(Ti[k * 3], Ti[k * 3 + 1]);
+    treeMesh.setColorAt(k, col.setRGB(Math.min(base[0] * f, 1), Math.min(base[1] * f, 1), Math.min(base[2] * f, 1)));
   }
-  const mesh = new THREE.InstancedMesh(geo, treeMat, NT);
-  const m = new THREE.Matrix4(), col = new THREE.Color();
-  let seed = 5; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  treeMesh.instanceColor.needsUpdate = true; treeMesh.renderOrder = 4; treeMesh.frustumCulled = false;
+}
+function buildTrees() {
+  const m = new THREE.Matrix4();
   for (let k = 0; k < NT; k++) {
     const h = Ti[k * 3], d = Ti[k * 3 + 1], z = Ti[k * 3 + 2] / 10, ht = Tu[k * 2], r = Tu[k * 2 + 1], ch = ht * 0.7;
-    m.makeScale(r, ch / 2, r); m.setPosition(h, z + ht - ch / 2 - ZC, -d); mesh.setMatrixAt(k, m);
-    const base = rnd() < 0.6 ? TREE : TREE_D, f = 0.70 + 0.42 * shadeAt(h, d);
-    mesh.setColorAt(k, col.setRGB(Math.min(base[0] * f, 1), Math.min(base[1] * f, 1), Math.min(base[2] * f, 1)));
+    m.makeScale(r, ch / 2, r); m.setPosition(h, Y(z) + ht - ch / 2, -d); treeMesh.setMatrixAt(k, m);
   }
-  mesh.instanceMatrix.needsUpdate = true; mesh.instanceColor.needsUpdate = true; mesh.renderOrder = 4;
-  treeGroup.add(mesh);
+  treeMesh.instanceMatrix.needsUpdate = true;
+  const g = new THREE.Group(); g.add(treeMesh); addLayer('trees', g);
 }
 
-// ---------- ribbons on the ground: roads and streams
-function ribbon(pts, width, color, lift, out) {   // pts: [[h,d,z?],...] → triangles appended to out
+function ribbon(pts, width, lift, out) {
   for (let k = 0; k < pts.length - 1; k++) {
     const [h1, d1] = pts[k], [h2, d2] = pts[k + 1];
     let dh = h2 - h1, dd = d2 - d1; const len = Math.hypot(dh, dd); if (len < 0.01) continue;
     dh /= len; dd /= len; const w = width / 2, ext = w * 0.9;
     const a = [h1 - dh * ext, d1 - dd * ext], b = [h2 + dh * ext, d2 + dd * ext];
     const quad = [[a[0] - dd * w, a[1] + dh * w], [a[0] + dd * w, a[1] - dh * w], [b[0] + dd * w, b[1] - dh * w], [b[0] - dd * w, b[1] + dh * w]];
-    const v = quad.map(([h, d]) => [h, zg(h, d) + lift - ZC, -d]);
+    const v = quad.map(([h, d]) => [h, Y(zg(h, d)) + lift, -d]);
     for (const t of [0, 1, 2, 0, 2, 3]) out.push(...v[t]);
   }
 }
-function flatMesh(arr, color, order, offset) {
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
-  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -offset, polygonOffsetUnits: -offset * 2,
-    stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp }));
-  m.renderOrder = order; return m;
-}
-const lineGroup = new THREE.Group(); scene.add(lineGroup);
-{
-  const st = [];
-  for (const s of M.streams) {
-    const w = 5 + 10 * Math.min(Math.log10(Math.max(s[6], 40) / 40) / 2, 1);
-    ribbon([[s[0], s[1]], [s[3], s[4]]], w, C.water, 1.5, st);
+const ribbonMat = (color, offset) => new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -offset, polygonOffsetUnits: -offset * 2,
+  stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp });
+const streamMat = ribbonMat(C.water, 2), minorMat = ribbonMat(C.road, 3), majorMat = ribbonMat(C.road, 4);
+// smooth the lidar-traced stream lines (they follow a 10 ft grid): chain segments, then average neighbours
+function streamChains() {
+  const key = (h, d) => Math.round(h * 2) + ',' + Math.round(d * 2), next = new Map(), indeg = new Map();
+  for (const s of M.streams) { next.set(key(s[0], s[1]), s); const k2 = key(s[3], s[4]); indeg.set(k2, (indeg.get(k2) || 0) + 1); }
+  const used = new Set(), chains = [], isMid = s => (indeg.get(key(s[0], s[1])) || 0) === 1;
+  for (const s of [...M.streams].sort((u, v) => isMid(u) - isMid(v))) {   // start chains at sources and confluences
+    if (used.has(s)) continue;
+    const ch = [[s[0], s[1], s[6]]]; let cur = s;
+    while (cur && !used.has(cur)) { used.add(cur); ch.push([cur[3], cur[4], cur[6]]); const nx = next.get(key(cur[3], cur[4])); cur = nx && (indeg.get(key(nx[0], nx[1])) || 0) <= 1 ? nx : null; if (nx && !cur) ch.push([nx[0], nx[1], nx[6]]); }
+    chains.push(ch);
   }
-  lineGroup.add(flatMesh(st, C.water, 3, 2));
-  const maj = [], min = [];
-  for (const r of M.roads) ribbon(r.pts, r.major ? 16 : 11, C.road, 2, r.major ? maj : min);
-  lineGroup.add(flatMesh(min, C.road, 3, 3)); lineGroup.add(flatMesh(maj, C.road, 3, 4));
+  for (const ch of chains) for (let pass = 0; pass < 3; pass++) for (let k = 1; k < ch.length - 1; k++) {
+    ch[k][0] = (ch[k - 1][0] + 2 * ch[k][0] + ch[k + 1][0]) / 4; ch[k][1] = (ch[k - 1][1] + 2 * ch[k][1] + ch[k + 1][1]) / 4;
+  }
+  return chains;
+}
+const STREAMS = streamChains();
+function buildLines() {
+  const g = new THREE.Group(), st = [], maj = [], min = [];
+  for (const ch of STREAMS) for (let k = 0; k < ch.length - 1; k++) {
+    const w = 5 + 10 * Math.min(Math.log10(Math.max(ch[k][2], 40) / 40) / 2, 1);
+    ribbon([ch[k], ch[k + 1]], w, 1.5, st);
+  }
+  for (const r of M.roads) ribbon(r.pts, r.major ? 16 : 11, 2, r.major ? maj : min);
+  g.add(meshOf(st, streamMat, 3), meshOf(min, minorMat, 3), meshOf(maj, majorMat, 3));
+  addLayer('lines', g);
 }
 
-// ---------- fat lines helper (pixel widths)
-const lineMats = [];
-function fatLine(pts3, { color = C.ink, width = 1, dashed = false, dash = 6, gap = 8, opacity = 1, xray = false, order = 5 } = {}) {
-  const g = new LineGeometry(); g.setPositions(pts3.flatMap(p => [p.x, p.y, p.z]));
-  const mat = new LineMaterial({ color, linewidth: width, dashed, dashSize: dash, gapSize: gap, transparent: opacity < 1 || xray, opacity,
-    depthTest: !xray, depthWrite: !xray, worldUnits: false });
-  lineMats.push(mat);
-  const l = new Line2(g, mat); if (dashed) l.computeLineDistances(); l.renderOrder = order; return l;
-}
-
-// ---------- buildings
-const bldGroup = new THREE.Group(); scene.add(bldGroup);
-{
-  const walls = [], roofs = [], edges = [];
+const wallBMat = new THREE.MeshBasicMaterial({ color: C.bg, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+const roofBMat = new THREE.MeshBasicMaterial({ color: C.roof, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
+const subMat = new THREE.MeshBasicMaterial({ color: C.sub, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -12 });
+const inkMat = new THREE.LineBasicMaterial({ color: C.ink });
+function buildBuilt() {
+  const g = new THREE.Group(), walls = [], roofs = [], edges = [];
   const tri = (arr, a, b, c) => arr.push(...a, ...b, ...c);
   const quad = (arr, a, b, c, d) => { tri(arr, a, b, c); tri(arr, a, c, d); };
-  const P = (p, z) => [p[0], z - ZC, -p[1]];
   for (const b of M.buildings) {
     let Pp = b.poly.map(p => p.slice());
     const len = (u, v) => Math.hypot(u[0] - v[0], u[1] - v[1]);
     if (len(Pp[2], Pp[1]) > len(Pp[1], Pp[0])) Pp = [Pp[1], Pp[2], Pp[3], Pp[0]];
-    const z = b.z, e = z + b.eave, r = z + b.ridge;
-    for (let k = 0; k < 4; k++) { const a = Pp[k], c = Pp[(k + 1) % 4]; quad(walls, P(a, z), P(c, z), P(c, e), P(a, e)); edges.push(P(a, e), P(c, e), P(a, z), P(a, e)); }
-    if (b.ridge > b.eave + 0.5) {
+    const y0 = Y(b.z), P = (p, dy) => [p[0], y0 + dy, -p[1]], e = b.eave, r = b.ridge;
+    for (let k = 0; k < 4; k++) { const a = Pp[k], c = Pp[(k + 1) % 4]; quad(walls, P(a, 0), P(c, 0), P(c, e), P(a, e)); edges.push(P(a, e), P(c, e), P(a, 0), P(a, e)); }
+    if (r > e + 0.5) {
       const m12 = [(Pp[1][0] + Pp[2][0]) / 2, (Pp[1][1] + Pp[2][1]) / 2], m30 = [(Pp[3][0] + Pp[0][0]) / 2, (Pp[3][1] + Pp[0][1]) / 2];
       quad(roofs, P(Pp[0], e), P(Pp[1], e), P(m12, r), P(m30, r)); quad(roofs, P(Pp[2], e), P(Pp[3], e), P(m30, r), P(m12, r));
       tri(walls, P(Pp[1], e), P(Pp[2], e), P(m12, r)); tri(walls, P(Pp[3], e), P(Pp[0], e), P(m30, r));
       edges.push(P(m12, r), P(m30, r), P(Pp[1], e), P(m12, r), P(Pp[2], e), P(m12, r), P(Pp[3], e), P(m30, r), P(Pp[0], e), P(m30, r));
     } else quad(roofs, P(Pp[0], e), P(Pp[1], e), P(Pp[2], e), P(Pp[3], e));
   }
-  const mk = (arr, color) => { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3)); g.computeVertexNormals();
-    return new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 })); };
-  bldGroup.add(mk(walls, C.bg), mk(roofs, C.roof));
+  g.add(meshOf(walls, wallBMat), meshOf(roofs, roofBMat));
   const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(edges.flat(), 3));
-  bldGroup.add(new THREE.LineSegments(eg, new THREE.LineBasicMaterial({ color: C.ink })));
-  // substation yard
+  g.add(new THREE.LineSegments(eg, inkMat));
   for (const s of M.subs) {
-    const zs = s.map(([h, d]) => zg(h, d)).sort((a, b) => a - b), z = zs[Math.floor(zs.length / 2)] + 1;
-    const shape = new THREE.Shape(s.map(([h, d]) => new THREE.Vector2(h, d)));
-    const g = new THREE.ShapeGeometry(shape); g.rotateX(-Math.PI / 2); g.translate(0, z - ZC, 0);   // (h,d) → (x, -z)
-    const mesh = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ color: C.sub, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -12 }));
-    bldGroup.add(mesh);
-    bldGroup.add(fatLine([...s, s[0]].map(([h, d]) => W(h, d, z + 0.5)), { color: C.ink, width: 0.8 }));
+    const zs = s.map(([h, d]) => zg(h, d)).sort((a, b) => a - b), z = zs[Math.floor(zs.length / 2)];
+    const geo = new THREE.ShapeGeometry(new THREE.Shape(s.map(([h, d]) => new THREE.Vector2(h, d)))); geo.rotateX(-Math.PI / 2); geo.translate(0, Y(z) + 1, 0);
+    g.add(new THREE.Mesh(geo, subMat));
+    g.add(fatLine([...s, s[0]].map(([h, d]) => W(h, d, z, 1.5)), { color: C.ink, width: 0.8 }));
   }
-}
-
-// ---------- power: poles, towers, wires
-const powerGroup = new THREE.Group(); scene.add(powerGroup);
-{
   const seg = [];
-  for (const p of M.poles) seg.push(W(p[0], p[1], p[2]), W(p[0], p[1], p[2] + 40));
-  for (const t of M.towers) seg.push(W(t[0], t[1], t[2]), W(t[0], t[1], t[2] + 110));
-  const g = new THREE.BufferGeometry().setFromPoints(seg);
-  powerGroup.add(new THREE.LineSegments(g, new THREE.LineBasicMaterial({ color: C.ink })));
+  for (const p of M.poles) seg.push(W(p[0], p[1], p[2]), W(p[0], p[1], p[2], 40));
+  for (const t of M.towers) seg.push(W(t[0], t[1], t[2]), W(t[0], t[1], t[2], 110));
+  g.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg), inkMat));
   for (const p of M.power) {
     if (p.pts.length < 2) continue;
     const ht = p.kind === 'line' ? 90 : 37;
-    powerGroup.add(fatLine(p.pts.map(([h, d]) => W(h, d, zg(h, d) + ht)), { color: C.ink, width: 0.7, opacity: 0.85 }));
+    g.add(fatLine(p.pts.map(([h, d]) => W(h, d, zg(h, d), ht)), { color: C.ink, width: 0.7, opacity: 0.85 }));
   }
+  addLayer('built', g);
 }
 
-// ---------- the block: see-through faces, edges, ground profiles, the unmined seam
-const boxGroup = new THREE.Group(); scene.add(boxGroup);
-{
-  const faceMat = new THREE.MeshBasicMaterial({ color: C.earth, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
+function buildBox() {
+  const g = new THREE.Group();
   const sides = [[[H0, D0], [H1, D0]], [[H1, D0], [H1, D1]], [[H1, D1], [H0, D1]], [[H0, D1], [H0, D0]]];
   for (const [[ha, da], [hb, db]] of sides) {
     const n = Math.max(2, Math.round(Math.hypot(hb - ha, db - da) / STEP)), pos = [], top = [], sl = [];
@@ -293,106 +369,159 @@ const boxGroup = new THREE.Group(); scene.add(boxGroup);
         pos.push(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, a.x, a.y, a.z, c.x, c.y, c.z, e.x, e.y, e.z);
       }
     }
-    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-    const face = new THREE.Mesh(g, faceMat); face.renderOrder = 6; boxGroup.add(face);
-    boxGroup.add(fatLine(top, { color: C.ink, width: 1.1, order: 7 }));
-    boxGroup.add(fatLine(sl, { color: C.seam, width: 1.3, order: 7 }));
-    boxGroup.add(fatLine([W(ha, da, ZBOT), W(hb, db, ZBOT)], { color: C.grey, width: 0.8, order: 7 }));
-    boxGroup.add(fatLine([W(ha, da, ZBOT), W(ha, da, zg(ha, da))], { color: C.grey, width: 0.8, order: 7 }));
+    g.add(meshOf(pos, faceMat, 6));
+    g.add(fatLine(top, { color: C.ink, width: 1.1, order: 7 }));
+    g.add(fatLine(sl, { color: C.seam, width: 1.3, order: 7 }));
+    g.add(fatLine([W(ha, da, ZBOT), W(hb, db, ZBOT)], { color: C.grey, width: 0.8, order: 7 }));
+    g.add(fatLine([W(ha, da, ZBOT), W(ha, da, zg(ha, da))], { color: C.grey, width: 0.8, order: 7 }));
   }
-  const bot = new THREE.Mesh(new THREE.PlaneGeometry(H1 - H0, D1 - D0).rotateX(-Math.PI / 2).translate((H0 + H1) / 2, ZBOT - ZC, -(D0 + D1) / 2), faceMat);
-  bot.renderOrder = 6; boxGroup.add(bot);
+  const bot = new THREE.Mesh(new THREE.PlaneGeometry(H1 - H0, D1 - D0).rotateX(-Math.PI / 2).translate((H0 + H1) / 2, Y(ZBOT), -(D0 + D1) / 2), faceMat);
+  bot.renderOrder = 6; g.add(bot);
+  addLayer('box', g);
 }
 
-// ---------- panel 75: slab at the seam (drawn 10× its height), x-ray copy, ground trace, corner lines
-const panelGroup = new THREE.Group(); scene.add(panelGroup);
-const PN = M.panel, a0 = PN.h0, a1 = PN.h1, b0 = PN.d0, b1 = PN.d1;
-function slabGeometry(withBottom) {
+// the panel's rim, as a list of [h, d] running round it
+const RIM = [[a0, b0], [a1, b0], [a1, b1], [a0, b1], [a0, b0]];
+function rimPoints(stepFt) {
+  const out = [];
+  for (let k = 0; k < 4; k++) { const [h1, d1] = RIM[k], [h2, d2] = RIM[k + 1], n = Math.max(2, Math.round(Math.hypot(h2 - h1, d2 - d1) / stepFt));
+    for (let i = 0; i < n; i++) { const t = i / n; out.push([h1 + (h2 - h1) * t, d1 + (d2 - d1) * t, k]); } }
+  out.push([a0, b0, 3]); return out;
+}
+function buildPanel() {
+  const g = new THREE.Group();
   const NU = 90, NV = 10, pos = [], col = [];
   const top = rgb(C.red), side = rgb(C.redD);
   const put = (v, c) => { pos.push(v.x, v.y, v.z); col.push(...c); };
-  const S = (h, d, up) => W(h, d, seam(h, d) + (up ? SLAB : 0));
+  const S = (h, d, up) => W(h, d, seam(h, d), up ? SLAB : 0);
   const hu = u => a0 + (a1 - a0) * u / NU, dv = v => b0 + (b1 - b0) * v / NV;
   for (let u = 0; u < NU; u++) for (let v = 0; v < NV; v++) {
     const p = [S(hu(u), dv(v), 1), S(hu(u + 1), dv(v), 1), S(hu(u + 1), dv(v + 1), 1), S(hu(u), dv(v + 1), 1)];
-    // top faces up: wind so the normal points +y
     for (const k of [0, 1, 2, 0, 2, 3]) put(p[k], top);
-    if (withBottom) { const q2 = [S(hu(u), dv(v), 0), S(hu(u + 1), dv(v), 0), S(hu(u + 1), dv(v + 1), 0), S(hu(u), dv(v + 1), 0)]; for (const k of [0, 2, 1, 0, 3, 2]) put(q2[k], side); }
+    const p2 = [S(hu(u), dv(v), 0), S(hu(u + 1), dv(v), 0), S(hu(u + 1), dv(v + 1), 0), S(hu(u), dv(v + 1), 0)];
+    for (const k of [0, 2, 1, 0, 3, 2]) put(p2[k], side);
   }
   const edge = (pts) => { for (let k = 0; k < pts.length - 1; k++) {
-    const [h1, d1] = pts[k], [h2, d2] = pts[k + 1];
-    const a = S(h1, d1, 0), b = S(h2, d2, 0), c = S(h2, d2, 1), e = S(h1, d1, 1);
-    for (const v of [a, b, c, a, c, e]) put(v, side);
-  } };
-  const along = (d, rev) => { const p = []; for (let u = 0; u <= NU; u++) p.push([hu(rev ? NU - u : u), d]); return p; };
-  const across = (h, rev) => { const p = []; for (let v = 0; v <= NV; v++) p.push([h, dv(rev ? NV - v : v)]); return p; };
+    const [h1, d1] = pts[k], [h2, d2] = pts[k + 1], a = S(h1, d1, 0), b = S(h2, d2, 0), c = S(h2, d2, 1), e = S(h1, d1, 1);
+    for (const v of [a, b, c, a, c, e]) put(v, side); } };
+  const along = (d, rev) => Array.from({ length: NU + 1 }, (_, u) => [hu(rev ? NU - u : u), d]);
+  const across = (h, rev) => Array.from({ length: NV + 1 }, (_, v) => [h, dv(rev ? NV - v : v)]);
   edge(along(b0, false)); edge(across(a1, false)); edge(along(b1, true)); edge(across(a0, true));
-  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-  return g;
-}
-// drawn through everything at 28% (as the poster's composite); back faces culled so each part is blended once
-const slabMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
-const slabXray = new THREE.Mesh(slabGeometry(true), slabMat);
-slabXray.renderOrder = 20; panelGroup.add(slabXray);
-{
-  const rim = [[a0, b0], [a1, b0], [a1, b1], [a0, b1], [a0, b0]], tr = [];
-  for (let k = 0; k < 4; k++) { const [h1, d1] = rim[k], [h2, d2] = rim[k + 1];
-    for (let t = 0; t < 1; t += 1 / 160) { const h = h1 + (h2 - h1) * t, d = d1 + (d2 - d1) * t; tr.push(W(h, d, zg(h, d) + 3)); } }
-  tr.push(tr[0].clone());
-  panelGroup.add(fatLine(tr, { color: C.bg, width: 3.6, opacity: 0.35, xray: true, order: 21 }));
-  panelGroup.add(fatLine(tr, { color: C.red, width: 1.8, dashed: true, dash: 12, gap: 26, xray: true, order: 22 }));
-  for (const [h, d] of rim.slice(0, 4)) panelGroup.add(fatLine([W(h, d, seam(h, d) + SLAB), W(h, d, zg(h, d) + 3)], { color: C.red, width: 1, opacity: 0.75, xray: true, order: 22 }));
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  const slab = new THREE.Mesh(geo, slabMat); slab.renderOrder = 20; g.add(slab);
+  addLayer('panel', g);
+
+  // outline traced on the ground, and the corner lines up to it
+  const tg = new THREE.Group();
+  const tr = rimPoints(70).map(([h, d]) => W(h, d, zg(h, d), 3));
+  tg.add(fatLine(tr, { color: C.bg, width: 3.6, opacity: 0.35, xray: true, order: 21 }));
+  tg.add(fatLine(tr, { color: C.red, width: 1.8, dashed: true, dash: 12, gap: 26, xray: true, order: 22 }));
+  for (const [h, d] of RIM.slice(0, 4)) tg.add(fatLine([W(h, d, seam(h, d), SLAB), W(h, d, zg(h, d), 3)], { color: C.red, width: 1, opacity: 0.75, xray: true, order: 22 }));
+  addLayer('trace', tg);
+
+  // edges: translucent walls from the slab's top edges up to the outline on the ground, fading upwards, with faint dashed verticals
+  const wg = new THREE.Group(), wp = [], wc = [];
+  const rp = rimPoints(60);
+  const A0 = 0.11, A1 = 0.0;   // alpha at the slab, at the surface
+  const r = rgb(C.red);
+  for (let k = 0; k < rp.length - 1; k++) {
+    const [h1, d1] = rp[k], [h2, d2] = rp[k + 1];
+    const lo1 = W(h1, d1, seam(h1, d1), SLAB), lo2 = W(h2, d2, seam(h2, d2), SLAB), hi1 = W(h1, d1, zg(h1, d1), 3), hi2 = W(h2, d2, zg(h2, d2), 3);
+    for (const [v, a] of [[lo1, A0], [lo2, A0], [hi2, A1], [lo1, A0], [hi2, A1], [hi1, A1]]) { wp.push(v.x, v.y, v.z); wc.push(r[0], r[1], r[2], a); }
+  }
+  const wgeo = new THREE.BufferGeometry(); wgeo.setAttribute('position', new THREE.Float32BufferAttribute(wp, 3)); wgeo.setAttribute('color', new THREE.Float32BufferAttribute(wc, 4));
+  const wall = new THREE.Mesh(wgeo, wallMat); wall.renderOrder = 19; wg.add(wall);
+  // dashed verticals about every 700 ft along the long sides, every ~350 ft on the ends
+  for (let k = 0; k < 4; k++) {
+    const [h1, d1] = RIM[k], [h2, d2] = RIM[k + 1], L_ = Math.hypot(h2 - h1, d2 - d1), n = Math.max(2, Math.round(L_ / (L_ > 3000 ? 700 : 350)));
+    for (let i = 1; i < n; i++) { const t = i / n, h = h1 + (h2 - h1) * t, d = d1 + (d2 - d1) * t;
+      wg.add(fatLine([W(h, d, seam(h, d), SLAB), W(h, d, zg(h, d), 3)], { color: C.red, width: 0.8, dashed: true, dash: 3, gap: 5, opacity: 0.45, xray: true, order: 21 })); }
+  }
+  addLayer('walls', wg);
 }
 
-// ---------- labels
-for (const [h, d, dz, dx, dy, text, color] of M.labels) {
-  const el = document.createElement('div'); el.className = 'lbl';
-  const ox = dx * 0.16, oy = -dy * 0.16;
-  el.innerHTML = `<svg width="1" height="1"><line x1="0" y1="0" x2="${ox}" y2="${oy}" stroke="${color}" stroke-width="1"/></svg><span style="left:${ox}px;top:${oy}px;color:${color}">${text}</span>`;
-  const o = new CSS2DObject(el); o.position.copy(W(h, d, zg(h, d) + dz)); o.center.set(0, 0); scene.add(o);
+// labels (priority = list order); decluttered each frame
+function buildLabels() {
+  const g = new THREE.Group();
+  M.labels.forEach(([h, d, dz, dx, dy, text, color], i) => {
+    const el = document.createElement('div'); el.className = 'lbl';
+    const ox = dx * 0.16, oy = -dy * 0.16;
+    el.innerHTML = `<svg width="1" height="1" aria-hidden="true"><line x1="0" y1="0" x2="${ox}" y2="${oy}" stroke="${color}" stroke-width="1"/></svg><span style="left:${ox}px;top:${oy}px;color:${color}">${text}</span>`;
+    const o = new CSS2DObject(el); o.position.copy(W(h, d, zg(h, d), dz)); o.center.set(0, 0); g.add(o); labelObjs.push({ o, el, span: el.querySelector('span'), i });
+  });
+  addLayer('labels', g);
 }
+function declutter() {
+  const boxes = [];
+  for (const L_ of labelObjs) {
+    if (L_.el.style.display === 'none') continue;
+    const r = L_.span.getBoundingClientRect();
+    const off = r.left < 0 || r.right > innerWidth || r.top < 0;
+    const hit = off || boxes.some(b => r.left < b.right + 4 && r.right > b.left - 4 && r.top < b.bottom + 2 && r.bottom > b.top - 2);
+    L_.el.classList.toggle('off', hit);
+    if (!hit) boxes.push(r);
+  }
+}
+
+function buildAll() { clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildLabels(); }
+buildAll();
 
 // ---------- camera and controls
 const HC = (a0 + a1) / 2, EL = 50 * Math.PI / 180;
-const target0 = W(HC, 450, ZC);
+const tgt0 = () => W(HC, 450, ZC);
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true; controls.dampingFactor = 0.08; controls.screenSpacePanning = true;
+controls.enableDamping = !reduceMotion; controls.dampingFactor = 0.08; controls.screenSpacePanning = true;
 controls.minDistance = 250; controls.maxDistance = 90000; controls.maxPolarAngle = Math.PI; controls.zoomToCursor = true;
-controls.listenToKeyEvents(window); controls.keyPanSpeed = 30;
+controls.keys = { LEFT: '', UP: '', RIGHT: '', BOTTOM: '' };   // arrows rotate (handled below), not pan
 function fitDistance() {
   const hf = 2 * Math.atan(Math.tan(camera.fov * Math.PI / 360) * camera.aspect);
   return Math.max(15000, ((H1 - H0) / 2) / Math.tan(hf / 2) / 0.9);
 }
-function view(el, az = 0, tgt = target0, dist = fitDistance()) {
+// distance at which the whole block fits the screen from this direction
+function fitBox(el, az, tgt) {
+  const pts = []; for (const h of [H0, H1]) for (const d of [D0, D1]) for (const z of [ZBOT, 1530]) pts.push(W(h, d, z));
+  let lo = 1000, hi = 300000;
+  for (let it = 0; it < 30; it++) {
+    const dist = (lo + hi) / 2;
+    camera.position.set(tgt.x + dist * Math.cos(el) * Math.sin(az), tgt.y + dist * Math.sin(el), tgt.z + dist * Math.cos(el) * Math.cos(az));
+    camera.lookAt(tgt); camera.updateMatrixWorld();
+    const ok = pts.every(p => { const v = p.clone().project(camera); return Math.abs(v.x) < 0.94 && v.y < 0.62 && v.y > -0.55 && v.z < 1; });
+    if (ok) hi = dist; else lo = dist;
+  }
+  return hi;
+}
+function view(el, az = 0, tgt = tgt0(), dist = fitDistance()) {
   controls.target.copy(tgt);
   camera.position.set(tgt.x + dist * Math.cos(el) * Math.sin(az), tgt.y + dist * Math.sin(el), tgt.z + dist * Math.cos(el) * Math.cos(az));
   camera.lookAt(tgt); controls.update();
 }
-const village = () => view(36 * Math.PI / 180, -25 * Math.PI / 180, W(2390, 560, zg(2390, 560) - 40), 1900);
+const views = {
+  // portrait screens: an oblique view along the panel fills the frame better than the poster's side-on view
+  reset: () => camera.aspect < 0.9 ? view(38 * Math.PI / 180, -0.85, W(HC, 450, ZC), fitBox(38 * Math.PI / 180, -0.85, W(HC, 450, ZC))) : view(EL),
+  village: () => view(36 * Math.PI / 180, -25 * Math.PI / 180, W(2390, 560, zg(2390, 560), -40 * VE), isPhone ? 2600 : 1900),
+  below: () => { const el = -30 * Math.PI / 180, az = camera.aspect < 0.9 ? -0.85 : 0.35; view(el, az, tgt0(), fitBox(el, az, tgt0())); },
+};
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h); labelRenderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
   for (const m of lineMats) m.resolution.set(w, h);
 }
-resize(); view(EL);
+resize(); views.reset();
 addEventListener('resize', resize);
-document.getElementById('reset').onclick = () => view(EL);
-document.getElementById('below').onclick = () => view(-38 * Math.PI / 180, 0.45, target0, fitDistance() * 0.85);
-document.getElementById('village').onclick = village;
+for (const k of Object.keys(views)) document.getElementById(k).onclick = views[k];
 addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SUMMARY' || e.metaKey || e.ctrlKey) return;
   const rot = 0.06;
-  if (e.key === 'r' || e.key === 'R') view(EL);
-  else if (e.key === '+' || e.key === '=') { camera.position.lerp(controls.target, 0.15); }
-  else if (e.key === '-' || e.key === '_') { camera.position.sub(controls.target).multiplyScalar(1.18).add(controls.target); }
-  else if (e.key.startsWith('Arrow') && !e.shiftKey) {
+  if (e.key === 'r' || e.key === 'R') views.reset();
+  else if (e.key === '+' || e.key === '=') camera.position.lerp(controls.target, 0.15);
+  else if (e.key === '-' || e.key === '_') camera.position.sub(controls.target).multiplyScalar(1.18).add(controls.target);
+  else if (e.key.startsWith('Arrow')) {
     const off = camera.position.clone().sub(controls.target), sph = new THREE.Spherical().setFromVector3(off);
     if (e.key === 'ArrowLeft') sph.theta -= rot; if (e.key === 'ArrowRight') sph.theta += rot;
     if (e.key === 'ArrowUp') sph.phi = Math.max(0.05, sph.phi - rot); if (e.key === 'ArrowDown') sph.phi = Math.min(Math.PI - 0.05, sph.phi + rot);
     camera.position.copy(controls.target).add(off.setFromSpherical(sph)); e.preventDefault();
-  }
+  } else return;
 });
-controls.keys = { LEFT: '', UP: '', RIGHT: '', BOTTOM: '' };   // arrows rotate (handled above), not pan
 
 // ---------- ground transparency
 const gIn = document.getElementById('ground'), gOut = document.getElementById('groundv');
@@ -403,8 +532,34 @@ gIn.oninput = () => {
   gOut.textContent = v > 0.97 ? 'solid' : Math.round((1 - v) * 100) + '% clear';
 };
 
+// ---------- vertical exaggeration
+const ve1 = document.getElementById('ve1'), ve3 = document.getElementById('ve3'), vecap = document.getElementById('vecap');
+function setVE(v) {
+  if (v === VE) return;
+  const r = v / VE, dy = controls.target.y * (r - 1);
+  VE = v; buildAll();
+  controls.target.y += dy; camera.position.y += dy; controls.update();
+  ve1.setAttribute('aria-pressed', v === 1); ve3.setAttribute('aria-pressed', v !== 1);
+  vecap.textContent = v === 1 ? '' : `  Heights exaggerated ${v}× (trees and buildings not).`;
+}
+ve1.onclick = () => setVE(1); ve3.onclick = () => setVE(3);
+
+// ---------- layer switches
+for (const box of document.querySelectorAll('#layers input')) {
+  box.onchange = () => {
+    const n = box.dataset.layer; layerOn[n] = box.checked;
+    if (layers[n]) layers[n].visible = box.checked;
+    if (n === 'labels') document.getElementById('labels').style.display = box.checked ? '' : 'none';
+  };
+}
+
+if (new URLSearchParams(location.search).has('debug')) window.__p75 = { view, views, setVE, layers, camera, controls, W, zg, tgt0 };
 document.getElementById('loading').remove();
-renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera); });
+let frame = 0;
+renderer.setAnimationLoop(() => {
+  controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
+  if (layerOn.labels && (frame++ % 6 === 0)) declutter();
+});
 </script>
 </body>
 </html>

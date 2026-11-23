@@ -3,8 +3,10 @@
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
 ## v1.4 (23 Nov 2026)
-- New page: Panel 75 in 3D (/beneath/). The land above Cumberland Mine longwall panel 75 (mined 2022–23) and the panel at its true depth, seen through the ground, in the style of the "Panel 75 from the south" poster. Rotate 360°, zoom, pan, and look from below; ground transparency slider; preset views (poster view, Oak Forest close-up, from below); keyboard controls.
-- Built with three.js r170 (vendored in beneath/vendor, MIT licence). Data: beneath/data/p75.json + p75.bin (~610 KB: lidar terrain at 20 ft, 35,636 trees, 53 buildings, roads, streams, power), made by tools/build_beneath_data.py from Longwall Posters/01_Data/p75_block_data.json and p75_labels.json.
+- New page: Panel 75 in 3D (/beneath/). The land above Cumberland Mine longwall panel 75 (mined 2022–23) and the panel at its true depth, seen through the ground, in the style of the "Panel 75 from the south" poster. Rotate 360°, zoom, pan, look from below.
+- Panel shown as on the poster (red slab at the seam, drawn 10× its 7 ft height, blended through the land; dotted outline on the ground; corner lines), plus translucent edge walls fading from the slab up to the surface outline, with faint dashed verticals.
+- Controls: ground transparency slider; views (from the south, Oak Forest close-up, from below; portrait screens open on an oblique view fitted to the block); true height or 3× vertical exaggeration (trees and buildings not stretched); layer switches; labels hide when they overlap or leave the screen; keyboard controls; text description for screen readers; social preview image from the poster.
+- Built with three.js r170 (vendored in beneath/vendor, MIT licence). Data: beneath/data/p75.json + p75.bin (~610 KB), made by tools/build_beneath_data.py from Longwall Posters/01_Data/p75_block_data.json and p75_labels.json.
 - Property map links to the new page.
 
 ## v1.3 (21 Nov 2026)
