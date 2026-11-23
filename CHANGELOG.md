@@ -2,6 +2,9 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.8.1 (23 Nov 2026)
+- About page: new section "Coal-company land across the county" with the county-wide results (51,829.9 surface acres, 14.2% of listed surface acreage / 14.1% of the county's land; Iron Senergy and predecessors 4.4%), coal-rights figures, sources, procedure, difficult cases, acreage checks and limits, from the Greene County Coal-Company Land Ownership Dataset v5.6.
+
 ## v1.8 (23 Nov 2026): landing page, About page, Panel 75 longwall and subsidence
 - New landing page at the site root with preview cards for the three projects. The property map moved to /map/ (old links to a parcel, /#4861, are forwarded there). A navigation bar on every page links home, to the three projects and to About.
 - New About page (/about/): sources, methods and limits for the property map, Through Time and Panel 75; downloads, citations, research-assistance note, names and corrections.

@@ -58,6 +58,7 @@
     <b>On this page</b>
     <a href="#project">The project</a>
     <a href="#map">Who owns the village</a>
+    <a href="#county">Across Greene County</a>
     <a href="#through-time">Through time</a>
     <a href="#beneath">Panel 75 in 3D</a>
     <a href="#data">Data and citation</a>
@@ -124,6 +125,80 @@
         <li><b>Boundaries are approximate.</b> The state parcel layer does not always follow current parcel lines.</li>
         <li><b>Ownership is a snapshot</b> as of November 2026; coal land in Greene County changes hands often.</li>
       </ul>
+      <p>The same classification, applied to the whole county, is described <a href="#county">below</a>.</p>
+    </section>
+
+    <section id="county">
+      <h2><span class="k">Greene County</span>Coal-company land across the county</h2>
+      <p>The village is one case of a wider pattern. To measure it, I classified every owner in the county's assessment records, current and past, with the same rules used for the village (above), and summed the acreage.</p>
+      <p>As of 17–18 November 2026, companies whose principal business is coal held <b>51,829.9 acres</b> of surface land in Greene County, about 81 square miles: <b>14.2 percent</b> of the county's listed surface acreage, or 14.1 percent of its land area as measured by the U.S. Census Bureau. Iron Senergy, the operator of the Cumberland Mine, and its predecessors held 16,277.8 acres (4.4 percent of the county's land). In all, 2,359 parcels have had a coal-company owner at some point in their recorded history.</p>
+      <table>
+        <thead><tr><th>Surface land, by owner</th><th>Records</th><th>Acres</th><th>Share of surface</th></tr></thead>
+        <tbody>
+          <tr><td>Iron Senergy and predecessors</td><td>446</td><td>16,277.8</td><td>4.5%</td></tr>
+          <tr><td>Other coal companies</td><td>862</td><td>35,033.9</td><td>9.6%</td></tr>
+          <tr><td>Duquesne Light (Warwick Mine)</td><td>34</td><td>518.2</td><td>0.1%</td></tr>
+          <tr><td><b>All coal companies</b></td><td><b>1,342</b></td><td><b>51,829.9</b></td><td><b>14.2%</b></td></tr>
+          <tr><td>Gas companies</td><td>240</td><td>5,737.8</td><td>1.6%</td></tr>
+          <tr><td>Utilities</td><td>68</td><td>1,040.1</td><td>0.3%</td></tr>
+          <tr><td>All other owners</td><td>29,942</td><td>306,211.5</td><td>83.9%</td></tr>
+          <tr><td><b>Total</b></td><td><b>31,592</b></td><td><b>364,819.3</b></td><td><b>100%</b></td></tr>
+        </tbody>
+      </table>
+      <p class="note">"Iron Senergy and predecessors" are the companies in the ownership chain of the Cumberland and Emerald mines (U.S. Steel Mining, Cyprus, RAG, Foundation, Alpha, Contura, Iron Senergy and their land companies). "Other coal companies" include CONSOL and its affiliates, Mepco and the Laurita family companies, and other producers. Duquesne Light, an electric utility, is kept apart because this land belonged to its captive Warwick Mine (1931–1997).</p>
+      <p>Severed coal rights are a separate estate and are reported separately. The county assesses 772 coal-rights records covering 42,745 acres; coal companies hold 30,574 of those acres (72 percent). Older severances often do not appear as separate records, so this is a floor.</p>
+
+      <h3>Sources</h3>
+      <ul>
+        <li><b>Greene County assessment database</b>, via Vision Government Solutions: all 35,727 records and 78,132 sale entries, collected 17–18 November 2026. This is the only source of ownership and acreage.</li>
+        <li><b>Pennsylvania DEP parcel layer</b> (PA_Parcels), for boundaries and the acreage checks only.</li>
+        <li>To identify owners: subsidiary lists (Exhibit 21) in SEC annual reports of Foundation Coal Holdings, Alpha Natural Resources, Contura Energy, CONSOL Energy, Core Natural Resources and CNX Resources; DEP lists of active bituminous coal mining permits (2018–2025); the Pennsylvania and West Virginia business registries; shared mailing addresses in the county records; the ownership history of the Cumberland Mine in the author's undergraduate thesis, "Carbon Footprints"; and trade press, court dockets and regulatory filings for individual cases. Registry entries record what a company filed about itself, so a stated business purpose was treated as evidence, not proof.</li>
+      </ul>
+
+      <h3>Procedure</h3>
+      <ol style="margin:10px 0;padding-left:22px">
+        <li><b>Collection.</b> Every parcel ID on the county site was requested; a separate crawl of the site's street index found no parcel missing from the ID scan.</li>
+        <li><b>Rights type.</b> Each record was coded as surface, coal rights or oil and gas rights from its land-use code. Where several surface accounts share one tax ID, acreage is counted once.</li>
+        <li><b>First list.</b> Owner names matching known coal companies or the words "coal" or "mining" (326 names) were classified by hand.</li>
+        <li><b>Entity research.</b> The review was extended to every business name in the records: 1,025 current and 950 past owners. Every owner with 10 or more surface acres, and every smaller or past owner with any coal or gas link, was researched individually.</li>
+        <li><b>Decision.</b> Each name carries a suggested label, its evidence, and my decision; spelling variants of one owner were decided together.</li>
+        <li><b>Verification.</b> A script recomputes all totals from the raw records and the decisions. Twenty parcels were checked against the live county pages after the final rebuild (all matched), an earlier test of 100 random parcels found no discrepancies, and 97 of 98 deeds from the village research agreed with the county's sale dates.</li>
+      </ol>
+
+      <h3>Difficult cases</h3>
+      <p>These owners needed a judgment beyond the rules; together they hold about 15,000 surface acres.</p>
+      <table>
+        <thead><tr><th>Owner</th><th>Surface acres</th><th>Decision</th><th>Basis</th></tr></thead>
+        <tbody>
+          <tr><td>CNX Land LLC</td><td>9,456</td><td>Coal (other)</td><td>In about 148 of its 209 parcels a CONSOL coal company bought the land from individual owners. CNX Land passed to the gas company CNX Resources in the 2017 CONSOL split, but the land was acquired for coal mining.</td></tr>
+          <tr><td>Mepco LLC</td><td>1,445</td><td>Coal (other)</td><td>Coal producer controlling Dana Mining (4 West Mine); shares an office with Dana and Coresco.</td></tr>
+          <tr><td>Liberty Land LLC, Lanco I Inc, Concorde Corporation</td><td>1,430</td><td>Coal (other)</td><td>Concorde is registered in West Virginia for surface and underground coal mining, under the same president as Mepco. Liberty Land bought all 35 of its parcels from Concorde in 2005; Liberty Land and Lanco I use Concorde's office.</td></tr>
+          <tr><td>Clean Streams Foundation</td><td>673</td><td>Not coal</td><td>Nonprofit that took former LTV Steel mine land in 2004; its business is environmental cleanup.</td></tr>
+          <tr><td>Duquesne Light Co</td><td>518</td><td>Coal (own group)</td><td>An electric utility, but this land belonged to its captive Warwick Mine.</td></tr>
+          <tr><td>Iron Mine Ranch LLC</td><td>447</td><td>Not coal</td><td>Despite the name, no link to Iron Senergy could be shown.</td></tr>
+          <tr><td>Iron Rock Ranch LLC</td><td>412</td><td>Coal (Iron Senergy)</td><td>Shares Iron Senergy's office with Iron Storage LLC, whose governor is Iron Senergy Holding LLC.</td></tr>
+          <tr><td>Dunkard Creek Water Treatment System LLC</td><td>277</td><td>Utility</td><td>Affiliate of the Longview power plant; treats water from the flooded Shannopin Mine for plant use.</td></tr>
+          <tr><td>Allegheny Energy Supply; Greene Energy Resource Recovery</td><td>286</td><td>Utility</td><td>Land of a coal-fired power plant and of a cancelled waste-coal plant; neither mined coal.</td></tr>
+          <tr><td>Chess Enterprises</td><td>30</td><td>Not coal</td><td>A family trade name, separate from the family's coal company.</td></tr>
+          <tr><td>Garrett Holdings (GMS Mine Repair)</td><td>27</td><td>Not coal</td><td>A mining contractor, not a coal producer.</td></tr>
+          <tr><td>U.S. Steel (past owner)</td><td>0 today</td><td>Coal for mining holdings only</td><td>Counted as coal for its former coal-rights tracts and a mine substation tract, not for its other holdings.</td></tr>
+        </tbody>
+      </table>
+      <p>Two patterns recur. Land companies often outlive or separate from the coal producers that bought the land (CNX Land, Liberty Land), so they are classified by how and why the land was acquired. Conversely, a coal-related purpose does not make a cleanup body, a utility or a contractor a coal company.</p>
+
+      <h3>Checking the acreage</h3>
+      <p>The totals sum the acreage the county lists for each record. As a check, the drawn parcel shapes were measured in QGIS in several ways (shapes summed; overlaps merged; plus listed acres of records with no shape). The methods agree within about 2 percent for all coal companies and 3.5 percent for Iron Senergy: coal companies own 14.1 to 14.4 percent of the county's land, Iron Senergy and its predecessors 4.4 to 4.6 percent. The differences come from record-keeping (shapes attached to the wrong record, records with no shape, shapes drawn before a parcel was divided), not from measurement. Listed acreage is used for all totals because the classification rests on those same records. The listed surface acreage (364,819 acres) falls about 3,800 acres short of the county's Census land area (368,595 acres), mostly roads, rivers and parcels with no listed acreage; shares of the county's land use the Census figure.</p>
+
+      <h3>Limits</h3>
+      <ul>
+        <li><b>A documented estimate, not a title search.</b> Most known errors would make the coal total too low rather than too high.</li>
+        <li><b>Assessment records are not legal title.</b></li>
+        <li><b>Shallow history.</b> The county's online sales history mostly begins in the 1980s, so "ever coal-owned" undercounts earlier coal ownership, which was extensive.</li>
+        <li><b>Judgment.</b> Most of about 900 small business owners labelled "not coal" were screened by name, address and sales history rather than researched one by one; a hidden coal affiliate among them, or an unmatched spelling of a coal company's name, would be missed.</li>
+        <li><b>Prices</b> in the county records are unreliable and are not used in any county total.</li>
+        <li><b>A snapshot</b> as of 17–18 November 2026.</li>
+      </ul>
+      <p class="note">Cite as: Julian Giordano, "Greene County Coal-Company Land Ownership Dataset," version 5.6, 19 November 2026 (Oak Forest Project). Earlier totals (13.4 percent in version 5, 13.8 percent in version 5.1) are superseded.</p>
     </section>
 
     <section id="through-time">
