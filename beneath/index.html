@@ -44,6 +44,16 @@
   .layers label { display:flex; gap:6px; align-items:center; cursor:pointer; }
   .layers input { accent-color:var(--ink); margin:0; }
   .sw { display:inline-block; width:14px; height:3px; border-radius:2px; }
+  .timeline { position:fixed; left:24px; bottom:76px; display:flex; gap:10px; align-items:center; font-size:13px; background:rgba(242,240,235,.9);
+               padding:6px 10px; border:1px solid var(--line); border-radius:6px; max-width:calc(100vw - 48px); }
+  .timeline button { font:inherit; background:#fff; border:1px solid var(--line); border-radius:5px; padding:4px 9px; cursor:pointer; min-width:34px; }
+  .timeline button:hover, .timeline button:focus-visible { border-color:var(--ink); }
+  .timeline input[type=range] { width:min(340px, 40vw); accent-color:var(--red); }
+  .timeline output { min-width:15em; font-variant-numeric:tabular-nums; }
+  .timeline output b { font-weight:600; }
+  #tip { position:fixed; pointer-events:none; background:#fff; border:1px solid var(--line); border-radius:5px; padding:5px 8px; font-size:12.5px;
+         max-width:260px; line-height:1.35; box-shadow:0 2px 8px rgba(0,0,0,.08); display:none; z-index:5; }
+  #tip .k { color:var(--grey); }
   footer { position:fixed; left:24px; right:24px; bottom:14px; font-size:12px; color:#6F6B64; pointer-events:none; }
   footer .cap { color:var(--red); font-size:clamp(12px,1.3vw,15px); margin-bottom:6px; max-width:70em; }
   footer .cap b { font-weight:600; }
@@ -70,6 +80,9 @@
     footer { left:12px; right:12px; bottom:10px; }
     footer .cap { font-size:11.5px; }
     .lbl span { font-size:11px; }
+    .timeline { left:10px; right:10px; bottom:auto; top:92px; padding:4px 7px; font-size:12px; gap:6px; }
+    .timeline input[type=range] { width:auto; flex:1; min-width:80px; }
+    .timeline output { min-width:0; flex-basis:100%; order:3; }
   }
   @media (prefers-reduced-motion: reduce) { .lbl { transition:none; } }
 </style>
@@ -104,15 +117,22 @@
       <label><input type="checkbox" data-layer="built" checked> Buildings and power lines</label>
       <label><input type="checkbox" data-layer="trace" checked> <span class="sw" style="background:repeating-linear-gradient(90deg,#C2401C 0 3px,transparent 3px 6px)"></span> Panel outline on the ground</label>
       <label><input type="checkbox" data-layer="walls" checked> Panel edges, slab to surface</label>
+      <label><input type="checkbox" data-layer="neigh" checked> Neighbouring panels</label>
       <label><input type="checkbox" data-layer="box" checked> Block sides and seam</label>
       <label><input type="checkbox" data-layer="labels" checked> Labels</label>
     </div>
   </details>
 </div>
+<div class="timeline" role="group" aria-label="Mining over time">
+  <button id="play" type="button" aria-label="Play the mining sequence">▶</button>
+  <input id="when" type="range" min="0" max="10" step="0.01" value="10" aria-label="Date" aria-describedby="whenv">
+  <output id="whenv" for="when" aria-live="polite"></output>
+</div>
+<div id="tip" role="tooltip"></div>
 <footer>
   <div class="cap" id="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
   <details><summary>Sources and notes</summary>
-    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
+    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Houses link to their parcels on the property map. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
   </details>
 </footer>
 
@@ -140,7 +160,8 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // ---------- data
 const get = async (u, kind) => { for (let k = 0; k < 3; k++) { try { const r = await fetch(u); if (r.ok) return await r[kind](); } catch (e) {} await new Promise(r => setTimeout(r, 400)); } throw new Error(u); };
 let M, buf;
-try { [M, buf] = await Promise.all([get('data/p75.json', 'json'), get('data/p75.bin', 'arrayBuffer')]); }
+let X;
+try { [M, buf, X] = await Promise.all([get('data/p75.json', 'json'), get('data/p75.bin', 'arrayBuffer'), get('data/p75_extra.json', 'json')]); }
 catch (e) { document.getElementById('loading').textContent = 'The 3D data could not be loaded. Please reload the page.'; throw e; }
 const G = M.grid, NH = G.nh, ND = G.nd, STEP = G.step;
 const Zg = new Int16Array(buf, M.bin.terrain_i16[0], M.bin.terrain_i16[1]);
@@ -154,7 +175,8 @@ function zg(h, d) {
   return zAt(i0, j0) * (1 - fi) * (1 - fj) + zAt(i0, j0 + 1) * (1 - fi) * fj + zAt(i0 + 1, j0) * fi * (1 - fj) + zAt(i0 + 1, j0 + 1) * fi * fj;
 }
 const q = M.seam_q;
-function seam(h, d) { h /= 1000; d /= 1000; return q[0] + q[1] * h + q[2] * d + q[3] * h * h + q[4] * h * d + q[5] * d * d; }
+function seamQ(q, h, d) { h /= 1000; d /= 1000; return q[0] + q[1] * h + q[2] * d + q[3] * h * h + q[4] * h * d + q[5] * d * d; }
+const seam = (h, d) => seamQ(q, h, d);
 const SEAM_FT = M.seam_ft, SLAB = SEAM_FT * M.slab_scale, ZBOT = M.zbot;
 const H0 = G.h0, H1 = G.h1, D0 = G.d0, D1 = G.d1;
 const PN = M.panel, a0 = PN.h0, a1 = PN.h1, b0 = PN.d0, b1 = PN.d1;
@@ -163,6 +185,7 @@ const PN = M.panel, a0 = PN.h0, a1 = PN.h1, b0 = PN.d0, b1 = PN.d1;
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true, stencil: true });
 renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+renderer.localClippingEnabled = true;
 renderer.setPixelRatio(Math.min(devicePixelRatio, isPhone ? 1.5 : 2));
 renderer.setClearColor(C.bg);
 stage.appendChild(renderer.domElement);
@@ -197,14 +220,17 @@ const groundMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.
 const treeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 1,
   stencilWrite: true, stencilRef: 1, stencilFunc: THREE.NotEqualStencilFunc, stencilZPass: THREE.KeepStencilOp });
 // panel: drawn through everything at 28% (as the poster's composite); back faces culled so each part is blended once
-const slabMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
-const wallMat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
+// mined-so-far clipping: one plane per Cumberland panel keeps x (= h) at or behind the longwall face
+const clip = { '75': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9), '74': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9), '73': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9) };
+const slabMat = new THREE.MeshBasicMaterial({ clippingPlanes: [clip['75']], vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
+const wallMat = new THREE.MeshBasicMaterial({ clippingPlanes: [clip['75']], vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
 const faceMat = new THREE.MeshBasicMaterial({ color: C.earth, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
 let lineMats = [];
-function fatLine(pts3, { color = C.ink, width = 1, dashed = false, dash = 6, gap = 8, opacity = 1, xray = false, order = 5 } = {}) {
+function fatLine(pts3, { color = C.ink, width = 1, dashed = false, dash = 6, gap = 8, opacity = 1, xray = false, order = 5, clipTo = null } = {}) {
   const g = new LineGeometry(); g.setPositions(pts3.flatMap(p => [p.x, p.y, p.z]));
   const mat = new LineMaterial({ color, linewidth: width, dashed, dashSize: dash, gapSize: gap, transparent: opacity < 1 || xray, opacity,
     depthTest: !xray, depthWrite: !xray, worldUnits: false });
+  if (clipTo) mat.clippingPlanes = [clipTo];
   mat.resolution.set(innerWidth, innerHeight); lineMats.push(mat);
   const l = new Line2(g, mat); if (dashed) l.computeLineDistances(); l.renderOrder = order; return l;
 }
@@ -215,7 +241,7 @@ function meshOf(arr, mat, order = 0) {
 
 // ---------- layers (rebuilt when the vertical scale changes)
 const layers = {};
-const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true };
+const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: true };
 const labelObjs = [];
 function clearLayers() {
   for (const g of Object.values(layers)) {
@@ -317,11 +343,14 @@ const wallBMat = new THREE.MeshBasicMaterial({ color: C.bg, side: THREE.DoubleSi
 const roofBMat = new THREE.MeshBasicMaterial({ color: C.roof, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1 });
 const subMat = new THREE.MeshBasicMaterial({ color: C.sub, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -6, polygonOffsetUnits: -12 });
 const inkMat = new THREE.LineBasicMaterial({ color: C.ink });
+let pickables = [];
 function buildBuilt() {
-  const g = new THREE.Group(), walls = [], roofs = [], edges = [];
-  const tri = (arr, a, b, c) => arr.push(...a, ...b, ...c);
+  const g = new THREE.Group(), walls = [], roofs = [], edges = [], wIdx = [], rIdx = [];
+  let cur = 0;
+  const tri = (arr, a, b, c) => { arr.push(...a, ...b, ...c); (arr === walls ? wIdx : rIdx).push(cur); };
   const quad = (arr, a, b, c, d) => { tri(arr, a, b, c); tri(arr, a, c, d); };
-  for (const b of M.buildings) {
+  for (const [bi, b] of M.buildings.entries()) {
+    cur = bi;
     let Pp = b.poly.map(p => p.slice());
     const len = (u, v) => Math.hypot(u[0] - v[0], u[1] - v[1]);
     if (len(Pp[2], Pp[1]) > len(Pp[1], Pp[0])) Pp = [Pp[1], Pp[2], Pp[3], Pp[0]];
@@ -334,7 +363,8 @@ function buildBuilt() {
       edges.push(P(m12, r), P(m30, r), P(Pp[1], e), P(m12, r), P(Pp[2], e), P(m12, r), P(Pp[3], e), P(m30, r), P(Pp[0], e), P(m30, r));
     } else quad(roofs, P(Pp[0], e), P(Pp[1], e), P(Pp[2], e), P(Pp[3], e));
   }
-  g.add(meshOf(walls, wallBMat), meshOf(roofs, roofBMat));
+  const wm = meshOf(walls, wallBMat), rm = meshOf(roofs, roofBMat); wm.userData.idx = wIdx; rm.userData.idx = rIdx; pickables = [wm, rm];
+  g.add(wm, rm);
   const eg = new THREE.BufferGeometry(); eg.setAttribute('position', new THREE.Float32BufferAttribute(edges.flat(), 3));
   g.add(new THREE.LineSegments(eg, inkMat));
   for (const s of M.subs) {
@@ -435,7 +465,7 @@ function buildPanel() {
   for (let k = 0; k < 4; k++) {
     const [h1, d1] = RIM[k], [h2, d2] = RIM[k + 1], L_ = Math.hypot(h2 - h1, d2 - d1), n = Math.max(2, Math.round(L_ / (L_ > 3000 ? 700 : 350)));
     for (let i = 1; i < n; i++) { const t = i / n, h = h1 + (h2 - h1) * t, d = d1 + (d2 - d1) * t;
-      wg.add(fatLine([W(h, d, seam(h, d), SLAB), W(h, d, zg(h, d), 3)], { color: C.red, width: 0.8, dashed: true, dash: 3, gap: 5, opacity: 0.45, xray: true, order: 21 })); }
+      wg.add(fatLine([W(h, d, seam(h, d), SLAB), W(h, d, zg(h, d), 3)], { color: C.red, width: 0.8, dashed: true, dash: 3, gap: 5, opacity: 0.45, xray: true, order: 21, clipTo: clip['75'] })); }
   }
   addLayer('walls', wg);
 }
@@ -453,7 +483,7 @@ function buildLabels() {
 }
 function declutter() {
   const boxes = [];
-  for (const L_ of labelObjs) {
+  for (const L_ of [...labelObjs].sort((a, b) => a.i - b.i)) {
     if (L_.el.style.display === 'none') continue;
     const r = L_.span.getBoundingClientRect();
     const off = r.left < 0 || r.right > innerWidth || r.top < 0;
@@ -463,7 +493,118 @@ function declutter() {
   }
 }
 
-function buildAll() { clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildLabels(); }
+// ---------- neighbouring panels: faint sheets at their own seam depth, outlines, small labels
+const NEIGH = X.neighbours.filter(n => n.seam_q);
+const neighMats = {};
+function buildNeigh() {
+  const g = new THREE.Group();
+  for (const n of NEIGH) {
+    const qn = n.seam_q, S = (h, d) => W(h, d, seamQ(qn, h, d), SLAB);
+    // densify the outline, triangulate, lift each vertex to the seam
+    const ring = [], P = n.poly[0][0] === n.poly.at(-1)[0] && n.poly[0][1] === n.poly.at(-1)[1] ? n.poly.slice(0, -1) : n.poly;
+    for (let k = 0; k < P.length; k++) { const [h1, d1] = P[k], [h2, d2] = P[(k + 1) % P.length], m = Math.max(1, Math.round(Math.hypot(h2 - h1, d2 - d1) / 200));
+      for (let i = 0; i < m; i++) ring.push(new THREE.Vector2(h1 + (h2 - h1) * i / m, d1 + (d2 - d1) * i / m)); }
+    const tris = THREE.ShapeUtils.triangulateShape(ring, []), pos = [];
+    for (const t of tris) for (const k of t) { const v = S(ring[k].x, ring[k].y); pos.push(v.x, v.y, v.z); }
+    const cumb = n.mine === 'Cumberland';
+    const mat = new THREE.MeshBasicMaterial({ color: cumb ? C.red : 0xA0553F, transparent: true, opacity: cumb ? 0.07 : 0.06, side: THREE.DoubleSide,
+      depthTest: false, depthWrite: false, clippingPlanes: cumb && clip[n.id] ? [clip[n.id]] : [] });
+    neighMats[n.id] = mat;
+    g.add(meshOf(pos, mat, 18));
+    const out = [...ring, ring[0]].map(v => S(v.x, v.y));
+    g.add(fatLine(out, { color: cumb ? C.red : 0xA0553F, width: 0.9, dashed: true, dash: 5, gap: 5, opacity: 0.45, xray: true, order: 19 }));
+    // label at the end nearest the block
+    const c = ring.reduce((a, v) => a.add(v), new THREE.Vector2()).multiplyScalar(1 / ring.length);
+    const lh = Math.min(Math.max(c.x, H0 + 600), H1 - 600), ld = c.y, el = document.createElement('div');
+    el.className = 'lbl nb';
+    el.innerHTML = `<span style="left:0;top:0;color:#8E2E14;font-size:11.5px;font-weight:400;opacity:.85">${cumb ? 'Panel ' + n.id : 'Emerald ' + n.id}, ${n.year}</span>`;
+    const o = new CSS2DObject(el); o.position.copy(W(lh, ld, seamQ(qn, lh, ld), SLAB)); o.center.set(0, 0); g.add(o);
+    labelObjs.push({ o, el, span: el.querySelector('span'), i: 100 });
+  }
+  addLayer('neigh', g);
+}
+
+// ---------- the longwall face through time (month ends from sheet 31-4)
+const PANELS_T = {};   // id -> { h0, h1, rec: [[t, h]] }
+const DAY = 86400000, tOf = s => Date.parse(s + 'T12:00:00Z');
+for (const id of ['73', '74', '75']) {
+  const poly = id === '75' ? [[a0, b0], [a1, b1]] : X.neighbours.find(n => n.id === id).poly;
+  const hs = poly.map(p => p[0]);
+  PANELS_T[id] = { h0: Math.min(...hs), h1: Math.max(...hs), rec: (X.faces[id] || []).map(r => [tOf(r.date), r.h]) };
+}
+// steps: every recorded month end, then a final 'finished' state (panel 75 completed 2023, PA DEP)
+const stepDates = [...new Set(Object.values(X.faces).flat().map(r => r.date))].sort();
+const STEPS = stepDates.map(s => ({ t: tOf(s), label: new Date(tOf(s)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) }));
+STEPS.push({ t: Infinity, label: 'Today' });
+function extentAt(id, t) {        // how far (h) the face had come by time t
+  const P = PANELS_T[id], r = P.rec;
+  if (!r.length) return P.h1;
+  if (t < r[0][0]) return P.h0 - 1;  // not started by this month end
+  if (t > r[r.length - 1][0]) return P.h1 + 1;  // finished by the next month end we have
+  for (let k = 0; k < r.length; k++) if (Math.abs(r[k][0] - t) < DAY) return r[k][1];
+  return P.h1 + 1;
+}
+let tPos = STEPS.length - 1, faceGroup = null, faceMats = [];
+const whenIn = document.getElementById('when'), whenOut = document.getElementById('whenv'), playBtn = document.getElementById('play');
+whenIn.max = STEPS.length - 1; whenIn.value = tPos;
+function faceH(id, x) {             // fractional step index -> face position, moving evenly between month ends
+  const i = Math.floor(x), f = x - i;
+  const e0 = extentAt(id, STEPS[i].t), e1 = i + 1 < STEPS.length ? extentAt(id, STEPS[i + 1].t) : e0;
+  const P = PANELS_T[id], cl = v => Math.min(Math.max(v, P.h0 - 1), P.h1 + 1);
+  return cl(e0 + (e1 - e0) * f);
+}
+function setTime(x) {
+  tPos = Math.min(Math.max(x, 0), STEPS.length - 1);
+  const atEnd = tPos >= STEPS.length - 1 - 1e-6;
+  for (const id of ['73', '74', '75']) clip[id].constant = atEnd ? 1e9 : faceH(id, tPos);
+  if (faceGroup) { scene.remove(faceGroup); faceGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose) o.material.dispose(); if (o.isCSS2DObject) o.element.remove(); }); faceGroup = null; }
+  const i = Math.round(tPos), st = STEPS[Math.min(i, STEPS.length - 1)];
+  if (atEnd) {
+    whenOut.innerHTML = '<b>Today</b>: panels 73, 74 and 75 all mined (2021, 2022, 2023)';
+  } else {
+    const keep = lineMats; lineMats = [];
+    faceGroup = new THREE.Group();
+    let active = null;
+    for (const id of ['73', '74', '75']) {
+      const h = clip[id].constant, P = PANELS_T[id];
+      if (h <= P.h0 || h >= P.h1) continue;
+      active = id;
+      const n = id === '75' ? null : X.neighbours.find(m => m.id === id), qn = n ? n.seam_q : q;
+      const [db0, db1] = id === '75' ? [b0, b1] : (() => { const ds = n.poly.map(p => p[1]); return [Math.min(...ds), Math.max(...ds)]; })();
+      const line = []; for (let k = 0; k <= 12; k++) { const d = db0 + (db1 - db0) * k / 12; line.push(W(h, d, seamQ(qn, h, d), SLAB + 2)); }
+      faceGroup.add(fatLine(line, { color: C.redD, width: 3, xray: true, order: 23 }));
+      if (id === '75') {   // the face, carried up to the ground as a faint line
+        const up = []; for (let k = 0; k <= 12; k++) { const d = db0 + (db1 - db0) * k / 12; up.push(W(h, d, zg(h, d), 4)); }
+        faceGroup.add(fatLine(up, { color: C.redD, width: 1.4, dashed: true, dash: 4, gap: 4, opacity: 0.8, xray: true, order: 23 }));
+      }
+    }
+    // unmined part of panel 75: dashed outline at the seam
+    const rim = rimPoints(120).map(([h, d]) => W(h, d, seam(h, d), SLAB));
+    faceGroup.add(fatLine(rim, { color: C.red, width: 1, dashed: true, dash: 4, gap: 6, opacity: 0.6, xray: true, order: 21 }));
+    faceMats = lineMats; lineMats = keep;
+    for (const L_ of faceMats) L_.resolution.set(innerWidth, innerHeight);
+    scene.add(faceGroup);
+    const where = active === '75' ? (clip['75'].constant > 1700 && clip['75'].constant < 2700 ? ' · passing under Oak Forest' : '') : '';
+    whenOut.innerHTML = `<b>${st.label}</b>` + (active ? `: longwall face in panel ${active}${where}` : ': between panels');
+  }
+  whenIn.value = tPos;
+}
+let playing = false, last = 0;
+function play(on) {
+  playing = on; playBtn.textContent = on ? '❚❚' : '▶'; playBtn.setAttribute('aria-label', on ? 'Pause' : 'Play the mining sequence');
+  if (on && tPos >= STEPS.length - 1 - 1e-6) setTime(0);
+  last = performance.now();
+}
+playBtn.onclick = () => play(!playing);
+whenIn.oninput = () => { play(false); setTime(+whenIn.value); };
+function tick(now) {
+  if (!playing) return;
+  const dt = Math.min(now - last, 400) / 1000; last = now;
+  const x = tPos + dt / (reduceMotion ? 0.4 : 1.1);   // ~1.1 s per month end
+  if (x >= STEPS.length - 1) { setTime(STEPS.length - 1); play(false); } else setTime(x);
+}
+
+function buildAll() { clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildNeigh(); buildLabels(); if (typeof setTime === 'function' && faceGroup !== undefined) setTime(tPos); }
 buildAll();
 
 // ---------- camera and controls
@@ -504,7 +645,7 @@ const views = {
 function resize() {
   const w = innerWidth, h = innerHeight;
   renderer.setSize(w, h); labelRenderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
-  for (const m of lineMats) m.resolution.set(w, h);
+  for (const m of [...lineMats, ...faceMats]) m.resolution.set(w, h);
 }
 resize(); views.reset();
 addEventListener('resize', resize);
@@ -554,9 +695,45 @@ for (const box of document.querySelectorAll('#layers input')) {
 }
 
 if (new URLSearchParams(location.search).has('debug')) window.__p75 = { view, views, setVE, layers, camera, controls, W, zg, tgt0 };
+const tip = document.getElementById('tip'), ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+let hoverPid = null, downAt = null, lastPick = 0;
+function pick(ev) {
+  if (!layerOn.built) return null;
+  ptr.set(ev.clientX / innerWidth * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const ground = layers.ground && layers.ground.children[0];
+  const hits = ray.intersectObjects([...pickables, ...(ground && groundMat.opacity > 0.97 ? [ground] : [])], false);
+  if (!hits.length || hits[0].object === ground) return null;
+  const bi = hits[0].object.userData.idx[hits[0].faceIndex], link = X.building_parcels[bi];
+  return link ? { ...link, bi } : null;
+}
+function showTip(ev, l) {
+  const own = l.coal ? `Owned by a coal company${l.company ? ' (' + l.company + ')' : ''}${l.first_coal_year ? ', since ' + l.first_coal_year : ''}.` : 'Not owned by a coal company.';
+  tip.innerHTML = `<b>Parcel ${l.pid}</b>${l.village ? ' · Oak Forest' : ''}<br>${own}<br><span class="k">Click to open it on the property map</span>`;
+  tip.style.display = 'block';
+  const x = Math.min(ev.clientX + 14, innerWidth - tip.offsetWidth - 8), y = Math.min(ev.clientY + 14, innerHeight - tip.offsetHeight - 8);
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+renderer.domElement.addEventListener('pointermove', ev => {
+  if (ev.buttons || ev.pointerType === 'touch') return;
+  const now = performance.now(); if (now - lastPick < 50) return; lastPick = now;
+  const l = pick(ev); hoverPid = l ? l.pid : null;
+  renderer.domElement.style.cursor = l ? 'pointer' : '';
+  if (l) showTip(ev, l); else tip.style.display = 'none';
+});
+renderer.domElement.addEventListener('pointerleave', () => { tip.style.display = 'none'; });
+renderer.domElement.addEventListener('pointerdown', ev => { downAt = [ev.clientX, ev.clientY]; });
+renderer.domElement.addEventListener('pointerup', ev => {
+  if (!downAt || Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) > 5) return;
+  const l = pick(ev); if (!l) return;
+  if (ev.pointerType === 'touch' && hoverPid !== l.pid) { hoverPid = l.pid; showTip(ev, l); return; }   // first tap shows, second opens
+  location.href = '../#' + l.pid;
+});
+setTime(tPos);
 document.getElementById('loading').remove();
 let frame = 0;
-renderer.setAnimationLoop(() => {
+renderer.setAnimationLoop((now) => {
+  tick(now);
   controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
   if (layerOn.labels && (frame++ % 6 === 0)) declutter();
 });

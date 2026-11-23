@@ -2,6 +2,12 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.5 (23 Nov 2026)
+- Panel 75 in 3D: mining over time. A slider and play button step through the month-end positions of the longwall face (Cumberland Mine subsidence map, sheet 31-4): panel 73 (Dec 2020–Feb 2021), 74 (Oct 2021–Apr 2022) and 75 (Jul 2022–Jan 2023, passing under Oak Forest in December 2022). The mined part of each panel and the edge walls grow with the face; the unmined part of panel 75 shows as a dashed outline.
+- Neighbouring panels: Cumberland 73 and 74 and Emerald 21 Right and 6 Right (1993) as faint sheets, each on its own quadratic fit to PA DEP seam elevations; switchable under Layers. (Emerald 20 Right left out: no seam points near it.)
+- Houses link to their parcels: hover for the parcel number and whether a coal company owns it (no owner names); click opens it on the property map.
+- Data: beneath/data/p75_extra.json, made by tools/build_beneath_extra.py.
+
 ## v1.4 (23 Nov 2026)
 - New page: Panel 75 in 3D (/beneath/). The land above Cumberland Mine longwall panel 75 (mined 2022–23) and the panel at its true depth, seen through the ground, in the style of the "Panel 75 from the south" poster. Rotate 360°, zoom, pan, look from below.
 - Panel shown as on the poster (red slab at the seam, drawn 10× its 7 ft height, blended through the land; dotted outline on the ground; corner lines), plus translucent edge walls fading from the slab up to the surface outline, with faint dashed verticals.
