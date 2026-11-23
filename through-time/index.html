@@ -8,27 +8,29 @@
 <meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from the 1876 county atlas to 2022. Slide through the years, swipe between two, or look through a lens.">
 <meta property="og:title" content="Oak Forest Through Time">
 <meta property="og:description" content="The village of Oak Forest, Pennsylvania, from above, 1876–2022.">
+<meta property="og:url" content="https://oakforest.juliangiordano.com/through-time/">
 <meta property="og:image" content="https://oakforest.juliangiordano.com/through-time/og-image.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
 <link href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" rel="stylesheet" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous">
 <script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js" integrity="sha384-nXMl9YiLoSG5KBPTFgvxVuIqQQcqIvo0bFrvoEaGJC6r7IibIzF1S36Zbf/sKBtL" crossorigin="anonymous"></script>
+<link href="../assets/site.css" rel="stylesheet">
 <style>
 :root{--ink:#22201c;--muted:#6b665d;--paper:#fbf9f4;--line:#e4dfd4;--accent:#b8352a;--serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,sans-serif}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:#1d1c1a;color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}
-.mapbox{position:absolute;inset:0}
+.mapbox{position:absolute;inset:var(--nav-h) 0 0 0}
 #top{pointer-events:none}
 #top.swipe{clip-path:inset(0 0 0 var(--x,50%))}
 #top.lens{clip-path:circle(var(--r,150px) at var(--lx,50%) var(--ly,50%))}
 #top.off{visibility:hidden}
-#divider{position:absolute;top:0;bottom:0;left:50%;width:0;z-index:3;display:none}
+#divider{position:absolute;top:var(--nav-h);bottom:0;left:50%;width:0;z-index:3;display:none}
 #divider::before{content:"";position:absolute;top:0;bottom:0;left:-1.5px;width:3px;background:#fff;box-shadow:0 0 6px rgba(0,0,0,.5)}
 #divider button{position:absolute;top:50%;left:-20px;width:40px;height:40px;margin-top:-20px;border-radius:50%;border:0;background:#fff;box-shadow:0 1px 6px rgba(0,0,0,.4);cursor:ew-resize;font-size:15px;color:var(--ink)}
 #ring{position:absolute;z-index:3;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px rgba(0,0,0,.3),0 4px 18px rgba(0,0,0,.35);pointer-events:none;display:none;transform:translate(-50%,-50%)}
-.tag{position:absolute;z-index:4;top:14px;background:rgba(20,18,15,.78);color:#fff;font:600 13px var(--sans);padding:5px 10px;border-radius:6px;pointer-events:none}
+.tag{position:absolute;z-index:4;top:calc(var(--nav-h) + 14px);background:rgba(20,18,15,.78);color:#fff;font:600 13px var(--sans);padding:5px 10px;border-radius:6px;pointer-events:none}
 #tagL{left:14px}#tagR{right:60px;display:none}
-#card{position:absolute;z-index:5;left:14px;top:52px;width:330px;background:var(--paper);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);padding:14px 16px}
+#card{position:absolute;z-index:5;left:14px;top:calc(var(--nav-h) + 52px);width:330px;background:var(--paper);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.35);padding:14px 16px}
 #card h1{font-family:var(--serif);font-size:22px;margin:0;line-height:1.2}
 #card p{margin:6px 0 0;line-height:1.45;color:#3a372f}
 #card .small{font-size:12px;color:var(--muted)}
@@ -50,11 +52,19 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 .ticks span.on{color:var(--ink);font-weight:600}
 .ticks span.map{font-style:italic}
 .maplibregl-ctrl-top-right{top:6px}
-@media (max-width:700px){#card{top:auto;bottom:96px;left:8px;right:8px;width:auto;padding:10px 12px;max-height:40vh;overflow:auto}#card p.intro{display:none}#tagR{right:14px;top:50px}.ticks span:not(.key){display:none}}
+@media (max-width:700px){#card{top:auto;bottom:96px;left:8px;right:8px;width:auto;padding:10px 12px;max-height:40vh;overflow:auto}#card p.intro{display:none}#tagR{right:14px;top:calc(var(--nav-h) + 50px)}.ticks span:not(.key){display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
+<nav class="site-nav" aria-label="Oak Forest project">
+  <a class="home" href="../">Oak Forest</a>
+  <a href="../map/"><span class="l">Who owns the village</span><span class="s">Owners</span></a>
+  <a href="./" aria-current="page">Through time</a>
+  <a href="../beneath/"><span class="l">Panel 75 in 3D</span><span class="s">Panel 75</span></a>
+  <span class="sep"></span>
+  <a href="../about/">About</a>
+</nav>
 <div id="base" class="mapbox" role="region" aria-label="Aerial view of Oak Forest"></div>
 <div id="top" class="mapbox off" aria-hidden="true"></div>
 <div id="divider"><button aria-label="Drag to compare years" title="Drag to compare">⇆</button></div>
@@ -68,7 +78,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
  <div class="row" id="pair" style="display:none"><span id="pairlabel">Compare</span><select id="yearA" aria-label="First year"></select><span>with</span><select id="yearB" aria-label="Second year"></select></div>
  <div class="row"><label class="chk"><input type="checkbox" id="outlines"> Property lines</label><label class="chk"><input type="checkbox" id="labels" checked> Place names</label></div>
  <div id="meta" aria-live="polite"></div>
- <p class="small" style="margin-top:8px"><a href="../">← Who owns the village? (property map)</a></p>
+ <p class="small" style="margin-top:8px"><a href="../about/#through-time">Sources and methods</a></p>
 </div>
 
 <div id="timeline">
@@ -168,7 +178,7 @@ addEventListener('pointermove',e=>{if(drag&&mode==='swipe')setX(e.clientX)});add
 $('divider').querySelector('button').addEventListener('keydown',e=>{const x=parseFloat($('divider').style.left);if(e.key==='ArrowLeft')setX(x-30);if(e.key==='ArrowRight')setX(x+30)});
 // lens follows the pointer; wheel + shift resizes
 let R=Math.min(170,innerWidth/4);
-function lens(x,y){$('top').style.setProperty('--lx',x+'px');$('top').style.setProperty('--ly',y+'px');$('top').style.setProperty('--r',R+'px');const r=$('ring');r.style.left=x+'px';r.style.top=y+'px';r.style.width=r.style.height=(2*R)+'px'}
+function lens(x,y){$('top').style.setProperty('--lx',x+'px');$('top').style.setProperty('--ly',(y-$('top').getBoundingClientRect().top)+'px');$('top').style.setProperty('--r',R+'px');const r=$('ring');r.style.left=x+'px';r.style.top=y+'px';r.style.width=r.style.height=(2*R)+'px'}
 lens(innerWidth/2,innerHeight/2);
 $('base').addEventListener('pointermove',e=>{if(mode==='lens')lens(e.clientX,e.clientY)});
 $('base').addEventListener('wheel',e=>{if(mode==='lens'&&e.shiftKey){e.preventDefault();e.stopPropagation();R=Math.max(60,Math.min(400,R-e.deltaY*0.3));lens(parseFloat($('ring').style.left),parseFloat($('ring').style.top))}},{capture:true,passive:false});

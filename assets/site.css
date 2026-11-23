@@ -1,0 +1,31 @@
+/* Shared top navigation for the Oak Forest project pages */
+:root { --nav-h: 42px; }
+.site-nav {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--nav-h); z-index: 50;
+  display: flex; align-items: center; gap: 2px; padding: 0 14px;
+  background: #fbf9f4; border-bottom: 1px solid #e4dfd4;
+  font: 500 13px/1 Inter, system-ui, -apple-system, sans-serif; color: #22201c;
+  overflow-x: auto; scrollbar-width: none; white-space: nowrap;
+}
+.site-nav::-webkit-scrollbar { display: none; }
+.site-nav a {
+  color: #6b665d; text-decoration: none; padding: 7px 10px; border-radius: 6px; flex: none;
+}
+.site-nav a:hover { color: #22201c; background: #efe9dc; }
+.site-nav a:focus-visible { outline: 2px solid #2c5d73; outline-offset: -2px; color: #22201c; }
+.site-nav a[aria-current="page"] { color: #22201c; background: #e9e3d5; }
+.site-nav .home {
+  font-family: "Source Serif 4", Georgia, serif; font-weight: 600; font-size: 16px; color: #22201c; margin-right: 10px; padding-left: 2px;
+}
+.site-nav .home:hover { background: none; }
+.site-nav .sep { flex: 1; }
+.site-nav .s { display: none; }
+@media (max-width: 760px) {
+  .site-nav { padding: 0 6px; font-size: 12.5px; }
+  .site-nav .home { font-size: 15px; margin-right: 2px; }
+  .site-nav a { padding: 7px 7px; }
+  .site-nav .l { display: none; }
+  .site-nav .s { display: inline; }
+  .site-nav .sep { display: none; }
+}
+@media print { .site-nav { position: static; } }

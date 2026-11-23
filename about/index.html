@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<title>About · Oak Forest, Pennsylvania</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Sources, methods and limits of the Oak Forest research: the property map, the aerial views through time, and the 3D model of longwall panel 75.">
+<meta property="og:title" content="About · Oak Forest, Pennsylvania">
+<meta property="og:description" content="Sources, methods and limits of the Oak Forest research.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://oakforest.juliangiordano.com/about/">
+<meta property="og:image" content="https://oakforest.juliangiordano.com/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<link href="../assets/site.css" rel="stylesheet">
+<style>
+  :root { --ink:#22201c; --muted:#6b665d; --line:#e4dfd4; --paper:#fbf9f4; --coal-dk:#7b1e14; --accent:#2c5d73;
+          --serif:"Source Serif 4", Georgia, serif; --sans:Inter, system-ui, -apple-system, sans-serif; }
+  * { box-sizing:border-box; }
+  html { scroll-padding-top:calc(var(--nav-h) + 16px); }
+  html, body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans); }
+  .wrap { max-width:1060px; margin:0 auto; padding:calc(var(--nav-h) + 48px) 28px 60px; display:grid; grid-template-columns:200px minmax(0, 1fr); gap:48px; }
+  .toc { position:sticky; top:calc(var(--nav-h) + 40px); align-self:start; font-size:13px; line-height:1.4; }
+  .toc b { display:block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-bottom:8px; }
+  .toc a { display:block; color:var(--muted); text-decoration:none; padding:4px 0 4px 10px; border-left:2px solid var(--line); }
+  .toc a:hover, .toc a:focus-visible { color:var(--ink); border-left-color:var(--ink); }
+  article { font-family:var(--serif); font-size:17px; line-height:1.62; max-width:42em; }
+  h1 { font-weight:600; font-size:clamp(32px, 4.4vw, 44px); line-height:1.1; margin:0 0 10px; letter-spacing:-.01em; }
+  .sub { font-size:19px; color:#3a372f; margin:0 0 10px; }
+  h2 { font-size:26px; font-weight:600; line-height:1.2; margin:56px 0 6px; padding-top:20px; border-top:1px solid var(--line); }
+  h2 .k { display:block; font-family:var(--sans); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  h3 { font-family:var(--sans); font-size:12.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); font-weight:600; margin:28px 0 4px; }
+  p { margin:10px 0; } ul { margin:10px 0; padding-left:22px; } li { margin:5px 0; }
+  a { color:var(--accent); text-underline-offset:2px; }
+  .lnk { font-family:var(--sans); font-size:14px; font-weight:600; }
+  table { border-collapse:collapse; width:100%; font-family:var(--sans); font-size:13.5px; line-height:1.45; margin:12px 0 6px; }
+  th, td { text-align:left; vertical-align:top; padding:7px 10px 7px 0; border-bottom:1px solid var(--line); }
+  th { font-weight:600; color:var(--muted); font-size:12px; letter-spacing:.03em; }
+  dl { display:grid; grid-template-columns:max-content 1fr; gap:6px 18px; margin:10px 0; font-size:16px; }
+  dt { font-weight:600; } dd { margin:0; }
+  .note { font-family:var(--sans); font-size:13.5px; color:var(--muted); line-height:1.55; }
+  blockquote { margin:12px 0; padding:2px 0 2px 16px; border-left:3px solid var(--line); color:#3a372f; }
+  @media (max-width:820px) { .wrap { grid-template-columns:1fr; gap:0; padding:calc(var(--nav-h) + 28px) 18px 48px; } .toc { display:none; } article { font-size:16.5px; } dl { grid-template-columns:1fr; gap:0 0; } dd { margin-bottom:8px; } }
+</style>
+</head>
+<body>
+<nav class="site-nav" aria-label="Oak Forest project">
+  <a class="home" href="../">Oak Forest</a>
+  <a href="../map/"><span class="l">Who owns the village</span><span class="s">Owners</span></a>
+  <a href="../through-time/">Through time</a>
+  <a href="../beneath/"><span class="l">Panel 75 in 3D</span><span class="s">Panel 75</span></a>
+  <span class="sep"></span>
+  <a href="./" aria-current="page">About</a>
+</nav>
+<div class="wrap">
+  <nav class="toc" aria-label="On this page">
+    <b>On this page</b>
+    <a href="#project">The project</a>
+    <a href="#map">Who owns the village</a>
+    <a href="#through-time">Through time</a>
+    <a href="#beneath">Panel 75 in 3D</a>
+    <a href="#data">Data and citation</a>
+    <a href="#corrections">Names and corrections</a>
+  </nav>
+  <article>
+    <h1>About the project</h1>
+    <p class="sub">Sources, methods and limits of the Oak Forest research.</p>
+
+    <section id="project">
+      <p>Oak Forest is one of the oldest villages in Greene County, Pennsylvania, settled long before the coal boom of the early twentieth century. Its land now lies above the Cumberland Mine, one of the largest underground coal mines in the state, and most of it belongs to the company that runs the mine. These pages ask a simple question about the village, <em>whose land is this?</em>, and follow it in three directions: through the deed records, through a century and a half of maps and aerial photographs, and down to the coal seam itself.</p>
+      <p>The research and maps are by Julian Giordano. Each page states its own sources; this page gathers them, with the methods behind each figure and what the evidence can and cannot show.</p>
+    </section>
+
+    <section id="map">
+      <h2><span class="k">Property map</span>Who owns the village?</h2>
+      <p><a class="lnk" href="../map/">Open the property map →</a></p>
+      <p>The map shows who owns each of the 31 parcels in the village of Oak Forest today, when a coal company first bought it, and how the land changed hands. Coal companies own 26 of the 31 parcels, covering 255 of the village's 474 listed acres (54 percent). They first bought village land in three waves: 1998–2003, 2007–2011 and 2016–2021; nine parcels were first bought in 2017 alone. Two parcels were bought by a coal company and later sold back to private owners.</p>
+
+      <h3>Sources</h3>
+      <table>
+        <thead><tr><th>Source</th><th>What it supplied</th><th>Coverage</th></tr></thead>
+        <tbody>
+          <tr><td>Deeds at the Greene County Recorder of Deeds, Waynesburg, read in person and transcribed by the author</td><td>Chains of title: deed book and page, date, grantee, consideration, and notes on each deed</td><td>31 village parcels; 137 deed entries dated 1898–2022</td></tr>
+          <tr><td>Greene County assessment database, via Vision Government Solutions (<a href="https://gis.vgsi.com/GreenecountyPA/Search.aspx" target="_blank" rel="noopener">gis.vgsi.com</a>)</td><td>Tax ID, listed acreage, owner of record; basis of the coal-company classification</td><td>Accessed 17–18 November 2026</td></tr>
+          <tr><td>Pennsylvania Department of Environmental Protection, PA_Parcels map service</td><td>Parcel boundaries, for drawing only</td><td>Layer carries no publication date</td></tr>
+          <tr><td>Company subsidiary lists in SEC annual reports; DEP mining-permit lists; Pennsylvania and West Virginia business registries</td><td>Identifying which owners are coal companies or their land affiliates</td><td>Lookups made November 2026</td></tr>
+        </tbody>
+      </table>
+      <p>For the village, the deeds are the authoritative record. Where they differ from the county's online sales history, the deeds stand. The county records supply only the tax ID, the listed acreage and the owner's classification.</p>
+
+      <h3>What counts as a coal company</h3>
+      <p>An owner counts as a coal company if its principal business is producing coal, or if it is a land-holding affiliate of such a company, or if it holds land that was bought for or used in coal mining. Each owner name receives one label:</p>
+      <table>
+        <thead><tr><th>Label</th><th>Rule</th><th>Counted as coal?</th></tr></thead>
+        <tbody>
+          <tr><td>Coal</td><td>Coal mining or preparation; a subsidiary, land company or affiliate of a coal producer; or land bought for or used in coal mining</td><td>Yes</td></tr>
+          <tr><td>Gas</td><td>Oil and gas production, gathering, pipelines or storage</td><td>No</td></tr>
+          <tr><td>Utility</td><td>Electric generation or transmission</td><td>No</td></tr>
+          <tr><td>Not coal</td><td>Individuals, government bodies, institutions and all other businesses</td><td>No</td></tr>
+        </tbody>
+      </table>
+      <ul>
+        <li><b>Surface and minerals are separate estates.</b> In Greene County the coal was usually sold apart from the land above it, often generations ago. The map concerns the surface.</li>
+        <li><b>Contractors, utilities and cleanup bodies are not coal companies</b>, even when their work is tied to mining.</li>
+        <li><b>Past owners are labelled by the same rules</b>, but only for the land they held for coal mining. A company that is coal for one holding is not thereby coal for all of its holdings.</li>
+      </ul>
+      <p>On the map, coal owners are grouped by company (for example, the land companies in the chain of ownership of the Cumberland Mine), with the name as recorded shown beside the group.</p>
+
+      <h3>How the deed histories were recorded</h3>
+      <ul>
+        <li><b>Recording.</b> Each parcel's deeds are listed newest to oldest by book and page, date, grantee (the owner after the conveyance) and consideration. Where one deed conveyed several parcels, the entry applies to each of them; a parcel assembled from several tracts carries a separate chain for each tract.</li>
+        <li><b>Prices.</b> Where a deed or the county shows $0 or a nominal sum, the consideration was calculated from the realty transfer tax recorded on the deed (state and local tax are each 1 percent of the price). Nominal sums that remain ($1, $10) reflect mergers, conveyances within a family, or "other good and valuable consideration," and are marked "nominal." A deed covering land in several townships states one price for all of it.</li>
+        <li><b>Depth.</b> Every chain is partial. Nearly all could be traced further back, and a chain is treated as complete only where it reaches the founding of the village; none yet does. Dates are given as recorded; where execution and recording differ, both are noted.</li>
+        <li><b>Notes on deeds</b> (on tax sales, wills and estates, corporate mergers and name changes, and the rights reserved to coal companies) are shown with the deed they concern. In one 1999 sale back to a family, the coal company kept the coal, oil and gas, the right to let the surface subside, a pipeline easement for coal-bed methane, and a right of entry until reclamation was complete.</li>
+        <li><b>No street addresses</b> are used: several are shared by more than one parcel, and some parcels have none.</li>
+      </ul>
+
+      <h3>Limits</h3>
+      <ul>
+        <li><b>Chains of title are partial</b>, as above.</li>
+        <li><b>Assessment records are not legal title.</b> They show the owner of record for taxation; deeds, leases and unrecorded transfers can differ.</li>
+        <li><b>Parcels outside the village</b> show county assessment data only; their deeds have not been researched.</li>
+        <li><b>Boundaries are approximate.</b> The state parcel layer does not always follow current parcel lines.</li>
+        <li><b>Ownership is a snapshot</b> as of November 2026; coal land in Greene County changes hands often.</li>
+      </ul>
+    </section>
+
+    <section id="through-time">
+      <h2><span class="k">Aerial views, 1876–2022</span>Oak Forest through time</h2>
+      <p><a class="lnk" href="../through-time/">Open Through Time →</a></p>
+      <p>Thirteen views of the village from above, cut to the same frame so they can be compared year by year, side by side, or through a lens.</p>
+      <table>
+        <thead><tr><th>Year</th><th>Source</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>1876</td><td>Village plat, "Oak Forest, Centre Twp.," in <i>Caldwell's Illustrated, Historical, Centennial Atlas of Greene County, Pennsylvania</i> (J. A. Caldwell, 1876), p. 124. Scan: David Rumsey Map Collection, CC BY-NC-SA</td><td>Placed on the map by a similarity fit (scale, rotation, shift) to five street points on the 1992 orthophoto; average error about 4 m. The plat's printed scale is not reliable; it fits at about 177 ft to the inch. Street names of 1876 are shown with their modern equivalents.</td></tr>
+          <tr><td>1982</td><td>USGS National High Altitude Photography (NHAP), colour infrared</td><td>Shown in black and white. Placed by matching features to the 1992 orthophoto; average error about 3 m.</td></tr>
+          <tr><td>1992</td><td>USGS digital orthophoto, 29 March 1992</td><td>Black and white, leaf-off.</td></tr>
+          <tr><td>2006</td><td>PAMAP orthoimagery</td><td></td></tr>
+          <tr><td>2008–2019</td><td>USDA National Agriculture Imagery Program (NAIP): 2008, 2010, 2013, 2015, 2017, 2019</td><td>Summer imagery.</td></tr>
+          <tr><td>2009</td><td>USGS high-resolution orthoimagery</td><td>Covers only part of the area.</td></tr>
+          <tr><td>2018, 2022</td><td>Pennsylvania Emergency Management Agency (PEMA) orthoimagery</td><td>Leaf-off, high resolution.</td></tr>
+        </tbody>
+      </table>
+      <p>All images except 1876 and 1982 were already georeferenced by their publishers. Tiles were cut with GDAL from the original files. Property lines are from the PA DEP parcel layer and are drawn on every year for reference; they are today's lines, not those of the year shown. Older aerial photographs (1939–1967) exist and will be added once they have been placed on the map.</p>
+    </section>
+
+    <section id="beneath">
+      <h2><span class="k">3D model</span>Panel 75, beneath the village</h2>
+      <p><a class="lnk" href="../beneath/">Open Panel 75 in 3D →</a></p>
+      <p>Longwall panel 75 of the Cumberland Mine is a block of the Pittsburgh coal seam 11,221 ft long and 1,393 ft wide, mined from July 2022 to January 2023, 600 to 800 ft below the surface. It passes under the village. The model shows the land above it and the panel at its true depth, seen through the ground.</p>
+
+      <h3>The land</h3>
+      <ul>
+        <li><b>Ground:</b> USGS 3DEP lidar elevation. <b>Streams</b> traced from the lidar. <b>Trees</b> from the PEMA 2022 orthophoto, with estimated heights. <b>Buildings:</b> in Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. <b>Roads and power lines:</b> orthophoto and OpenStreetMap.</li>
+        <li>Heights are true unless "3×" is chosen. Trees and buildings are never exaggerated.</li>
+      </ul>
+
+      <h3>The mine</h3>
+      <ul>
+        <li><b>Panels:</b> PA DEP longwall mining panels. <b>Seam depth:</b> PA DEP coal seam elevations (from Cumberland Mine maps), fitted with a smooth surface for each panel.</li>
+        <li><b>The panel</b> is drawn ten times its 7 ft height so that it can be seen at the scale of the land (the seam height is an estimate). In the close-up shearer view it is drawn at its true height.</li>
+        <li><b>Mining over time:</b> month-end positions of the longwall face from the Cumberland Mine subsidence map (96th projection, sheet 31-4). Between month ends the face is drawn moving at an even pace; where a panel's first or last stretch has no date, its timing is estimated.</li>
+        <li><b>Gate roads:</b> three entries on each side of the panel, with their pillars and angled crosscuts, measured on sheet 31-4 and continued at the same spacing beyond the sheet. They are a sketch, not a survey.</li>
+        <li><b>Neighbouring panels:</b> Cumberland panels 73 and 74 and Emerald Mine panels 21 Right and 6 Right (1993), each placed on its own fit to the seam elevations. Parts of the Emerald panels lie beneath the block and are always shown; the rest can be switched on.</li>
+      </ul>
+
+      <h3>The longwall</h3>
+      <ul>
+        <li>The <b>shearer</b> cuts a 42-inch web on each pass across the 1,393 ft face, in both directions (Cumberland's practice as reported in <i>American Longwall Magazine</i>, May 2005), so panel 75 took about 3,200 passes. The same report names the mine's shearer in 2005 as a Joy 7LS2, a double-drum ranging shearer; the model is a generic machine of that kind, not a drawing of the one that mined panel 75. Its position along the face is worked out from the face advance, not recorded.</li>
+        <li>The <b>shields</b> (hydraulic roof supports) are drawn as two-leg shields 1.75 m (5.7 ft) wide, the standard width for the Pittsburgh seam, so about 240 of them line the face. Behind the shearer each shield in turn lowers, pulls itself forward one web and resets against the roof, and the face conveyor is then pushed forward in a gentle S-bend. Behind the shields the roof caves into the mined-out space (the gob).</li>
+        <li>A real pass at about 40 ft a minute takes roughly 35 minutes. The model plays a pass in 30 seconds by default (about 70 times real speed), with slower settings.</li>
+      </ul>
+
+      <h3>Subsidence (modelled, not measured)</h3>
+      <p>Over a longwall panel the ground sinks as the coal is removed. The model shows a subsidence trough calculated from general figures for Pittsburgh-seam longwalls in Greene County, not from survey data for panel 75:</p>
+      <ul>
+        <li><b>Depth of the trough:</b> about 4 ft at the centre of the panel, taking subsidence as about 55 percent of the 7 ft mining height (DEP-compiled figures for nearby Pittsburgh-seam longwalls give 53–60 percent).</li>
+        <li><b>Extent:</b> the trough reaches beyond the panel edges at an angle of draw of about 15° from the vertical (roughly 200 ft at this depth), with the classic smooth S-shaped edge.</li>
+        <li><b>Timing:</b> a small part of the movement happens as the face passes beneath; the rest develops over the following months, after a U.S. Bureau of Mines study in Greene County in which subsidence at the panel centre continued for about seven months after undermining.</li>
+        <li><b>Drawn 10× deeper</b> than calculated, so that a sag of a few feet can be seen at the scale of a two-mile block. The cracks drawn in the rock above the mined panel mark the broken ground over a longwall (the caved and fractured zones) in a general way; their positions are illustrative.</li>
+        <li>The ground surface is the lidar as it was surveyed; any subsidence already in it is not removed.</li>
+      </ul>
+      <p class="note">Subsidence sources: PA DEP, "Effects of Longwall Mining on Real Property Value and the Tax Base of Greene and Washington Counties" (Resource Technologies Corp., 2002); PA DEP longwall forestland study, table of longwall mine data; University of Pittsburgh, Act 54 assessments for PA DEP.</p>
+    </section>
+
+    <section id="data">
+      <h2><span class="k">Data and citation</span>Downloads, versions and citation</h2>
+      <ul>
+        <li>Village parcels with owners and classification: <a href="../data/oak_forest_parcels.geojson" download>GeoJSON</a>.</li>
+        <li>Village deed histories: <a href="../data/oak_forest_village_deeds.csv" download>CSV</a>.</li>
+        <li>Every change to these pages is kept on <a href="https://github.com/julianjgiordano/oak-forest-map/commits/main" target="_blank" rel="noopener">GitHub</a>, so earlier versions can be seen and restored.</li>
+      </ul>
+      <h3>Suggested citations</h3>
+      <ul>
+        <li>Julian Giordano, "Oak Forest, Pennsylvania: Who Owns the Village?" interactive map, November 2026, https://oakforest.juliangiordano.com/map/.</li>
+        <li>Julian Giordano, "Oak Forest Through Time," November 2026, https://oakforest.juliangiordano.com/through-time/.</li>
+        <li>Julian Giordano, "Panel 75," interactive 3D model, November 2026, https://oakforest.juliangiordano.com/beneath/.</li>
+      </ul>
+      <h3>Research assistance</h3>
+      <p>Data collection, scripting, searches and registry lookups were assisted by an AI assistant, Claude (Anthropic). All classification decisions and the deed research are the author's own, and every suggestion the assistant made is recorded with its evidence beside the decision taken.</p>
+    </section>
+
+    <section id="corrections">
+      <h2><span class="k">Names and corrections</span>Names, privacy and corrections</h2>
+      <p>Owners' names come from public deed and tax records. No street addresses are shown, and the 3D model names no one. People named on the property map, or their families, can ask for a correction or for a name to be withheld.</p>
+    </section>
+  </article>
+</div>
+</body>
+</html>

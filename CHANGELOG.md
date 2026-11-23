@@ -2,6 +2,17 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.8 (23 Nov 2026): landing page, About page, Panel 75 longwall and subsidence
+- New landing page at the site root with preview cards for the three projects. The property map moved to /map/ (old links to a parcel, /#4861, are forwarded there). A navigation bar on every page links home, to the three projects and to About.
+- New About page (/about/): sources, methods and limits for the property map, Through Time and Panel 75; downloads, citations, research-assistance note, names and corrections.
+- Panel 75 in 3D:
+  - Gate-road pillars drawn as solid blocks as tall as the panel, so the entries between them read as tunnels.
+  - The parts of the Emerald panels (21 Right, 6 Right) that pass beneath the block are always shown; "Neighbouring panels, full extent" shows the rest and adds 73 and 74 to the sequence. (Panel 74 lies just outside the block; its gate road, shared with 75, is drawn.)
+  - Shearer close-up at true size: a double-drum ranging shearer on the face conveyor and about 240 two-leg shields 1.75 m wide. Behind the shearer each shield lowers, steps forward one web and resets; the conveyor is pushed over in an S-bend; the roof caves in behind the shields; the coal face steps back where the drums have cut. The camera follows the shearer. Labels name the parts.
+  - One pass across the 1,393 ft face takes 30 s by default (about 70× real speed), with 2 min and 7 min settings.
+  - Subsidence (modelled, drawn 10×): the ground, trees, houses and roads sink over the mined panel, about 4 ft at the centre, reaching ~200 ft beyond the edges (15° angle of draw), a little as the face passes and the rest over ~7 months. Red contour lines mark 1, 2 and 3 ft of sinking; the ground just behind the moving face pulses while the sequence plays. Switch: "Ground sinking".
+  - Broken rock above the mined panel: faint cracks in the caved and fractured zones, appearing as the face advances. Switch: "Broken rock above the panel".
+
 ## v1.7.1 (23 Nov 2026): security
 - Map libraries pinned to exact versions (MapLibre GL JS 5.24.1, maplibre-contour 0.1.1) with integrity fingerprints (SRI), so a changed or tampered copy on unpkg will not run.
 - Content-Security-Policy on all three pages: scripts, styles, fonts and map tiles may load only from this site and the services the maps use (unpkg, Google Fonts, OpenFreeMap, Mapbox, AWS Terrain Tiles); no plugins, no forms.
