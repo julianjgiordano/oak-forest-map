@@ -105,7 +105,7 @@
   <div class="panel row" role="group" aria-label="Views">
     <button id="reset" type="button" title="The view from the poster (R)">From the south</button>
     <button id="village" type="button">Oak Forest</button>
-    <button id="below" type="button">From below</button>
+    <button id="above" type="button">From above</button>
   </div>
   <div class="panel row" role="group" aria-label="Vertical scale">
     <span>Height</span><button id="ve1" type="button" aria-pressed="true">True</button><button id="ve3" type="button" aria-pressed="false">3×</button>
@@ -117,7 +117,7 @@
       <label><input type="checkbox" data-layer="built" checked> Buildings and power lines</label>
       <label><input type="checkbox" data-layer="trace" checked> <span class="sw" style="background:repeating-linear-gradient(90deg,#C2401C 0 3px,transparent 3px 6px)"></span> Panel outline on the ground</label>
       <label><input type="checkbox" data-layer="walls" checked> Panel edges, slab to surface</label>
-      <label><input type="checkbox" data-layer="neigh" checked> Neighbouring panels</label>
+      <label><input type="checkbox" data-layer="neigh"> Neighbouring panels</label>
       <label><input type="checkbox" data-layer="box" checked> Block sides and seam</label>
       <label><input type="checkbox" data-layer="labels" checked> Labels</label>
     </div>
@@ -132,7 +132,7 @@
 <footer>
   <div class="cap" id="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
   <details><summary>Sources and notes</summary>
-    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Houses link to their parcels on the property map. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
+    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
   </details>
 </footer>
 
@@ -241,7 +241,7 @@ function meshOf(arr, mat, order = 0) {
 
 // ---------- layers (rebuilt when the vertical scale changes)
 const layers = {};
-const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: true };
+const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: false };
 const labelObjs = [];
 function clearLayers() {
   for (const g of Object.values(layers)) {
@@ -250,7 +250,9 @@ function clearLayers() {
   }
   for (const m of lineMats) m.dispose(); lineMats = []; labelObjs.length = 0;
 }
-function addLayer(name, g) { layers[name] = g; g.visible = layerOn[name] ?? true; scene.add(g); }
+// CSS2D labels ignore a hidden parent, so hide them too
+function setLayerVis(name, on) { const g = layers[name]; if (!g) return; g.visible = on; g.traverse(o => { if (o.isCSS2DObject) { o.visible = on; if (!on) o.element.style.display = 'none'; } }); }
+function addLayer(name, g) { layers[name] = g; scene.add(g); setLayerVis(name, layerOn[name] ?? true); }
 
 function buildGround() {
   const g = new THREE.Group();
@@ -533,9 +535,16 @@ for (const id of ['73', '74', '75']) {
   PANELS_T[id] = { h0: Math.min(...hs), h1: Math.max(...hs), rec: (X.faces[id] || []).map(r => [tOf(r.date), r.h]) };
 }
 // steps: every recorded month end, then a final 'finished' state (panel 75 completed 2023, PA DEP)
-const stepDates = [...new Set(Object.values(X.faces).flat().map(r => r.date))].sort();
-const STEPS = stepDates.map(s => ({ t: tOf(s), label: new Date(tOf(s)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) }));
-STEPS.push({ t: Infinity, label: 'Today' });
+// panels in the sequence: panel 75 alone, or 73–75 when the neighbouring panels are shown
+const shownIds = () => layerOn.neigh ? ['73', '74', '75'] : ['75'];
+let STEPS = [];
+function makeSteps() {
+  const dates = [...new Set(shownIds().flatMap(id => (X.faces[id] || []).map(r => r.date)))].sort();
+  STEPS = [{ t: tOf(dates[0]) - 45 * DAY, label: 'Before mining began' },
+           ...dates.map(s => ({ t: tOf(s), label: new Date(tOf(s)).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) })),
+           { t: Infinity, label: 'Today' }];
+}
+makeSteps();
 function extentAt(id, t) {        // how far (h) the face had come by time t
   const P = PANELS_T[id], r = P.rec;
   if (!r.length) return P.h1;
@@ -547,6 +556,7 @@ function extentAt(id, t) {        // how far (h) the face had come by time t
 let tPos = STEPS.length - 1, faceGroup = null, faceMats = [];
 const whenIn = document.getElementById('when'), whenOut = document.getElementById('whenv'), playBtn = document.getElementById('play');
 whenIn.max = STEPS.length - 1; whenIn.value = tPos;
+function resetSteps() { play(false); makeSteps(); whenIn.max = STEPS.length - 1; setTime(STEPS.length - 1); }
 function faceH(id, x) {             // fractional step index -> face position, moving evenly between month ends
   const i = Math.floor(x), f = x - i;
   const e0 = extentAt(id, STEPS[i].t), e1 = i + 1 < STEPS.length ? extentAt(id, STEPS[i + 1].t) : e0;
@@ -560,12 +570,12 @@ function setTime(x) {
   if (faceGroup) { scene.remove(faceGroup); faceGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose) o.material.dispose(); if (o.isCSS2DObject) o.element.remove(); }); faceGroup = null; }
   const i = Math.round(tPos), st = STEPS[Math.min(i, STEPS.length - 1)];
   if (atEnd) {
-    whenOut.innerHTML = '<b>Today</b>: panels 73, 74 and 75 all mined (2021, 2022, 2023)';
+    whenOut.innerHTML = layerOn.neigh ? '<b>Today</b>: panels 73, 74 and 75 all mined (2021, 2022, 2023)' : '<b>Today</b>: panel 75 mined (July 2022 to early 2023)';
   } else {
     const keep = lineMats; lineMats = [];
     faceGroup = new THREE.Group();
     let active = null;
-    for (const id of ['73', '74', '75']) {
+    for (const id of shownIds()) {
       const h = clip[id].constant, P = PANELS_T[id];
       if (h <= P.h0 || h >= P.h1) continue;
       active = id;
@@ -585,7 +595,7 @@ function setTime(x) {
     for (const L_ of faceMats) L_.resolution.set(innerWidth, innerHeight);
     scene.add(faceGroup);
     const where = active === '75' ? (clip['75'].constant > 1700 && clip['75'].constant < 2700 ? ' · passing under Oak Forest' : '') : '';
-    whenOut.innerHTML = `<b>${st.label}</b>` + (active ? `: longwall face in panel ${active}${where}` : ': between panels');
+    whenOut.innerHTML = `<b>${st.label}</b>` + (active ? `: longwall face in panel ${active}${where}` : (i === 0 ? '' : ': between panels'));
   }
   whenIn.value = tPos;
 }
@@ -640,7 +650,8 @@ const views = {
   // portrait screens: an oblique view along the panel fills the frame better than the poster's side-on view
   reset: () => camera.aspect < 0.9 ? view(38 * Math.PI / 180, -0.85, W(HC, 450, ZC), fitBox(38 * Math.PI / 180, -0.85, W(HC, 450, ZC))) : view(EL),
   village: () => view(36 * Math.PI / 180, -25 * Math.PI / 180, W(2390, 560, zg(2390, 560), -40 * VE), isPhone ? 2600 : 1900),
-  below: () => { const el = -30 * Math.PI / 180, az = camera.aspect < 0.9 ? -0.85 : 0.35; view(el, az, tgt0(), fitBox(el, az, tgt0())); },
+  // straight down, north at the top of the screen (rotated 90° on portrait screens so the long panel fits)
+  above: () => { const el = 89.6 * Math.PI / 180, az = camera.aspect < 0.9 ? -Math.PI / 2 : 0, t = W(HC, 700, ZC); view(el, az, t, fitBox(el, az, t)); },
 };
 function resize() {
   const w = innerWidth, h = innerHeight;
@@ -689,16 +700,19 @@ ve1.onclick = () => setVE(1); ve3.onclick = () => setVE(3);
 for (const box of document.querySelectorAll('#layers input')) {
   box.onchange = () => {
     const n = box.dataset.layer; layerOn[n] = box.checked;
-    if (layers[n]) layers[n].visible = box.checked;
+    setLayerVis(n, box.checked);
     if (n === 'labels') document.getElementById('labels').style.display = box.checked ? '' : 'none';
+    if (n === 'neigh') resetSteps();
   };
 }
 
 if (new URLSearchParams(location.search).has('debug')) window.__p75 = { view, views, setVE, layers, camera, controls, W, zg, tgt0 };
+// house -> parcel links: switched off for now (Julian, 23 Nov 2026); set to true to bring them back
+const PARCEL_LINKS = false;
 const tip = document.getElementById('tip'), ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
 let hoverPid = null, downAt = null, lastPick = 0;
 function pick(ev) {
-  if (!layerOn.built) return null;
+  if (!PARCEL_LINKS || !layerOn.built) return null;
   ptr.set(ev.clientX / innerWidth * 2 - 1, -(ev.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   const ground = layers.ground && layers.ground.children[0];
