@@ -2,6 +2,11 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.4 (23 Nov 2026)
+- New page: Panel 75 in 3D (/beneath/). The land above Cumberland Mine longwall panel 75 (mined 2022–23) and the panel at its true depth, seen through the ground, in the style of the "Panel 75 from the south" poster. Rotate 360°, zoom, pan, and look from below; ground transparency slider; preset views (poster view, Oak Forest close-up, from below); keyboard controls.
+- Built with three.js r170 (vendored in beneath/vendor, MIT licence). Data: beneath/data/p75.json + p75.bin (~610 KB: lidar terrain at 20 ft, 35,636 trees, 53 buildings, roads, streams, power), made by tools/build_beneath_data.py from Longwall Posters/01_Data/p75_block_data.json and p75_labels.json.
+- Property map links to the new page.
+
 ## v1.3 (21 Nov 2026)
 - Through Time: added the 1876 county atlas plat of Oak Forest (Caldwell's atlas, p. 124; David Rumsey Map Collection scan) as the earliest view. Georeferenced by a similarity fit (scale, rotation, shift) to five street points from the 1992 orthophoto: RMSE about 4 m; plat drawn at about 177 ft to the inch (printed: 260). Clipped to the Oak Forest panel; tiles z14-19. 1876 street names (Main, Broad, Water, South) shown with modern equivalents when "Place names" is on.
 
