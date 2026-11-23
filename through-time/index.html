@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; connect-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>Oak Forest Through Time</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from the 1876 county atlas to 2022. Slide through the years, swipe between two, or look through a lens.">
@@ -11,8 +12,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
-<link href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css" rel="stylesheet">
-<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<link href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" rel="stylesheet" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous">
+<script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js" integrity="sha384-nXMl9YiLoSG5KBPTFgvxVuIqQQcqIvo0bFrvoEaGJC6r7IibIzF1S36Zbf/sKBtL" crossorigin="anonymous"></script>
 <style>
 :root{--ink:#22201c;--muted:#6b665d;--paper:#fbf9f4;--line:#e4dfd4;--accent:#b8352a;--serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,sans-serif}
 *{box-sizing:border-box}html,body{margin:0;height:100%;background:#1d1c1a;color:var(--ink);font-family:var(--sans);font-size:14px;overflow:hidden}

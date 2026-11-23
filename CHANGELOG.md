@@ -2,6 +2,11 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.7.1 (23 Nov 2026): security
+- Map libraries pinned to exact versions (MapLibre GL JS 5.24.1, maplibre-contour 0.1.1) with integrity fingerprints (SRI), so a changed or tampered copy on unpkg will not run.
+- Content-Security-Policy on all three pages: scripts, styles, fonts and map tiles may load only from this site and the services the maps use (unpkg, Google Fonts, OpenFreeMap, Mapbox, AWS Terrain Tiles); no plugins, no forms.
+- To update MapLibre later: change the version in both `<script>`/`<link>` tags and replace the `integrity` values with the new file's sha384 hash.
+
 ## v1.7 (23 Nov 2026)
 - Panel 75 in 3D: the longwall drawn to scale. The shearer (a dark block, about 45 ft long) runs back and forth across the 1,393 ft face, advancing one 42-inch web per pass (bi-directional cutting, as reported for Cumberland in 2005): about 3,200 passes for panel 75. Its path over the last 14 passes is drawn as a fine zigzag behind it. Timing still follows the month-end face positions on sheet 31-4; the shearer's place along the face is worked out from the face advance.
 - New "Shearer" button: flies to the face and plays one pass about every 2 seconds (roughly 1,000 times real speed), with an approximate date and the pass number. The month-by-month play is unchanged (at that speed each pass is far too quick to see).
