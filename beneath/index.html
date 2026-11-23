@@ -47,6 +47,7 @@
   .timeline { position:fixed; left:24px; bottom:76px; display:flex; gap:10px; align-items:center; font-size:13px; background:rgba(242,240,235,.9);
                padding:6px 10px; border:1px solid var(--line); border-radius:6px; max-width:calc(100vw - 48px); }
   .timeline button { font:inherit; background:#fff; border:1px solid var(--line); border-radius:5px; padding:4px 9px; cursor:pointer; min-width:34px; }
+  .timeline button[aria-pressed=true] { background:var(--ink); color:#fff; border-color:var(--ink); }
   .timeline button:hover, .timeline button:focus-visible { border-color:var(--ink); }
   .timeline input[type=range] { width:min(340px, 40vw); accent-color:var(--red); }
   .timeline output { min-width:15em; font-variant-numeric:tabular-nums; }
@@ -117,6 +118,7 @@
       <label><input type="checkbox" data-layer="built" checked> Buildings and power lines</label>
       <label><input type="checkbox" data-layer="trace" checked> <span class="sw" style="background:repeating-linear-gradient(90deg,#C2401C 0 3px,transparent 3px 6px)"></span> Panel outline on the ground</label>
       <label><input type="checkbox" data-layer="walls" checked> Panel edges, slab to surface</label>
+      <label><input type="checkbox" data-layer="gates" checked> Gate roads (entries and pillars)</label>
       <label><input type="checkbox" data-layer="neigh"> Neighbouring panels</label>
       <label><input type="checkbox" data-layer="box" checked> Block sides and seam</label>
       <label><input type="checkbox" data-layer="labels" checked> Labels</label>
@@ -125,6 +127,7 @@
 </div>
 <div class="timeline" role="group" aria-label="Mining over time">
   <button id="play" type="button" aria-label="Play the mining sequence">▶</button>
+  <button id="shear" type="button" aria-pressed="false" title="Follow the shearer pass by pass, about 1,000 times real speed">Shearer</button>
   <input id="when" type="range" min="0" max="10" step="0.01" value="10" aria-label="Date" aria-describedby="whenv">
   <output id="whenv" for="when" aria-live="polite"></output>
 </div>
@@ -132,7 +135,7 @@
 <footer>
   <div class="cap" id="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
   <details><summary>Sources and notes</summary>
-    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
+    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Longwall shearer drawn to scale: it cuts a 42-inch web on each pass across the face, in both directions (Cumberland's practice as reported in American Longwall Magazine, 2005), so panel 75 took about 3,200 passes; its position along the face is worked out from the face advance, not recorded. Gate roads: three entries on each side of the panel with their pillars and crosscuts, measured on sheet 31-4 and continued at the same spacing beyond the sheet; a sketch, not a survey. Shearer and pillars are drawn 10× their height, like the panel. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
   </details>
 </footer>
 
@@ -160,8 +163,8 @@ const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // ---------- data
 const get = async (u, kind) => { for (let k = 0; k < 3; k++) { try { const r = await fetch(u); if (r.ok) return await r[kind](); } catch (e) {} await new Promise(r => setTimeout(r, 400)); } throw new Error(u); };
 let M, buf;
-let X;
-try { [M, buf, X] = await Promise.all([get('data/p75.json', 'json'), get('data/p75.bin', 'arrayBuffer'), get('data/p75_extra.json', 'json')]); }
+let X, GT;
+try { [M, buf, X, GT] = await Promise.all([get('data/p75.json', 'json'), get('data/p75.bin', 'arrayBuffer'), get('data/p75_extra.json', 'json'), get('data/p75_gates.json', 'json')]); }
 catch (e) { document.getElementById('loading').textContent = 'The 3D data could not be loaded. Please reload the page.'; throw e; }
 const G = M.grid, NH = G.nh, ND = G.nd, STEP = G.step;
 const Zg = new Int16Array(buf, M.bin.terrain_i16[0], M.bin.terrain_i16[1]);
@@ -241,7 +244,7 @@ function meshOf(arr, mat, order = 0) {
 
 // ---------- layers (rebuilt when the vertical scale changes)
 const layers = {};
-const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: false };
+const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: false, gates: true };
 const labelObjs = [];
 function clearLayers() {
   for (const g of Object.values(layers)) {
@@ -553,7 +556,13 @@ function extentAt(id, t) {        // how far (h) the face had come by time t
   for (let k = 0; k < r.length; k++) if (Math.abs(r[k][0] - t) < DAY) return r[k][1];
   return P.h1 + 1;
 }
-let tPos = STEPS.length - 1, faceGroup = null, faceMats = [];
+let tPos = STEPS.length - 1, faceGroup = null, faceMats = [], shearInfo = null, shearMode = false;
+function approxDate(x) {
+  const i = Math.min(Math.floor(x), STEPS.length - 2), f = x - i, t0 = STEPS[i].t, t1 = STEPS[i + 1].t;
+  if (!isFinite(t1)) return STEPS[i].label;
+  const t = i === 0 ? t1 : t0 + (t1 - t0) * f;
+  return (i === 0 ? 'before ' : '≈ ') + new Date(i === 0 ? t1 : t).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
 const whenIn = document.getElementById('when'), whenOut = document.getElementById('whenv'), playBtn = document.getElementById('play');
 whenIn.max = STEPS.length - 1; whenIn.value = tPos;
 function resetSteps() { play(false); makeSteps(); whenIn.max = STEPS.length - 1; setTime(STEPS.length - 1); }
@@ -567,14 +576,14 @@ function setTime(x) {
   tPos = Math.min(Math.max(x, 0), STEPS.length - 1);
   const atEnd = tPos >= STEPS.length - 1 - 1e-6;
   for (const id of ['73', '74', '75']) clip[id].constant = atEnd ? 1e9 : faceH(id, tPos);
-  if (faceGroup) { scene.remove(faceGroup); faceGroup.traverse(o => { if (o.geometry) o.geometry.dispose(); if (o.material && o.material.dispose) o.material.dispose(); if (o.isCSS2DObject) o.element.remove(); }); faceGroup = null; }
+  if (faceGroup) { scene.remove(faceGroup); faceGroup.traverse(o => { if (o.geometry && o.geometry !== shearerMesh.geometry) o.geometry.dispose(); if (o.material && o.material !== shearerMesh.material && o.material.dispose) o.material.dispose(); if (o.isCSS2DObject) o.element.remove(); }); faceGroup = null; }
   const i = Math.round(tPos), st = STEPS[Math.min(i, STEPS.length - 1)];
   if (atEnd) {
     whenOut.innerHTML = layerOn.neigh ? '<b>Today</b>: panels 73, 74 and 75 all mined (2021, 2022, 2023)' : '<b>Today</b>: panel 75 mined (July 2022 to early 2023)';
   } else {
     const keep = lineMats; lineMats = [];
     faceGroup = new THREE.Group();
-    let active = null;
+    let active = null; shearInfo = null;
     for (const id of shownIds()) {
       const h = clip[id].constant, P = PANELS_T[id];
       if (h <= P.h0 || h >= P.h1) continue;
@@ -582,7 +591,20 @@ function setTime(x) {
       const n = id === '75' ? null : X.neighbours.find(m => m.id === id), qn = n ? n.seam_q : q;
       const [db0, db1] = id === '75' ? [b0, b1] : (() => { const ds = n.poly.map(p => p[1]); return [Math.min(...ds), Math.max(...ds)]; })();
       const line = []; for (let k = 0; k <= 12; k++) { const d = db0 + (db1 - db0) * k / 12; line.push(W(h, d, seamQ(qn, h, d), SLAB + 2)); }
-      faceGroup.add(fatLine(line, { color: C.redD, width: 3, xray: true, order: 23 }));
+      faceGroup.add(fatLine(line, { color: C.redD, width: id === '75' ? 1.6 : 3, xray: true, order: 23 }));
+      if (id === '75') {
+        // the shearer's path over the last passes: across the face and back, one 3.5 ft web apart
+        const S_ = shearerAt(h), zig = [], M_ = 14;
+        for (let j = Math.max(0, S_.k - M_); j <= S_.k; j++) {
+          const hj = a0 + j * WEB, n_ = j % 2 === 0, from = n_ ? b0 : b1, to = j === S_.k ? S_.d : (n_ ? b1 : b0);
+          for (let m = 0; m <= 8; m++) { const d = from + (to - from) * m / 8; zig.push(W(hj, d, seam(hj, d), SLAB + 3)); }
+        }
+        if (zig.length > 1) faceGroup.add(fatLine(zig, { color: C.ink, width: 1, opacity: 0.75, xray: true, order: 24 }));
+        if (!playing || shearMode) {
+          const sm = shearerMesh.clone(); sm.position.copy(W(h, S_.d, seam(h, S_.d), 35)); faceGroup.add(sm);
+        }
+        shearInfo = S_;
+      }
       if (id === '75') {   // the face, carried up to the ground as a faint line
         const up = []; for (let k = 0; k <= 12; k++) { const d = db0 + (db1 - db0) * k / 12; up.push(W(h, d, zg(h, d), 4)); }
         faceGroup.add(fatLine(up, { color: C.redD, width: 1.4, dashed: true, dash: 4, gap: 4, opacity: 0.8, xray: true, order: 23 }));
@@ -595,7 +617,9 @@ function setTime(x) {
     for (const L_ of faceMats) L_.resolution.set(innerWidth, innerHeight);
     scene.add(faceGroup);
     const where = active === '75' ? (clip['75'].constant > 1700 && clip['75'].constant < 2700 ? ' · passing under Oak Forest' : '') : '';
-    whenOut.innerHTML = `<b>${st.label}</b>` + (active ? `: longwall face in panel ${active}${where}` : (i === 0 ? '' : ': between panels'));
+    const label = shearMode && shearInfo ? approxDate(tPos) : st.label;
+    const pass = shearInfo && (shearMode || !playing) ? ` · pass ${(shearInfo.k + 1).toLocaleString('en-US')} of ${NPASS.toLocaleString('en-US')}, shearer heading ${shearInfo.north ? 'north' : 'south'}` : '';
+    whenOut.innerHTML = `<b>${label}</b>` + (active ? `: longwall face in panel ${active}${where}${pass}` : (i === 0 ? '' : ': between panels'));
   }
   whenIn.value = tPos;
 }
@@ -606,15 +630,75 @@ function play(on) {
   last = performance.now();
 }
 playBtn.onclick = () => play(!playing);
+const shearBtn = document.getElementById('shear');
+function faceView() {               // close to the face, from the south-west, a little above
+  const h = clip['75'].constant < a1 && clip['75'].constant > a0 ? clip['75'].constant : a0 + 0.3 * (a1 - a0), dm = (b0 + b1) / 2;
+  view(30 * Math.PI / 180, -0.6, W(h, dm, seam(h, dm), 0), 2300);
+}
+shearBtn.onclick = () => {
+  shearMode = !shearMode; shearBtn.setAttribute('aria-pressed', shearMode);
+  if (shearMode) {
+    // start inside panel 75's mining if we are before or after it
+    const h = faceH('75', tPos);
+    if (tPos >= STEPS.length - 1 - 1e-6 || h <= a0 || h >= a1) { const k = STEPS.findIndex(s => extentAt('75', s.t) > a0 && extentAt('75', s.t) < a1); setTime(Math.max(0, k - 0.5)); }
+    faceView(); play(true);
+  } else { play(false); setTime(tPos); }
+};
 whenIn.oninput = () => { play(false); setTime(+whenIn.value); };
 function tick(now) {
   if (!playing) return;
   const dt = Math.min(now - last, 400) / 1000; last = now;
-  const x = tPos + dt / (reduceMotion ? 0.4 : 1.1);   // ~1.1 s per month end
+  let x;
+  if (shearMode) {                 // about one pass every 2 s (a real pass took ~35 min: ~1,000x)
+    const e = 1e-3, dh = (faceH('75', Math.min(tPos + e, STEPS.length - 1)) - faceH('75', tPos)) / e;
+    x = dh > 1e-6 ? tPos + dt * (WEB / 2) / dh : tPos + dt;
+  } else x = tPos + dt / (reduceMotion ? 0.4 : 1.1);   // ~1.1 s per month end
   if (x >= STEPS.length - 1) { setTime(STEPS.length - 1); play(false); } else setTime(x);
 }
 
-function buildAll() { clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildNeigh(); buildLabels(); if (typeof setTime === 'function' && faceGroup !== undefined) setTime(tPos); }
+// ---------- gate roads: the room-and-pillar entries on each side of panel 75 (measured on sheet 31-4)
+const ENTRY = GT.entry_width_ft, PILLAR = 0x3E3C38;
+const gateFill = new THREE.MeshBasicMaterial({ color: PILLAR, transparent: true, opacity: 0.34, side: THREE.DoubleSide, depthTest: false, depthWrite: false });
+function buildGates() {
+  const g = new THREE.Group(), pos = [], outl = [];
+  for (const [gname, gate] of Object.entries(GT.gates)) {
+    // line the gate up with the DEP panel edge (map and DEP outline differ by up to ~16 ft)
+    const inner = gname === 'north' ? Math.min(...gate.entries_d.map(e => e[0])) : Math.max(...gate.entries_d.map(e => e[1]));
+    const shift = gname === 'north' ? b1 - inner : b0 - inner;
+    for (const row of gate.rows) {
+      const d0 = row.d0 + shift, d1 = row.d1 + shift, dm = (d0 + d1) / 2, lean = row.lean_dh_per_dd, P = row.pitch_ft;
+      let hs = row.crosscuts_h.slice();
+      while (hs[0] > H0 - P) hs.unshift(hs[0] - P);          // continue the pattern beyond the sheet
+      while (hs[hs.length - 1] < H1 + P) hs.push(hs[hs.length - 1] + P);
+      const cc = (hc, d) => hc + lean * (d - dm);
+      for (let k = 0; k < hs.length - 1; k++) {
+        const pts = [[cc(hs[k], d0) + ENTRY / 2, d0], [cc(hs[k + 1], d0) - ENTRY / 2, d0], [cc(hs[k + 1], d1) - ENTRY / 2, d1], [cc(hs[k], d1) + ENTRY / 2, d1]]
+          .map(([h, d]) => [Math.min(Math.max(h, H0), H1), d]);
+        if (pts[1][0] - pts[0][0] < 5 && pts[2][0] - pts[3][0] < 5) continue;
+        const v = pts.map(([h, d]) => W(h, d, seam(h, d), SLAB));
+        for (const t of [0, 1, 2, 0, 2, 3]) pos.push(v[t].x, v[t].y, v[t].z);
+        outl.push(v[0], v[1], v[1], v[2], v[2], v[3], v[3], v[0]);
+      }
+    }
+  }
+  g.add(meshOf(pos, gateFill, 17));
+  const og = new THREE.BufferGeometry().setFromPoints(outl);
+  const ol = new THREE.LineSegments(og, new THREE.LineBasicMaterial({ color: PILLAR, transparent: true, opacity: 0.55, depthTest: false, depthWrite: false })); ol.renderOrder = 17;
+  g.add(ol);
+  addLayer('gates', g);
+}
+
+// ---------- the longwall shearer, to scale: a 42-inch web per pass, cutting both ways across the face
+const WEB = 3.5, NPASS = Math.ceil((a1 - a0) / WEB), FACE_W = b1 - b0;
+function shearerAt(h) {            // where along the face the shearer is when the face has reached h
+  const x = Math.max(0, (h - a0) / WEB), k = Math.floor(x), f = x - k, north = k % 2 === 0;
+  return { k, f, north, d: north ? b0 + f * FACE_W : b1 - f * FACE_W };
+}
+const shearerMesh = new THREE.Mesh(new THREE.BoxGeometry(6, 70, 45),      // ~45 ft machine on a ~6 ft deep cut, 10x tall like the slab
+  new THREE.MeshBasicMaterial({ color: C.ink, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false }));
+shearerMesh.renderOrder = 24;
+
+function buildAll() { clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildGates(); buildNeigh(); buildLabels(); if (typeof setTime === 'function' && faceGroup !== undefined) setTime(tPos); }
 buildAll();
 
 // ---------- camera and controls

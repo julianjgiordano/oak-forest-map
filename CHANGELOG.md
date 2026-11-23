@@ -2,6 +2,11 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v1.7 (23 Nov 2026)
+- Panel 75 in 3D: the longwall drawn to scale. The shearer (a dark block, about 45 ft long) runs back and forth across the 1,393 ft face, advancing one 42-inch web per pass (bi-directional cutting, as reported for Cumberland in 2005): about 3,200 passes for panel 75. Its path over the last 14 passes is drawn as a fine zigzag behind it. Timing still follows the month-end face positions on sheet 31-4; the shearer's place along the face is worked out from the face advance.
+- New "Shearer" button: flies to the face and plays one pass about every 2 seconds (roughly 1,000 times real speed), with an approximate date and the pass number. The month-by-month play is unchanged (at that speed each pass is far too quick to see).
+- Gate roads: the three entries on each side of panel 75, with their pillars and angled crosscuts, measured on the Cumberland Mine subsidence map (96th projection, sheet 31-4) and continued at the same spacing beyond the sheet. Pillars drawn as dark blocks at seam depth; switchable under Layers. Data: beneath/data/p75_gates.json from tools/build_beneath_gates.py.
+
 ## v1.6 (23 Nov 2026)
 - Panel 75 in 3D: neighbouring panels off by default; with them off, the mining sequence plays panel 75 only (Jul 2022 to Jan 2023), from a new "Before mining began" step. Turning them on restores the 73–75 sequence.
 - "From below" view replaced by "From above" (straight down, north up; turned 90° on portrait screens).
