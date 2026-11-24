@@ -1,0 +1,69 @@
+  /* ---------- the guided story */
+  html, body { overflow:visible; height:auto; }
+  body { overflow-x:hidden; }
+  header, .controls, .timeline, footer, #tip { display:none !important; }
+  #stage canvas { pointer-events:none; }
+  body.exploring #stage canvas { pointer-events:auto; }
+  #labels { z-index:1; }
+  #story { position:relative; z-index:3; pointer-events:none; }
+  .step { min-height:125vh; display:flex; align-items:center; padding:0 5vw; }
+  .step .card { pointer-events:auto; max-width:27em; background:rgba(251,249,244,.94); padding:16px 20px 14px; border-radius:6px;
+                box-shadow:0 2px 14px rgba(27,27,27,.10); font-family:'Source Serif 4', Georgia, serif; font-size:clamp(17px,1.35vw,20px); line-height:1.5; color:#1B1B1B; }
+  .step .card p { margin:0 0 .5em; } .step .card p:last-child { margin-bottom:0; }
+  .step .card .note { font-family:Inter, system-ui, sans-serif; font-size:13px; color:#6F6B64; line-height:1.4; }
+  .step.title { min-height:160vh; justify-content:center; }
+  .step.title .card { background:none; box-shadow:none; text-align:center; max-width:36em; }
+  .step.title h1 { font-family:Inter, system-ui, sans-serif; font-size:clamp(40px,7vw,84px); margin:.1em 0 .2em; letter-spacing:-0.02em; }
+  .step.title h2 { font-family:Inter, system-ui, sans-serif; font-size:clamp(30px,4.5vw,54px); margin:.1em 0 .3em; letter-spacing:-0.01em; }
+  .kicker { font-family:Inter, system-ui, sans-serif; text-transform:uppercase; letter-spacing:.12em; font-size:13px; color:#C2401C; }
+  .hint { font-family:Inter, system-ui, sans-serif; font-size:14px; color:#6F6B64; margin-top:2em !important; }
+  .step:first-child { min-height:100vh; }
+  .step:first-child .card { background:rgba(242,240,235,.78); border-radius:10px; padding:24px 30px; }
+  .step.end { min-height:110vh; align-items:flex-end; padding-bottom:7vh; }
+  .step.end .card { font-size:16px; }
+  .step.end h2 { font-family:Inter, system-ui, sans-serif; font-size:22px; margin:0 0 .3em; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:.6em 0; }
+  .chips button { font:500 14px Inter, system-ui, sans-serif; background:#fff; border:1px solid #CFCAC0; border-radius:16px; padding:6px 13px; cursor:pointer; color:#1B1B1B; }
+  .chips button:hover, .chips button:focus-visible { border-color:#1B1B1B; }
+  .step.end details { font-family:Inter, system-ui, sans-serif; font-size:12.5px; color:#6F6B64; }
+  .step.end details p { font-size:12.5px; line-height:1.45; max-height:30vh; overflow:auto; }
+  #dim { position:fixed; inset:0; background:#F2F0EB; opacity:0; pointer-events:none; z-index:2; }
+  #progress { position:fixed; left:0; right:0; top:var(--nav-h); height:22px; z-index:4; pointer-events:none; }
+  #progress #progbar { height:3px; background:#C2401C; width:0; }
+  #progress #progpart { position:absolute; left:14px; top:6px; font:500 12px Inter, system-ui, sans-serif; color:#6F6B64; letter-spacing:.04em; }
+  #next { position:fixed; right:22px; bottom:22px; z-index:5; width:44px; height:44px; border-radius:50%; border:1px solid #CFCAC0; background:rgba(251,249,244,.95);
+          font-size:20px; cursor:pointer; color:#1B1B1B; box-shadow:0 2px 8px rgba(0,0,0,.08); }
+  #next:hover, #next:focus-visible { border-color:#1B1B1B; }
+  body.exploring #next { display:none; }
+  #readout { position:fixed; right:18px; top:calc(var(--nav-h) + 30px); z-index:4; background:rgba(251,249,244,.94); border:1px solid #CFCAC0; border-radius:6px;
+             padding:8px 12px; font:13px/1.45 Inter, system-ui, sans-serif; color:#1B1B1B; pointer-events:none; font-variant-numeric:tabular-nums; }
+  #loading { z-index:6; }
+  @media (max-width:760px) {
+    .step { align-items:flex-end; padding:0 10px 12vh; min-height:115vh; }
+    .step .card { font-size:16px; padding:12px 14px; max-width:none; }
+    .step.title { align-items:center; padding-bottom:0; }
+    #readout { left:10px; right:auto; top:calc(var(--nav-h) + 26px); font-size:12px; }
+    #next { right:12px; bottom:12px; width:40px; height:40px; }
+  }
+  @media (prefers-reduced-motion: reduce) { #dim { transition:none; } }
+  body.p2 .mlbl span { color:#fff; text-shadow:none; background:rgba(20,19,17,.78); padding:3px 8px; border-radius:3px; font-size:12.5px; }
+  body.p2 .mlbl span::after { border-left-color:#fff; opacity:.7; }
+  .hlbl { position:relative; width:0; height:0; pointer-events:none; }
+  .hlbl span { position:absolute; white-space:nowrap; transform:translate(-50%,-100%); margin-top:-16px; font:500 12.5px Inter, system-ui, sans-serif; color:#1B1B1B;
+               background:rgba(251,249,244,.95); border:1px solid #CFCAC0; padding:3px 8px; border-radius:3px; box-shadow:0 1px 4px rgba(0,0,0,.12); }
+  .hlbl span::after { content:""; position:absolute; left:50%; bottom:-17px; height:16px; border-left:1.5px solid #1B1B1B; }
+  .hlbl.ref span { font-style:italic; color:#4A4740; }
+  .hlbl.drop span { background:#1B1B1B; color:#fff; border-color:#1B1B1B; font-weight:600; transform:translate(10px,-50%); margin-top:0; }
+  .hlbl.drop span::after { display:none; }
+  #readout .well { display:flex; align-items:center; gap:10px; margin-top:8px; padding-top:8px; border-top:1px solid #E3DFD7; }
+  #readout .well span { font-size:12px; line-height:1.35; }
+  @media (max-width:760px) { #readout .well svg { width:80px; height:74px; } .hlbl span { font-size:11px; } }
+  /* ---------- the opening map (MapLibre, satellite) and the county map overlay */
+  #map2d { position:fixed; left:0; right:0; top:var(--nav-h); bottom:0; z-index:1; pointer-events:none; background:#2a2926; }
+  #map2d .maplibregl-ctrl-bottom-right { pointer-events:auto; }
+  #labels { z-index:2; }
+  #mapx { position:fixed; left:0; right:0; top:var(--nav-h); bottom:0; z-index:20; background:#fbf9f4; }
+  #mapx iframe { width:100%; height:100%; border:0; display:block; }
+  #mapx button { position:absolute; left:14px; bottom:18px; font:600 14px Inter, system-ui, sans-serif; background:#1B1B1B; color:#fff; border:0; border-radius:18px; padding:9px 16px; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,.25); }
+  body.mapx { overflow:hidden; }
+  body.mapx #next, body.mapx #progress { display:none; }

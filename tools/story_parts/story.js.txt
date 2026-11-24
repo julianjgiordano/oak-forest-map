@@ -1,0 +1,894 @@
+// =====================================================================================================================
+// ---------- THE GUIDED STORY (Panel 75 chapter). Scroll (or the arrow, or the keys) moves through steps; each step sets a
+// camera view and a scene state. The reader has no controls until the end, when the model is theirs to explore.
+// Text is placeholder draft text for Julian to rewrite.
+// =====================================================================================================================
+let storyRun = false, sectFix = null;
+window.__storyLocked = true;
+const smoothS = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+const clamp01 = t => Math.max(0, Math.min(1, t));
+const lerp = (a, b, t) => a + (b - a) * t;
+const V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+const sph = (el, az, tgt, dist) => ({ p: V3(tgt.x + dist * Math.cos(el) * Math.sin(az), tgt.y + dist * Math.sin(el), tgt.z + dist * Math.cos(el) * Math.cos(az)), t: tgt.clone() });
+const deg = Math.PI / 180;
+
+// time helpers: fractional month-step index <-> date; face position -> time; pass k (+ fraction f) -> time
+const LASTT = () => STEPS.length - 1;
+function tOfDate(T) {
+  for (let i = 0; i < STEPS.length - 1; i++) { const t0 = STEPS[i].t, t1 = STEPS[i + 1].t; if (T >= t0 && T < t1 && isFinite(t1)) return i + (T - t0) / (t1 - t0); }
+  return LASTT() - 1;
+}
+function dateOfT(x) { const i = Math.min(Math.floor(x), STEPS.length - 2), f = x - i; const t0 = STEPS[i].t, t1 = STEPS[i + 1].t; return isFinite(t1) ? t0 + (t1 - t0) * f : t0; }
+function tForH(h) { let lo = 0, hi = LASTT() - 1e-3; for (let i = 0; i < 50; i++) { const m = (lo + hi) / 2; if (faceH('75', m) < h) lo = m; else hi = m; } return lo; }
+const tForPass = (k, f) => tForH(a0 + WEB * (k + f));
+
+// subsidence at a point (true feet), as drawn by the shader (sinkify): Knothe-type trough, part as the face passes, the rest over months
+const erfA = x => { const t = 1 / (1 + 0.3275911 * Math.abs(x)); const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return Math.sign(x) * y; };
+const edgeF = u => 0.5 * (1 + erfA(1.7724539 * u / SUB.r));
+function subAt(h, d) {
+  const P = SU.uP75.value, E = SUB.e;
+  const tr = (edgeF(d - (P.z + E)) - edgeF(d - (P.w - E))) * edgeF(h - (P.x + E)) * (1 - edgeF(h - (P.y - E)));
+  const kx = SU.uKX.value, kh = SU.uKH.value, n = SU.uKN.value; let xp = 1e4;
+  for (let i = 0; i < n - 1; i++) { if (h >= kh[i] && h <= kh[i + 1] && kh[i + 1] > kh[i]) { xp = kx[i] + (kx[i + 1] - kx[i]) * (h - kh[i]) / (kh[i + 1] - kh[i]); break; } }
+  const dev = 0.15 + 0.85 * clamp01((SU.uNow.value - xp) / SUB.months);
+  return SUB.amp * tr * edgeF(SU.uFace.value - h) * dev;
+}
+
+// ---------- the composite house: modelled on the old Willow Inn (once the Hoge house) and other houses in the village; not any one house.
+// Two-storey brick, side-gabled, exterior brick chimneys at both ends, grey metal roof, deep porch on cream columns with lattice skirting
+// and front steps, green-trimmed sash windows, an exposed stone foundation, a frame addition behind. Shown in summer.
+// Stands on an empty lot in the village (h 2,490, d 500), about 340 ft inside panel 75's north edge, facing Water Street.
+// The damage shown follows the kinds reported over longwall panels in Pennsylvania (PA DEP Act 54 reports; PA DEP "material damage":
+// sticking doors and windows, cracks in foundations and walls; Illinois State Geological Survey homeowners' guide to sag subsidence:
+// tension cracks parallel to the trough edge, foundations pulling apart, porches, steps and chimneys separating, driveways and pipes
+// pulled apart, compression ridges and buckled roads; U.S. Bureau of Mines well studies: water levels fall as the ground stretches).
+// It is typical and illustrative, not a record of any house.
+const HX = 2490, HD = 500;
+const house = new THREE.Group(); house.visible = false; scene.add(house);
+const houseLineMats = [];
+let HZ = 0, HROT = 0, houseBuilt = false, FL = 2;           // FL: floor level above the ground at the house centre (ft)
+const HH = {};                                               // parts that move or change: chimneys, porch, steps, interior, tank, well, labels
+const hCracks = [];                                          // wall cracks (fat lines that grow and widen)
+const gCracks = [];                                          // ground cracks (ribbons that open, grow and partly close)
+const W_ = 42, D_ = 20, H_ = 19, R_ = 28;
+// local (x across the front, y up, z towards the road) <-> world and the panel frame
+const toW = (x, y, z) => { const v = V3(x, y, z).applyAxisAngle(V3(0, 1, 0), -HROT); return [HX + v.x, Y(HZ) + y, -HD + v.z]; };
+const toHD = (x, z) => { const v = V3(x, 0, z).applyAxisAngle(V3(0, 1, 0), -HROT); return [HX + v.x, HD - v.z]; };
+const fromHD = (h, d) => { const v = V3(h - HX, 0, -(d - HD)).applyAxisAngle(V3(0, 1, 0), HROT); return [v.x, v.z]; };
+const gLoc = (x, z) => { const [h, d] = toHD(x, z); return Y(zg(h, d)) - Y(HZ); };     // ground height in house-local y
+const hLabels = [];
+function hLabel(text, cls = '') {
+  const el = document.createElement('div'); el.className = 'hlbl ' + cls; el.innerHTML = `<span>${text}</span>`;
+  const o = new CSS2DObject(el); o.center.set(0, 0); scene.add(o); o.visible = false; hLabels.push(o); return o;
+}
+function buildHouse() {
+  if (houseBuilt) return; houseBuilt = true;
+  HZ = zg(HX, HD);
+  let best = [1e9, 0, 0];
+  for (const r of M.roads) for (const p of r.pts) { const dd = Math.hypot(p[0] - HX, p[1] - HD); if (dd < best[0]) best = [dd, p[0], p[1]]; }
+  const toRoad = Math.atan2(-(best[2] - HD), best[1] - HX);
+  HROT = toRoad - Math.PI / 2;
+  house.position.set(HX, Y(HZ), -HD); house.rotation.y = -HROT;
+  // floor level: 1.8 ft above the highest ground under the walls; foundation down to 1.5 ft below the lowest
+  let gmax = -1e9, gmin = 1e9;
+  for (let x = -W_ / 2 - 1; x <= W_ / 2 + 1; x += 3) for (const z of [-D_ / 2 - 1, D_ / 2 + 1]) { const g = gLoc(x, z); gmax = Math.max(gmax, g); gmin = Math.min(gmin, g); }
+  for (let z = -D_ / 2; z <= D_ / 2; z += 3) for (const x of [-W_ / 2 - 1, W_ / 2 + 1]) { const g = gLoc(x, z); gmax = Math.max(gmax, g); gmin = Math.min(gmin, g); }
+  FL = gmax + 1.8; const FB = gmin - 1.5;
+  const mats = {};
+  const L = (name, c, o = {}) => mats[name] || (mats[name] = sinkify(new THREE.MeshLambertMaterial(Object.assign({ color: c }, o))));
+  const brick = L('brick', 0x8A4A38), brickD = L('brickD', 0x6E3B2E), roof = L('roof', 0x8F9493), trim = L('trim', 0x3E6A55), glass = L('glass', 0x2B3236),
+        cream = L('cream', 0xE6DFC8), porchF = L('porchF', 0x9C9384), lattice = L('lattice', 0xB4AC9C), stone = L('stone', 0x9A9488), stoneD = L('stoneD', 0x6F6A60),
+        siding = L('siding', 0xC9B48A), plaster = L('plaster', 0xEDE6D3), wood = L('wood', 0x9A7650), woodD = L('woodD', 0x6E5236), doorC = L('door', 0x2E4A40);
+  const B = (w, h, d, m, x, y, z, parent = house) => { const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); o.position.set(x, y, z); parent.add(o); return o; };
+  const grp = (parent = house) => { const g = new THREE.Group(); parent.add(g); return g; };
+  // stone foundation, exposed above the ground, with mortar courses; walls on top
+  B(W_ + 0.8, FL - FB, D_ + 0.8, stone, 0, (FL + FB) / 2, 0);
+  for (let y = FB + 0.7; y < FL - 0.1; y += 0.7) B(W_ + 0.86, 0.06, D_ + 0.86, stoneD, 0, y, 0);
+  B(W_ + 1.0, 0.25, D_ + 1.0, stoneD, 0, FL - 0.12, 0);                                     // sill course
+  // walls: separate pieces, so the left front room can be opened up
+  const wallY = FL + H_ / 2, T = 0.9;
+  B(W_, H_, T, brick, 0, wallY, -D_ / 2 + T / 2);                                             // back
+  for (const s of [-1, 1]) B(T, H_, D_ - 2 * T, brick, s * (W_ / 2 - T / 2), wallY, 0);        // ends
+  HH.frontL = grp(); HH.frontR = grp();
+  const FX = -3;                                                                               // the left front room runs from the end wall to x = -3
+  B(W_ / 2 + FX, H_, T, brick, (-W_ / 2 + FX) / 2, wallY, D_ / 2 - T / 2, HH.frontL);
+  B(W_ / 2 - FX, H_, T, brick, (W_ / 2 + FX) / 2, wallY, D_ / 2 - T / 2, HH.frontR);
+  B(W_ - 2 * T, 0.6, D_ - 2 * T, wood, 0, FL + 9.6, 0);                                        // upper floor
+  B(W_ - 2 * T, 0.4, D_ - 2 * T, wood, 0, FL + 0.2, 0);                                        // ground floor
+  for (let k = 1; k < 8; k++) { const y = FL + k * 2.4; B(W_ + 0.06, 0.07, 0.95, brickD, 0, y, -D_ / 2 + 0.45); for (const s of [-1, 1]) B(0.95, 0.07, D_, brickD, s * (W_ / 2 - 0.45), y, 0);
+    B(W_ / 2 + FX + 0.03, 0.07, 0.95, brickD, (-W_ / 2 + FX) / 2, y, D_ / 2 - 0.45, HH.frontL); B(W_ / 2 - FX + 0.03, 0.07, 0.95, brickD, (W_ / 2 + FX) / 2, y, D_ / 2 - 0.45, HH.frontR); }
+  // roof: two slopes and gable ends
+  const sl = Math.atan2(R_ - H_, D_ / 2), rl = Math.hypot(R_ - H_, D_ / 2) + 1.2, RY = FL + (H_ + R_) / 2;
+  for (const s of [-1, 1]) { const r = B(W_ + 2, 0.35, rl, roof, 0, RY + 0.2, s * D_ / 4); r.rotation.x = s * sl;
+    for (let k = -10; k <= 10; k++) { const sm = B(0.12, 0.2, rl, L('seam', 0xA7ACAB), k * 2, RY + 0.42, s * D_ / 4); sm.rotation.x = s * sl; } }
+  for (const s of [-1, 1]) {
+    const g = new THREE.BufferGeometry(); const x = s * W_ / 2;
+    g.setAttribute('position', new THREE.Float32BufferAttribute([x, FL + H_, -D_ / 2, x, FL + H_, D_ / 2, x, FL + R_, 0], 3)); g.computeVertexNormals();
+    brick.side = THREE.DoubleSide; house.add(new THREE.Mesh(g, brick));
+  }
+  // exterior end chimneys (they can lean away from the gable as the ground moves)
+  HH.chim = [];
+  for (const s of [-1, 1]) { const c = grp(); c.position.set(s * (W_ / 2 + 1.5), FB, 0);
+    B(3.0, FL + R_ + 4 - FB, 4.2, brick, 0, (FL + R_ + 4 - FB) / 2, 0, c); B(3.4, 0.6, 4.6, brickD, 0, FL + R_ + 4.2 - FB, 0, c);
+    for (let k = 1; k < 12; k++) B(3.04, 0.07, 4.24, brickD, 0, FL - FB + k * 2.4, 0, c);
+    HH.chim.push({ g: c, s }); }
+  // windows (five bays above; below, door in the middle), two on each end
+  const win = (x, y, z, ry, parent = house, w = 3, h = 5) => { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; parent.add(g);
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(w + 0.6, h + 0.7, 0.3), trim)); g.add(new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.34), glass));
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(w, 0.18, 0.4), trim));
+    const sill = new THREE.Mesh(new THREE.BoxGeometry(w + 1, 0.3, 0.7), cream); sill.position.y = -h / 2 - 0.4; g.add(sill); return g; };
+  for (let k = 0; k < 5; k++) { const x = -16 + k * 8, pf = x < FX ? HH.frontL : HH.frontR;
+    win(x, FL + 14, D_ / 2 + 0.05, 0, pf); win(x, FL + 14, -D_ / 2 - 0.05, Math.PI);
+    if (k !== 2) { win(x, FL + 5, D_ / 2 + 0.05, 0, pf); win(x, FL + 5, -D_ / 2 - 0.05, Math.PI); } }
+  B(3.6, 7.5, 0.4, trim, 0, FL + 3.75, D_ / 2 + 0.1, HH.frontR); B(3.0, 7, 0.45, doorC, 0, FL + 3.5, D_ / 2 + 0.12, HH.frontR);
+  for (const s of [-1, 1]) for (const z of [-5.5, 5.5]) { win(s * (W_ / 2 + 0.05), FL + 14, z, s * Math.PI / 2); win(s * (W_ / 2 + 0.05), FL + 5, z, s * Math.PI / 2); }
+  // porch: deck, lattice skirting down to the ground, columns, roof; front steps down to the walk (both can pull away)
+  const PD = 9, CH = 9.2;
+  HH.porch = grp();
+  B(W_ + 6, 0.45, PD, porchF, 0, FL - 0.2, D_ / 2 + PD / 2, HH.porch);
+  { const fy = (gLoc(0, D_ / 2 + PD) + FL) / 2 - 1.2, fh = FL - gLoc(0, D_ / 2 + PD) + 2.4;
+    B(W_ + 6, fh, 0.2, lattice, 0, fy, D_ / 2 + PD, HH.porch);
+    for (const s of [-1, 1]) B(0.2, fh, PD, lattice, s * (W_ / 2 + 3), fy, D_ / 2 + PD / 2, HH.porch); }
+  for (let k = 0; k < 7; k++) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, CH, 10), cream); c.position.set(-W_ / 2 - 2 + k * ((W_ + 4) / 6), FL + CH / 2, D_ / 2 + PD - 0.7); HH.porch.add(c); }
+  { const pr = B(W_ + 7, 0.4, PD + 1.5, roof, 0, FL + CH + 0.9, D_ / 2 + PD / 2 + 0.3, HH.porch); pr.rotation.x = 0.12;
+    B(W_ + 6, 0.7, 0.3, cream, 0, FL + CH, D_ / 2 + PD - 0.6, HH.porch); }
+  HH.steps = grp(); { const gS = gLoc(0, D_ / 2 + PD + 4.5), n = Math.max(2, Math.round((FL - gS) / 0.62));
+    for (let k = 0; k < n; k++) B(7, (FL - gS) / n, 1.1, stone, 0, gS + (k + 0.5) * (FL - gS) / n, D_ / 2 + PD + 0.55 + (n - 1 - k) * 1.1, HH.steps);
+    // the steps stand on their own footing in front of the porch
+    B(7.4, 0.5, n * 1.1 + 0.4, stoneD, 0, gS - 0.2, D_ / 2 + PD + n * 0.55, HH.steps); }
+  // frame addition behind (kitchen), with its own low stone footing
+  { const gA = Math.min(gLoc(-10, -D_ / 2 - 6), gLoc(-18, -D_ / 2 - 12)) - 0.5;
+    B(16.6, FL - gA, 12.6, stone, -10, (FL + gA) / 2, -D_ / 2 - 6);
+    B(16, 10.5, 12, siding, -10, FL + 5.25, -D_ / 2 - 6); const r = B(17, 0.35, 13.5, roof, -10, FL + 11.1, -D_ / 2 - 6); r.rotation.x = -0.18;
+    win(-10, FL + 5, -D_ / 2 - 12.05, Math.PI); }
+  // ---- the left front room, seen when its front wall is opened: plaster walls, floorboards, an interior door in a frame that racks
+  HH.room = grp(); HH.room.visible = false;
+  { const x0 = -W_ / 2 + T, x1 = FX, z0 = -1.2, z1 = D_ / 2 - T, y0 = FL + 0.4, y1 = FL + 9.3, cx = (x0 + x1) / 2;
+    B(x1 - x0, 0.1, z1 - z0, L('floorB', 0xA0784C), cx, y0 + 0.05, (z0 + z1) / 2, HH.room);
+    for (let k = 1; k < 12; k++) B(x1 - x0, 0.02, 0.05, woodD, cx, y0 + 0.11, z0 + k * (z1 - z0) / 12, HH.room);
+    B(x1 - x0, y1 - y0, 0.3, plaster, cx, (y0 + y1) / 2, z0, HH.room);                            // back (partition) wall
+    B(0.3, y1 - y0, z1 - z0, plaster, x1, (y0 + y1) / 2, (z0 + z1) / 2, HH.room);                  // side partition
+    B(0.3, y1 - y0, z1 - z0, plaster, x0 + 0.15, (y0 + y1) / 2, (z0 + z1) / 2, HH.room);           // end wall, inside
+    B(x1 - x0, 0.6, 0.12, woodD, cx, y0 + 0.3, z0 + 0.2, HH.room);                                 // baseboard
+    B(x1 - x0, 0.1, z1 - z0, L('ceil', 0xF2EEE2), cx, y1, (z0 + z1) / 2, HH.room);
+    // interior door: frame (left jamb, right jamb, head) and the door slab, slightly open; the frame racks, the door binds
+    const dx = cx - 2.5, dz = z0 + 0.25, dw = 3, dh = 6.9;
+    HH.door = { g: grp(HH.room), dx, dz, dw, dh, y0 };
+    const fr = HH.door.g; fr.position.set(dx, y0, dz);
+    HH.door.jL = B(0.35, dh + 0.35, 0.5, cream, -dw / 2 - 0.17, (dh + 0.35) / 2, 0, fr);
+    HH.door.jR = B(0.35, dh + 0.35, 0.5, cream, dw / 2 + 0.17, (dh + 0.35) / 2, 0, fr);
+    HH.door.hd = B(dw + 0.7, 0.35, 0.5, cream, 0, dh + 0.17, 0, fr);
+    B(dw, dh, 0.08, L('dark', 0x2A2724), 0, dh / 2, -0.1, fr);                                      // the dark room beyond
+    const slab = grp(fr); slab.position.set(-dw / 2 + 0.05, 0, 0.12); HH.door.slab = slab;
+    B(dw - 0.1, dh - 0.12, 0.15, L('doorI', 0xD9CFB8), (dw - 0.1) / 2, (dh - 0.12) / 2 + 0.04, 0, slab);
+    for (const yy of [1.6, 4.6]) B(dw - 0.9, 2.1, 0.04, L('doorP', 0xCDC2A8), (dw - 0.1) / 2, yy, 0.09, slab);
+    B(0.12, 0.12, 0.25, L('knob', 0x8C7A4A), dw - 0.45, 3.2, 0.15, slab);
+    slab.rotation.y = -0.35;                                                                          // ajar
+    // a picture on the wall, and a window to the porch
+    B(2.2, 1.6, 0.08, woodD, cx + 3.2, y0 + 5.2, z0 + 0.2, HH.room); B(1.9, 1.3, 0.09, L('pic', 0x7C8C76), cx + 3.2, y0 + 5.2, z0 + 0.22, HH.room);
+    HH.roomBox = { x0, x1, z0, z1, y0, y1, cx };
+  }
+  // ---- the well: a drilled well with its steel casing and cap in the side yard, and the buried line to the house
+  { const wx = W_ / 2 + 14, wz = 8, g = gLoc(wx, wz); HH.well = { x: wx, z: wz, g };
+    const c = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 1.8, 14), L('casing', 0x6A6E70)); c.position.set(wx, g + 0.9, wz); house.add(c);
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.36, 0.3, 14), L('cap', 0x3F4446)); cap.position.set(wx, g + 1.9, wz); house.add(cap);
+    const pad = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.5, 0.25, 18), L('pad', 0xB5AFA3)); pad.position.set(wx, g + 0.05, wz); house.add(pad); }
+  // ---- temporary water supply: a plastic tank on a skid by the addition (delivered after the well fails)
+  { const tx = W_ / 2 + 9, tz = -D_ / 2 - 4, g = gLoc(tx, tz); HH.tank = grp(); HH.tank.position.set(tx, g, tz); HH.tank.visible = false;
+    const tk = new THREE.Mesh(new THREE.CylinderGeometry(3, 3, 5.2, 24), L('tank', 0xE9E6DC)); tk.position.y = 3.2; HH.tank.add(tk);
+    const lid = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.3, 16), L('lid', 0x2F3B47)); lid.position.y = 5.9; HH.tank.add(lid);
+    B(7, 0.5, 7, L('skid', 0x5A5650), 0, 0.3, 0, HH.tank); }
+  // ---- cracks in the walls: stair-step from window corners (front, end), up the foundation, along the porch beam, and inside the room
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const wallCrack = (pts, start, width, inside = false) => {
+    const Lg = new LineGeometry(); Lg.setPositions(pts.flat());
+    const mk = (color, w, o) => { const m = new LineMaterial({ color, linewidth: w, transparent: true, opacity: 0, worldUnits: false, depthTest: true }); sinkify(m); houseLineMats.push(m); const l = new Line2(Lg, m); l.renderOrder = o; scene.add(l); l.visible = false; return { l, m }; };
+    const halo = mk(0xF6F1E4, width + 3, 41), core = mk(0x15110E, width, 42);
+    hCracks.push({ halo, core, n: pts.length - 1, start, width, inside });
+  };
+  const stair = (x0, y0, sx, n, face) => { const pts = []; let x = x0, y = y0;
+    for (let k = 0; k < n; k++) { pts.push(face(x, y)); x += sx * (0.7 + rnd() * 0.4); pts.push(face(x, y)); y -= 0.6 + rnd() * 0.3; } return pts; };
+  const front = (x, y) => toW(x, y, D_ / 2 + 0.25), endE = (z, y) => toW(W_ / 2 + 0.25, y, z), back = (x, y) => toW(-x, y, -D_ / 2 - 0.25);
+  // from the window corners down and outwards (the corner nearest the trough drops)
+  wallCrack(stair(17.5, FL + 11.3, 1, 7, front), 0.1, 2.2);
+  wallCrack(stair(9.5, FL + 2.4, 1, 3, front), 0.35, 1.8);
+  wallCrack(stair(-14.5, FL + 11.3, -1, 7, front), 0.25, 2.2);
+  wallCrack(stair(-7.5, FL + 11.3, 1, 5, endE), 0.0, 2.2);
+  wallCrack(stair(7.5, FL + 2.4, -1, 4, endE), 0.3, 2);
+  wallCrack(stair(14, FL + 11.3, -1, 6, back), 0.2, 2);
+  // through the foundation, below the corners
+  for (const [x, z] of [[W_ / 2 - 4, D_ / 2 + 0.45], [-W_ / 2 + 6, D_ / 2 + 0.45]]) { const pts = []; let y = FL - 0.1, xx = x;
+    while (y > gLoc(x, z) - 0.2) { pts.push(toW(xx, y, z)); xx += (rnd() - 0.5) * 0.8; y -= 0.35; } wallCrack(pts, 0.05, 2.4); }
+  for (const [z, s] of [[-5, 1], [6, -1]]) for (const xe of [W_ / 2 + 0.45, -W_ / 2 - 0.45]) { const pts = []; let y = FL - 0.1, zz = z; while (y > gLoc(xe, z) - 0.2) { pts.push(toW(xe, y, zz)); zz += (rnd() - 0.5) * 0.8; y -= 0.35; } wallCrack(pts, 0.05, 2.4); }
+  // inside: plaster cracks from the door head corner and the ceiling corner
+  { const R = HH.roomBox, dx = R.cx - 2.5, zf = R.z0 + 0.18, yh = R.y0 + 7.2, pts = []; let x = dx + 1.7, y = yh;
+    while (y < R.y1 - 0.1 && x < R.x1 - 0.3) { pts.push(toW(x, y, zf)); x += 0.3 + rnd() * 0.35; y += 0.25 + rnd() * 0.3; } wallCrack(pts, 0.15, 2.2, true);
+    const p2 = []; x = dx - 1.7; y = yh; while (y < R.y1 - 0.1) { p2.push(toW(x, y, zf)); x -= 0.2 + rnd() * 0.3; y += 0.3 + rnd() * 0.2; } wallCrack(p2, 0.3, 1.8, true);
+    const p3 = []; let z = R.z0 + 0.3; while (z < R.z1 - 0.3) { p3.push(toW(R.x1 - 0.18, R.y1 - 0.4 - rnd() * 0.6, z)); z += 0.7; } wallCrack(p3, 0.4, 1.6, true); }
+  // ---- labels
+  HH.lbl = {
+    level: hLabel('Ground level before mining', 'ref'), well: hLabel('Water well'), road: hLabel('Water Street'), road2: hLabel('Oak Forest Road'),
+    tank: hLabel('Temporary water supply'), gap: hLabel('Ground pulls away from the foundation'), steps: hLabel('Steps and porch pull away'),
+    chim: hLabel('Chimney leans away from the wall'), stair: hLabel('Cracks step through the brick'), door: hLabel('Door frame out of square: the door sticks'),
+    plaster: hLabel('Plaster cracks'), crack: hLabel('Tension cracks in the yard'), rcrack: hLabel('Cracks across the road'), bump: hLabel('Road buckles: compression'),
+    drop: hLabel('', 'drop'), line: hLabel('New water line'), fcrack: hLabel('Foundation cracks') };
+  buildHouseGround();
+}
+// ---------- ground features around the house that sink with the ground: the level line, the contact line, cracks, the road bump,
+// the soil gap at the foundation, the new water line
+const hRibbonMat = (color, off) => sinkify(new THREE.MeshLambertMaterial({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -off, polygonOffsetUnits: -off * 4 }));
+let gCrackMat = null, gCrackLipMat = null, bumpMesh = null, gapMesh = null, lineMesh = null, levelLine = null, contactLine = null;
+function buildHouseGround() {
+  gCrackMat = hRibbonMat(0x1E1915, 6); gCrackLipMat = hRibbonMat(0x8E7656, 5);
+  // the line where the ground met the foundation before mining (fixed: it does not sink) and where it meets it now (sinks)
+  const ring = []; const P = [[-W_ / 2 - 0.42, -D_ / 2 - 0.42], [W_ / 2 + 0.42, -D_ / 2 - 0.42], [W_ / 2 + 0.42, D_ / 2 + 0.42], [-W_ / 2 - 0.42, D_ / 2 + 0.42]];
+  for (let k = 0; k < 4; k++) { const [ax, az] = P[k], [bx, bz] = P[(k + 1) % 4], n = Math.ceil(Math.hypot(bx - ax, bz - az)); for (let i = 0; i < n; i++) { const t = i / n; ring.push([ax + (bx - ax) * t, az + (bz - az) * t]); } }
+  ring.push(ring[0]);
+  const mkLine = (lift, color, w, sink, order, op = 1) => { const g = new LineGeometry(); g.setPositions(ring.flatMap(([x, z]) => toW(x, gLoc(x, z) + lift, z)));
+    const m = new LineMaterial({ color, linewidth: w, transparent: true, opacity: op, worldUnits: false }); if (sink) sinkify(m); houseLineMats.push(m);
+    const l = new Line2(g, m); l.renderOrder = order; scene.add(l); l.visible = false; return l; };
+  levelLine = mkLine(0.04, 0xFFFFFF, 3, false, 44); contactLine = mkLine(0.06, 0x1B1714, 2.4, true, 43);
+  // ground cracks, in the panel frame: [dh, dd of the centre (ft from the house), length along d (parallel to the face line), half-width ft, kind].
+  // A crack opens when the stretching reaches it: ahead of the house (towards the approaching face, -h) first.
+  const defs = [[-27, 4, 64, 0.30, 'yard'], [-40, -28, 40, 0.22, 'yard'], [-56, 18, 54, 0.40, 'road'], [22, -6, 70, 0.26, 'yard'], [44, 22, 60, 0.30, 'yard'],
+                [-100, 50, 64, 0.40, 'road2'], [-139, 0, 56, 0.36, 'road2b'], [-76, -40, 50, 0.26, 'yard']];
+  let seed = 31; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (const [dh, dd, len, wid, kind] of defs) {
+    const pts = []; let s = -len / 2, off = 0;
+    while (s <= len / 2) { pts.push(fromHD(HX + dh + off, HD + dd + s)); s += 1.5 + rnd() * 1.5; off += (rnd() - 0.5) * 0.9; off *= 0.9; }
+    const env = pts.map((_, i) => { const t = i / (pts.length - 1); return Math.pow(Math.sin(Math.PI * t), 0.6) * (0.7 + 0.5 * rnd()); });
+    const mesh = new THREE.Mesh(new THREE.BufferGeometry(), gCrackMat), lip = new THREE.Mesh(new THREE.BufferGeometry(), gCrackLipMat);
+    mesh.renderOrder = 6; lip.renderOrder = 5; scene.add(mesh); scene.add(lip); mesh.visible = lip.visible = false;
+    gCracks.push({ pts, env, wid, at: dh / SUB.r - 0.75, kind, dh, dd, mesh, lip, key: '' });
+  }
+  // the compression bump across Oak Forest Road and the soil gap along the foundation (rebuilt as they change)
+  bumpMesh = new THREE.Mesh(new THREE.BufferGeometry(), sinkify(new THREE.MeshLambertMaterial({ color: 0x6A6660, side: THREE.DoubleSide }))); scene.add(bumpMesh); bumpMesh.visible = false;
+  gapMesh = new THREE.Mesh(new THREE.BufferGeometry(), hRibbonMat(0x14110F, 7)); scene.add(gapMesh); gapMesh.visible = false;
+  // the new water line, laid after mining from the road to the house (a fresh trench)
+  { const leg = (a, b, n) => Array.from({ length: n }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
+    const [rx, rz] = fromHD(HX - 55, HD + 4); const pts = [...leg([-W_ / 2 - 0.8, 3], [-W_ / 2 - 7, 3], 4), ...leg([-W_ / 2 - 7, 3], [-W_ / 2 - 7, rz - 3], 20), [-W_ / 2 - 7, rz - 3]];
+    lineMesh = new THREE.Mesh(stripGeo(pts, pts.map(() => 1.3), 0.3), hRibbonMat(0x7A5E40, 4)); scene.add(lineMesh); lineMesh.visible = false; }
+}
+// a flat ribbon on the ground along local points, width per point; optional lift
+function stripGeo(pts, w, lift = 0.06, frac = 1) {
+  const n = Math.max(2, Math.ceil(pts.length * frac)), P = [];
+  const side = i => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz) || 1; return [-dz / L, dx / L]; };
+  for (let i = 0; i < n - 1; i++) {
+    const q = [i, i + 1].map(k => { const [nx, nz] = side(k), [x, z] = pts[k], hw = w[k] / 2;
+      return [toW(x + nx * hw, gLoc(x + nx * hw, z + nz * hw) + lift, z + nz * hw), toW(x - nx * hw, gLoc(x - nx * hw, z - nz * hw) + lift, z - nz * hw)]; });
+    P.push(...q[0][0], ...q[1][0], ...q[1][1], ...q[0][0], ...q[1][1], ...q[0][1]);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals(); return g;
+}
+// ---------- ground-movement phase at the house: x = distance the face has gone past the house, in units of the influence radius
+// (260 ft; at ~57 ft a day one unit is about 4.6 days). Stretching starts a few days before the face arrives and peaks as it passes;
+// compression follows as the trough passes; then slow settling over months.
+const PH = {};
+function housePhase(x) {
+  PH.x = x;
+  PH.ten = smoothS((x + 1.1) / 1.1) * (1 - 0.55 * smoothS((x - 0.5) / 0.9));       // stretching (ahead of and over the face)
+  PH.grow = smoothS((x + 1.0) / 1.2);                                                // cracks lengthen
+  PH.comp = smoothS((x - 0.35) / 1.0);                                               // squeezing behind the face
+  PH.walls = smoothS((x + 0.3) / 1.4);                                               // racking (stays)
+  PH.porch = smoothS((x + 0.15) / 0.9) * (1 - 0.35 * PH.comp);
+  PH.chim = smoothS((x - 0.05) / 1.2);
+  PH.room = smoothS((x - 0.1) / 1.2);
+  PH.well = 1 - smoothS((x + 1.0) / 1.0);                                            // water level, 1 = normal, 0 = dry
+  return PH;
+}
+function houseUpdate(hFace, opts = {}) {
+  if (!houseBuilt) return;
+  const p = housePhase((hFace - HX) / SUB.r), on = house.visible;
+  // ground cracks: grow along their length and open; later partly squeezed shut
+  for (const c of gCracks) {
+    const xl = p.x - c.dh / SUB.r, ten = smoothS((xl + 1.1) / 1.1) * (1 - 0.55 * smoothS((xl - 0.5) / 0.9)), comp = smoothS((xl - 0.35) / 1.0);
+    const g = smoothS((p.x - c.at) / 0.8), open = g * (0.35 + 0.65 * ten / 0.95) * (1 - 0.5 * comp);
+    const vis = on && g > 0.01; c.mesh.visible = c.lip.visible = vis; if (!vis) continue;
+    const key = (g * 50 | 0) + ':' + (open * 60 | 0); if (key === c.key) continue; c.key = key;
+    const w = c.env.map(e => Math.max(0.05, e * c.wid * 3 * open));
+    c.mesh.geometry.dispose(); c.mesh.geometry = stripGeo(c.pts, w, 0.42, g);
+    c.lip.geometry.dispose(); c.lip.geometry = stripGeo(c.pts, w.map(v => v + 0.5 + 1.2 * open), 0.38, g);
+  }
+  // soil pulled away from the foundation on the side towards the trough (the front, facing the approaching face) and the near end
+  { const a = p.ten * (1 - 0.6 * p.comp); gapMesh.visible = on && a > 0.03;
+    if (gapMesh.visible && Math.abs(a - (gapMesh.userData.a || 0)) > 0.02) { gapMesh.userData.a = a;
+      const pts = []; for (let x = -W_ / 2 - 0.6; x <= W_ / 2 + 0.6; x += 1) pts.push([x, -D_ / 2 - 0.6 - a * 0.35]);
+      const pts2 = []; for (let z = D_ / 2 + 0.6; z >= -D_ / 2 - 0.6; z -= 1) pts2.push([-W_ / 2 - 0.6 - a * 0.35, z]);
+      const g1 = stripGeo(pts, pts.map((_, i) => (0.25 + 0.6 * Math.sin(Math.PI * i / (pts.length - 1)) ** 0.5) * a), 0.3);
+      const g2 = stripGeo(pts2, pts2.map((_, i) => (0.3 + 0.7 * Math.sin(Math.PI * i / (pts2.length - 1)) ** 0.5) * a), 0.3);
+      gapMesh.geometry.dispose(); gapMesh.geometry = mergeG([g1, g2]); g1.dispose(); g2.dispose(); } }
+  // the compression ridge across Oak Forest Road
+  { const c2 = gCracks.find(q => q.kind === 'road2'), a = smoothS((p.x - c2.dh / SUB.r - 0.35) / 1.0); bumpMesh.visible = on && a > 0.02;
+    if (bumpMesh.visible && Math.abs(a - (bumpMesh.userData.a || 0)) > 0.02) { bumpMesh.userData.a = a; bumpMesh.geometry.dispose(); bumpMesh.geometry = bumpGeo(a); } }
+  // wall cracks: grow segment by segment and widen
+  for (const c of hCracks) {
+    const a = c.inside ? smoothS((p.room - c.start) / (1 - c.start + 1e-3)) : smoothS((p.walls - c.start) / (1 - c.start + 1e-3));
+    const vis = on && a > 0.01 && (!c.inside || HH.room.visible);
+    for (const q of [c.halo, c.core]) { q.l.visible = vis; q.l.geometry.instanceCount = Math.max(1, Math.ceil(c.n * Math.min(1, a * 1.25)));
+      q.m.opacity = Math.min(1, a * 3) * (q === c.halo ? 0.85 : 1); }
+    c.core.m.linewidth = c.width * (0.6 + 0.8 * a); c.halo.m.linewidth = c.core.m.linewidth + 3;
+  }
+  // chimneys lean away from the gable; porch and steps pull away from the front
+  for (const c of HH.chim) { const a = p.chim; c.g.position.x = c.s * (W_ / 2 + 1.5 + 0.45 * a); c.g.rotation.z = -c.s * 0.012 * a; }
+  HH.porch.position.z = 0.32 * p.porch; HH.porch.rotation.x = 0.004 * p.porch;
+  HH.steps.position.z = 0.55 * p.porch + 0.1; HH.steps.rotation.x = 0.03 * p.porch;
+  // the interior door frame racks (the head drops at one side) and the door binds
+  { const a = p.room, D = HH.door; D.hd.rotation.z = -0.07 * a; D.hd.position.y = D.dh + 0.17 - 0.1 * a; D.jR.position.y = (D.dh + 0.35) / 2 - 0.2 * a; D.jR.rotation.z = 0.03 * a; D.jL.rotation.z = 0.03 * a; }
+  // temporary water tank arrives a day after the well fails; the new line after mining
+  HH.tank.visible = on && p.x > 0.25; if (HH.tank.visible) HH.tank.scale.setScalar(Math.min(1, (p.x - 0.25) / 0.15));
+  lineMesh.visible = on && !!opts.line;
+  levelLine.visible = contactLine.visible = on;
+}
+const mergeG = gs => { const P = []; for (const g of gs) P.push(...g.attributes.position.array); const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals(); return g; };
+// compression ridge across the road: a low tent of pavement, along the crack line through Oak Forest Road
+function bumpGeo(a) {
+  const c = gCracks.find(q => q.kind === 'road2'), P = [], hgt = 0.75 * a, half = 1.8 + 1.2 * a;
+  const road = M.roads.find(r => r.name === 'Oak Forest Road'), segD_ = (px, py, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0; return Math.hypot(px - ax - t * dx, py - ay - t * dy); };
+  const onRoad = ([x, z]) => { const [h, d] = toHD(x, z); let m = 1e9; for (let i = 0; i < road.pts.length - 1; i++) m = Math.min(m, segD_(h, d, road.pts[i][0], road.pts[i][1], road.pts[i + 1][0], road.pts[i + 1][1])); return m < 9.5; };
+  const on = c.pts.filter(onRoad), pts = on.length > 1 ? Array.from({ length: 9 }, (_, i) => [on[0][0] + (on[on.length - 1][0] - on[0][0]) * i / 8, on[0][1] + (on[on.length - 1][1] - on[0][1]) * i / 8]) : [];
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, z0] = pts[i], [x1, z1] = pts[i + 1], dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz) || 1, nx = -dz / L, nz = dx / L;
+    const prof = [[-half, 0], [-half * 0.4, hgt * 0.75], [0, hgt], [half * 0.4, hgt * 0.75], [half, 0]];
+    for (let k = 0; k < prof.length - 1; k++) { const v = (x, z, o, y) => toW(x + nx * o, gLoc(x + nx * o, z + nz * o) + 0.36 + y, z + nz * o);
+      const A = v(x0, z0, prof[k][0], prof[k][1]), B_ = v(x1, z1, prof[k][0], prof[k][1]), C_ = v(x1, z1, prof[k + 1][0], prof[k + 1][1]), D = v(x0, z0, prof[k + 1][0], prof[k + 1][1]);
+      P.push(...A, ...B_, ...C_, ...A, ...C_, ...D); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals(); return g;
+}
+
+// ---------- Part 2 look. Simplified so the machine reads clearly:
+//  - the unmined coal is a dark, see-through block (no dither); the 42-inch slice to be cut on this pass is tinted amber
+//  - coal is glossy black (Phong), rock matte grey, so the two are never confused; far fewer lumps on the conveyor
+//  - coal breaks off the cut face behind each drum and drops onto the conveyor
+//  - the shield and caving steps are a section: a clipping plane at one shield's edge cuts away everything nearer the camera
+const secClip = new THREE.Plane(V3(0, 0, -1), 0);
+let p2Styled = false, coalGloss = null, webMat = null;
+function styleLong(on) {
+  coalSlabMat.side = on ? THREE.DoubleSide : THREE.FrontSide;
+  if (on) coalSlabMat.opacity = 0.2;
+  coalSlabMat.needsUpdate = true;
+  MV.side = on ? THREE.DoubleSide : THREE.FrontSide; MV.needsUpdate = true;
+  if (!on || !M_) return;
+  const R = M_;
+  if (!p2Styled) {
+    p2Styled = true;
+    coalGloss = new THREE.MeshPhongMaterial({ color: 0x2A2825, specular: 0x55524C, shininess: 28 });
+    for (const im of [R.lump, R.fall, R.blump, R.coalBed]) im.material = coalGloss;
+    webMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.2, depthWrite: false, side: THREE.DoubleSide });
+    for (let i = 0; i < NSH; i++) R.coalStrip.setColorAt(i, new THREE.Color(0x2E2B27));
+    R.coalStrip.material = webMat; R.coalStrip.renderOrder = 31;
+    R.NL = Math.round(R.NL * 0.35);                       // fewer, clearer lumps on the face conveyor
+    for (let i = R.NL; i < R.lump.count; i++) hide(R.lump, i);
+    R.coalBed.geometry.dispose(); R.coalBed.geometry = new THREE.BoxGeometry(2.4, 0.55, SHW + 0.02);
+    R.rock.material.side = THREE.DoubleSide;              // rock cut by the section plane looks solid
+    R.force = true;
+  }
+}
+// coal breaking off the freshly cut face behind each drum and dropping onto the conveyor (extra to the spray of coal from the drums)
+let spall = [];
+function updateSpall(dt) {
+  const R = M_, st = machineState; if (!R || !st || mode !== 'long') return;
+  if (!R.spall) { R.spall = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(0.5, 0), coalGloss || R.lump.material, 120); R.spall.frustumCulled = false; machine.add(R.spall);
+    for (let i = 0; i < 120; i++) R.spall.setMatrixAt(i, _zero); }
+  const run = storyRun || playing ? dt : 0;
+  if (run > 0) {
+    const dirN = st.S_.north ? 1 : -1;
+    let n = Math.min(4, Math.round(run * 28 + Math.random() * 0.6));
+    while (n-- > 0 && spall.length < 120) {
+      const behind = 2 + Math.random() * 14, d = st.d - dirN * (15.8 + 9.5 + behind) * (Math.random() < 0.5 ? 1 : 1), r = Math.random;
+      spall.push({ x: st.afcS + 1.3 + r() * 0.6, y: 1.5 + r() * 5, z: -d + (r() - 0.5) * 1.5, vx: -(1.5 + r() * 2.5), vy: r() * 1.5, vz: 0, t: 0, s: 0.25 + r() * 0.5, landed: -1 });
+    }
+  }
+  const NS_ = R.spall.count;
+  for (let i = spall.length - 1; i >= 0; i--) {
+    const o = spall[i]; o.t += run;
+    if (o.landed < 0) { o.vy -= 32 * run; o.x += o.vx * run; o.y += o.vy * run;
+      const floorY = 1.3; if (o.x < st.afcS - 3.2) { o.x = st.afcS - 3.2; o.vx = 0; } if (o.y < floorY) { o.y = floorY; o.landed = o.t; } }
+    else if (o.t - o.landed > 0.5) { spall.splice(i, 1); continue; }
+  }
+  for (let i = 0; i < NS_; i++) { const o = spall[i]; if (!o) { R.spall.setMatrixAt(i, _zero); continue; }
+    place(R.spall, i, o.x, st.y0 + o.y * VE, o.z, o.s, o.s * 0.8, o.s, o.t * 6, o.t * 4); }
+  R.spall.instanceMatrix.needsUpdate = true;
+}
+// labels in Part 2: only those listed for the step; in the section steps, pinned to the cut-away support
+const lblSet = new Set();
+function afterMachine() {
+  const R = M_; if (!R || mode !== 'long') return;
+  for (let i = 0; i < mLabels.length; i++) { if (!lblSet.has(i) && mLabels[i].visible) { mLabels[i].visible = false; mLabels[i].element.style.display = 'none'; } }
+  const st_ = stepsDef[curI]; if (st_ && st_.pin) st_.pin(R);
+  // the slice to be cut: amber within ~150 ft of the shearer, plain see-through coal further along
+  if (machineState) { const amb = new THREE.Color(0xC08A3A), dk = new THREE.Color(0x2E2B27), c_ = new THREE.Color();
+    for (let i = 0; i < NSH; i++) { const dd = Math.abs(b0 + (i + 0.5) * SHW - machineState.d); R.coalStrip.setColorAt(i, c_.copy(dk).lerp(amb, 1 - smoothS((dd - 60) / 110))); }
+    R.coalStrip.instanceColor.needsUpdate = true; }
+  if (renderer.clippingPlanes.length && R.secInfo) {
+    const i = Math.min(NSH - 1, iCut + 1), d = b0 + (i + 0.5) * SHW, y0 = R.y0[i], ref = R.shieldH[i];
+    mLabels[1].position.set(ref - 9, y0 + 7.4 * VE, -d); mLabels[2].position.set(R.afcX[i] - 2.4, y0 + 2.6 * VE, -d);
+    mLabels[3].position.set(R.secInfo.fcw + 9, y0 + 7.6 * VE, -dCut); mLabels[5].position.set(ref - 40, y0 + 4 * VE, -dCut);
+    mLabels[4].position.set(R.secInfo.fcw - 20, y0 + 36 * VE, -dCut);
+    R.srock.visible = !(st_ && st_.noRubble);              // close in, the big blocks on the section face would hide the support
+    for (const k of lblSet) mLabels[k].visible = true;
+  } else if (R.srock) R.srock.visible = true;
+}
+const _updateMachine0 = updateMachine;
+updateMachine = function (h, now) { _updateMachine0(h, now); afterMachine(); };
+const _showMachine0 = showMachine;
+showMachine = function (on) { _showMachine0(on); if (on && mode === 'long') styleLong(true); };
+
+// ---------- story steps
+const RO = document.getElementById('readout');
+const HC_ = (a0 + a1) / 2;
+const K0 = (() => { const k = Math.floor((HX - 200 - a0) / WEB); return k - (k % 2); })();     // a northbound pass near the village
+const dS = f => b0 + f * FACE_W;
+let tHouse = 0, dHouse = 0;
+function poseLand(el, az, tgt, dist) { return () => sph(el * deg, az * deg, typeof tgt === 'function' ? tgt() : tgt, dist || fitDistance() * (az ? 0.92 : 1)); }
+// geometry of the face for poses in Part 2 (from the time, not the machine, so poses are steady)
+const F2 = () => { const k = shearerAt(faceH('75', tPos)).k, ac = a0 + WEB * Math.max(0, k - 1); return { k, ac }; };
+const yS = (h, d) => Y(seam(h, d));
+const stepsDef = [];
+const S = o => { stepsDef.push(o); return o; };
+let p1Village = 0;
+// ---------- PART 0, THE SEAM: a 2D satellite map built on the county map's engine (MapLibre) and data (../map/data/), from the region
+// down to Panel 75; it then cross-fades into the 3D scene. Layers: USGS Open-File Report 96-280 (extent of the Pittsburgh coal bed
+// and its mined areas, from source maps of the 1980s and earlier; NAD27, simplified), PA DEP longwall panels with completion years,
+// PA DEP mine permit areas and the county and village outlines (all as published on /map/).
+const MAP2 = { el: document.getElementById('map2d'), map: null, ready: false, state: {}, view: null };
+const MAPBOX_TOKEN = 'pk.eyJ1IjoiampnaW9yZGFubyIsImEiOiJjbXdteTQ3NmUwNGJuMnpvaW9lcGxvdmk5In0.ujgkiJUkOnFg2VDLRX2anA';   // same public token as /map/
+const P75C = [-80.2405, 39.8335];                       // replaced by the panel's centroid once the panels load
+async function buildMap2d() {
+  if (MAP2.map || typeof maplibregl === 'undefined') return;
+  const j = u => fetch(u).then(r => r.json()).catch(() => ({ type: 'FeatureCollection', features: [] }));
+  const [extent, mined, panelsG, panelsPA, mines, county, village] = await Promise.all([
+    j('data/pgh_extent.json'), j('data/pgh_mined.json'), j('../map/data/panels.json'), j('data/pa_panels.json'), j('../map/data/mines.json'),
+    j('../map/data/county_outline.json'), j('../map/data/village_outline.json')]);
+  // statewide panels if they are there, otherwise Greene County's (as on /map/)
+  const panels = panelsPA.features && panelsPA.features.length ? panelsPA : panelsG;
+  for (const f of panels.features) f.properties.Y = +f.properties.YEAR_COMPLETED || 0;
+  MAP2.panels = panels;
+  const p75 = panels.features.find(f => f.properties.MINE_NAME === 'Cumberland' && String(f.properties.PANEL_ID) === '75');
+  if (p75) { const c = p75.geometry.coordinates[0]; P75C[0] = c.reduce((s, q) => s + q[0], 0) / c.length; P75C[1] = c.reduce((s, q) => s + q[1], 0) / c.length; }
+  const label = (id, src, field, size, extra = {}) => ({ id, type: 'symbol', source: src, ...extra,
+    layout: { 'text-field': ['get', field], 'text-font': ['Noto Sans Regular'], 'text-size': size, 'text-letter-spacing': 0.04, ...(extra.layout || {}) },
+    paint: { 'text-color': '#ffffff', 'text-halo-color': 'rgba(20,19,17,.85)', 'text-halo-width': 1.4, 'text-opacity': 0, ...(extra.paint || {}) } });
+  const style = { version: 8, glyphs: 'https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf',
+    sources: {
+      sat: { type: 'raster', tiles: ['https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token=' + MAPBOX_TOKEN], tileSize: 512, maxzoom: 22,
+             attribution: '© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © Maxar' },
+      omt: { type: 'vector', url: 'https://tiles.openfreemap.org/planet', attribution: '© OpenStreetMap contributors' },
+      extent: { type: 'geojson', data: extent }, mined: { type: 'geojson', data: mined }, panels: { type: 'geojson', data: panels },
+      mines: { type: 'geojson', data: mines }, county: { type: 'geojson', data: county }, village: { type: 'geojson', data: village } },
+    layers: [
+      { id: 'sat', type: 'raster', source: 'sat', paint: { 'raster-saturation': -0.3, 'raster-brightness-max': 0.82, 'raster-contrast': -0.05 } },
+      { id: 'extent', type: 'fill', source: 'extent', paint: { 'fill-color': '#E2B65A', 'fill-opacity': 0 } },
+      { id: 'extentL', type: 'line', source: 'extent', paint: { 'line-color': '#F3D48C', 'line-width': 0.8, 'line-opacity': 0 } },
+      { id: 'mined', type: 'fill', source: 'mined', paint: { 'fill-color': '#1B1B1B', 'fill-opacity': 0 } },
+      { id: 'states', type: 'line', source: 'omt', 'source-layer': 'boundary', filter: ['all', ['==', ['get', 'admin_level'], 4], ['!=', ['get', 'maritime'], 1]],
+        paint: { 'line-color': '#ffffff', 'line-width': 1.3, 'line-dasharray': [3, 2], 'line-opacity': 0.85 } },
+      { id: 'county', type: 'line', source: 'county', paint: { 'line-color': '#ffffff', 'line-width': 2, 'line-opacity': 0 } },
+      { id: 'minesL', type: 'line', source: 'mines', paint: { 'line-color': '#ffffff', 'line-width': 1, 'line-dasharray': [2, 1.5], 'line-opacity': 0 } },
+      { id: 'panels', type: 'fill', source: 'panels', filter: ['all', ['>', ['get', 'Y'], 0], ['<=', ['get', 'Y'], 1900]], paint: { 'fill-color': '#D2461F', 'fill-opacity': 0 } },
+      { id: 'panelsL', type: 'line', source: 'panels', filter: ['all', ['>', ['get', 'Y'], 0], ['<=', ['get', 'Y'], 1900]], paint: { 'line-color': '#8E2E14', 'line-width': 0.5, 'line-opacity': 0 } },
+      { id: 'p75', type: 'line', source: 'panels', filter: ['all', ['==', ['get', 'MINE_NAME'], 'Cumberland'], ['==', ['to-string', ['get', 'PANEL_ID']], '75']],
+        paint: { 'line-color': '#ffffff', 'line-width': 3, 'line-opacity': 0 } },
+      { id: 'village', type: 'line', source: 'village', paint: { 'line-color': '#ffffff', 'line-width': 1.6, 'line-dasharray': [2, 1], 'line-opacity': 0 } },
+      label('stateN', 'omt', 'name', 15, { 'source-layer': 'place', filter: ['==', ['get', 'class'], 'state'], layout: { 'text-transform': 'uppercase', 'text-letter-spacing': 0.2 }, paint: { 'text-opacity': 0.9 } }),
+      label('cities', 'omt', 'name', 13, { 'source-layer': 'place', filter: ['in', ['get', 'name'], ['literal', ['Pittsburgh', 'Morgantown', 'Wheeling', 'Fairmont', 'Washington', 'Uniontown', 'Steubenville', 'Clarksburg', 'Waynesburg']]],
+        layout: { 'text-variable-anchor': ['top', 'bottom', 'left', 'right'], 'text-radial-offset': 0.5 }, paint: { 'text-opacity': 0.9 } }),
+      label('minesN', 'mines', 'label', 12, { filter: ['==', ['get', 'status'], 'active'], layout: { 'text-max-width': 6 } }),
+      label('villageN', 'village', 'name', 13, { layout: { 'text-offset': [0, -1.4] } }) ] };
+  const map = new maplibregl.Map({ container: MAP2.el, style, center: [-80.4, 39.9], zoom: 6.2, interactive: false, attributionControl: { compact: true }, fadeDuration: 0 });
+  MAP2.map = map;
+  map.on('load', () => { MAP2.ready = true; MAP2.state = {}; if (MAP2.view) map.jumpTo(MAP2.view); });
+}
+// set a layer's opacity (only when it changes); several paint properties per layer
+const MAPOPS = { extent: [['extent', 'fill-opacity', 0.5], ['extentL', 'line-opacity', 0.9]], mined: [['mined', 'fill-opacity', 0.72]],
+  panels: [['panels', 'fill-opacity', 0.92], ['panelsL', 'line-opacity', 0.8]], county: [['county', 'line-opacity', 0.95]], mines: [['minesL', 'line-opacity', 0.85], ['minesN', 'text-opacity', 1]],
+  p75: [['p75', 'line-opacity', 1]], village: [['village', 'line-opacity', 1], ['villageN', 'text-opacity', 1]], states: [['stateN', 'text-opacity', 0.9], ['cities', 'text-opacity', 0.9], ['states', 'line-opacity', 0.85]] };
+function mapSet(st) {
+  const m = MAP2.map; if (!m || !MAP2.ready) return;
+  for (const [k, v] of Object.entries(st)) {
+    if (k === 'year') { const y = Math.floor(v); if (MAP2.state.year !== y) { MAP2.state.year = y; const f = ['all', ['>', ['get', 'Y'], 0], ['<=', ['get', 'Y'], y]]; m.setFilter('panels', f); m.setFilter('panelsL', f); } continue; }
+    const r = Math.round(v * 50) / 50; if (MAP2.state[k] === r) continue; MAP2.state[k] = r;
+    for (const [id, prop, full] of MAPOPS[k] || []) m.setPaintProperty(id, prop, full * r);
+  }
+}
+// views: [lon, lat], zoom, pitch, bearing; on portrait phones a little further out
+const MAPV = { region: { center: [-80.55, 39.85], zoom: 6.35, pitch: 0, bearing: 0 }, seam: { center: [-80.55, 39.75], zoom: 6.55, pitch: 0, bearing: 0 },
+  swpa: { center: [-80.15, 39.92], zoom: 8.35, pitch: 0, bearing: 0 }, greene: { center: [-80.22, 39.86], zoom: 9.55, pitch: 0, bearing: 0 },
+  cumb: () => ({ center: P75C, zoom: 12.6, pitch: 48, bearing: 17.5 }) };
+const mv = k => { const v = typeof MAPV[k] === 'function' ? MAPV[k]() : MAPV[k]; return camera.aspect < 0.8 ? { ...v, zoom: v.zoom - 0.55 } : v; };
+// keep the subject clear of the cards: above them on portrait phones, to the right of them on wider screens
+const mapPad = () => innerWidth < innerHeight ? { top: 0, bottom: Math.round(innerHeight * 0.36), left: 0, right: 0 } : { top: 0, bottom: 0, left: Math.round(Math.min(560, innerWidth * 0.36)), right: 0 };
+function mapView(a, b, t) {               // glide between two views
+  const A = mv(a), B = mv(b), e = smoothS(t), L = (x, y) => x + (y - x) * e;
+  MAP2.view = { center: [L(A.center[0], B.center[0]), L(A.center[1], B.center[1])], zoom: L(A.zoom, B.zoom), pitch: L(A.pitch, B.pitch), bearing: L(A.bearing, B.bearing), padding: mapPad() };
+  if (MAP2.map && MAP2.ready) MAP2.map.jumpTo(MAP2.view);
+}
+const ROmap = html => { RO.hidden = false; RO.innerHTML = html; };
+const PANEL_YEARS = () => MAP2.panels ? MAP2.panels.features.map(q => q.properties.Y).filter(y => y > 0) : [];
+let PY = null;
+S({ part: 0, title: true, mode: 'map', html: '<p class="kicker">Oak Forest, Greene County, Pennsylvania</p><h1>Panel 75</h1><p>How a longwall mine passed beneath a village in the winter of 2022–23.</p><p class="hint">Scroll to begin ↓</p>',
+    map(p) { mapView('region', 'region', 1); mapSet({ states: 1, extent: 0, mined: 0, panels: 0, county: 0, mines: 0, p75: 0, village: 0 }); } });
+S({ part: 0, mode: 'map', html: '<p>Beneath parts of Pennsylvania, West Virginia, Ohio and Maryland lies the Pittsburgh coal seam.</p><p class="note">Gold: extent of the Pittsburgh coal bed (U.S. Geological Survey).</p>',
+    map(p) { mapView('region', 'seam', p / 0.5); mapSet({ states: 1, extent: smoothS((p - 0.1) / 0.5), mined: 0, panels: 0, county: 0, mines: 0, p75: 0, village: 0 }); } });
+S({ part: 0, mode: 'map', html: '<p>For more than a century it was mined room by room, near Pittsburgh and along the rivers first, with pillars of coal left standing to hold up the roof.</p><p class="note">Dark: areas mined, as mapped by the U.S. Geological Survey from mine maps of the 1980s and earlier.</p>',
+    map(p) { mapView('seam', 'seam', 1); mapSet({ states: 1, extent: 1, mined: smoothS((p - 0.05) / 0.5), panels: 0, county: 0, mines: 0, p75: 0, village: 0 }); } });
+S({ part: 0, mode: 'map', html: '<p>Longwall mining spread through the region in the 1970s. Instead of leaving pillars, it removes whole blocks of coal, a quarter of a mile wide and miles long, and lets the roof fall in behind it.</p><p class="note">Red: longwall panels in Pennsylvania by the year they were finished (PA Department of Environmental Protection). West Virginia does not publish its panels.</p>',
+    map(p) { mapView('seam', 'swpa', p / 0.35); const y = lerp(1955, 2026, smoothS((p - 0.25) / 0.6));
+      mapSet({ states: 1, extent: 1 - 0.4 * smoothS(p / 0.3), mined: 1 - 0.3 * smoothS(p / 0.3), panels: smoothS((p - 0.15) / 0.15), year: y, county: 0, mines: 0, p75: 0, village: 0 });
+      if (!PY || PY.length === 0) PY = PANEL_YEARS();
+      ROmap(`<b>${Math.floor(y)}</b><br>${PY.filter(q => q <= Math.floor(y)).length.toLocaleString('en-US')} longwall panels finished in Pennsylvania`); } });
+S({ part: 0, mode: 'map', html: '<p>Today most of Pennsylvania’s coal comes from Greene County: about 33 of the state’s 42 million tons in 2025.</p><p class="note">Production: PA DEP, 2025 bituminous employment and production by county. White dashed: mine permit areas.</p>',
+    map(p) { mapView('swpa', 'greene', p / 0.45); mapSet({ states: 1, extent: 0.6 - 0.6 * smoothS(p / 0.4), mined: 0.7 - 0.7 * smoothS(p / 0.4), panels: 1, year: 2026, county: smoothS(p / 0.4), mines: smoothS((p - 0.2) / 0.4), p75: 0, village: 0 }); } });
+S({ part: 0, mode: 'map', html: '<p>Cumberland Mine, in the county’s southwest. Its Panel 75 passed beneath the village of Oak Forest in the winter of 2022–23.</p>',
+    map(p) { mapView('greene', 'cumb', p / 0.6); mapSet({ states: 1 - smoothS(p / 0.3), extent: 0, mined: 0, panels: 1, year: 2026, county: 1 - smoothS((p - 0.3) / 0.3), mines: 1 - smoothS((p - 0.2) / 0.3), p75: smoothS((p - 0.25) / 0.3), village: smoothS((p - 0.35) / 0.3) }); } });
+S({ part: 1, mode: 'land', handoff: true, html: '<p>Oak Forest sits where Pursley Creek meets Maple Run, in Center Township, Greene County.</p>',
+    pose: poseLand(50, 0, () => tgt0(), 0), enter() { setGround(1); setT(0); }, coal: false });
+S({ part: 1, mode: 'land', html: '<p>About 700 feet below it lies the Pittsburgh coal seam, roughly seven feet thick.</p>',
+    pose: poseLand(40, -12, () => tgt0(), 0), update(p) { setGround(lerp(1, 0.3, smoothS(p * 1.6))); setT(0); } });
+S({ part: 1, mode: 'land', html: '<p>Panel 75: a block of that coal 2.1 miles long and a quarter of a mile wide (11,221 by 1,393 feet), to be cut by one machine.</p>',
+    pose: poseLand(32, -38, () => tgt0(), 0), enter() { setGround(0.3); setT(0); } });
+S({ part: 1, mode: 'land', html: '<p>Mining began in July 2022 at the far end and moved back toward the mine’s entries, about 60 feet a day.</p><p class="note">Grey: coal still to be mined. Red: mined.</p>',
+    pose: poseLand(42, -18, () => tgt0(), 0), update(p) { setGround(0.3); setT(lerp(0.0, p1Village - 0.15, smoothS(p))); } });
+S({ part: 1, mode: 'land', html: '<p>At the end of December 2022 the face passed beneath the village.</p>',
+    pose: poseLand(34, -24, () => W(HX - 100, 520, zg(HX, 520), -60), 2400), update(p) { setGround(0.45); setT(lerp(p1Village - 0.15, p1Village + 0.08, smoothS(p))); } });
+S({ part: 1, mode: 'land', html: '<p>By the end of January 2023 the panel was finished. The ground above it had begun to sink.</p><p class="note">Red contours: 1, 2 and 3 feet of modelled sinking, drawn ten times deeper.</p>',
+    pose: poseLand(55, -8, () => tgt0(), 0), update(p) { setGround(lerp(0.45, 0.85, smoothS(p))); setT(p < 0.25 ? lerp(p1Village + 0.08, LASTT() - 0.01, smoothS(p * 4)) : LASTT()); } });
+S({ part: 2, title: true, mode: 'long', html: '<p class="kicker">Part two</p><h2>The longwall</h2><p>Seven hundred feet down, at the face, in December 2022.</p>' });
+const base2 = () => tForPass(K0, 0.5);
+// Part 2 is drawn as a clear, simplified close-up (see "Part 2 look" below): translucent coal, the slice about to be cut in amber,
+// glossy black coal against matte grey rock, a few labels per step, and a section cut for the shield and caving steps.
+S({ part: 2, mode: 'long', html: '<p>The longwall: about 240 hydraulic roof supports in a row, holding up the rock, with a cutting machine running along the coal.</p><p class="note">Real time. The coal is drawn see-through; amber marks the slice cut on this pass.</p>',
+    pose() { const { ac } = F2(), d = dS(0.5) + 70, y = yS(ac, d); return { p: V3(ac + 2.6, y + 4.6, -d), t: V3(ac - 1.5, y + 3.4, -(d - 60)) }; },
+    enter() { realTime(base2() - 0.0004); }, xr: 0, rock: false, lbl: [0, 1, 2],
+    pin(R) { const d0 = dS(0.5) + 70, i1 = Math.round((d0 - 34 - b0) / SHW), i2 = Math.round((d0 - 18 - b0) / SHW);
+      mLabels[1].position.set(R.shieldH[i1] - 8.5, R.y0[i1] + 6.6, -(b0 + (i1 + 0.5) * SHW)); mLabels[2].position.set(R.afcX[i2] - 2, R.y0[i2] + 1.6, -(b0 + (i2 + 0.5) * SHW)); } });
+S({ part: 2, mode: 'long', html: '<p>Two spinning drums shear a slice 42 inches deep from the coal on every pass, sprayed with water to keep down the dust.</p><p class="note">Real time. Seen from inside the coal seam.</p>',
+    pose() { const S_ = machineState, d = S_ ? S_.d : dS(0.5), x = S_ ? S_.afcS : F2().ac, y = yS(x, d); return { p: V3(x + 16, y + 6.5, -(d + 40)), t: V3(x + 0.8, y + 3.4, -(d + 17)) }; },
+    enter() { realTime(base2()); }, xr: 0, rock: false, lbl: [] });
+S({ part: 2, mode: 'long', html: '<p>The cut coal falls onto a chain conveyor that drags it along the face, about seven feet a second.</p><p class="note">Real time.</p>',
+    pose() { const S_ = machineState, d = (S_ ? S_.d : dS(0.5)) + 80, x = F2().ac, y = yS(x, d); return { p: V3(x - 2.2, y + 5.3, -d), t: V3(x - 1.8, y + 1.2, -(d + 70)) }; },
+    enter() { realTime(base2()); }, xr: 0, rock: false, lbl: [2] });
+S({ part: 2, mode: 'long', html: '<p>At the corner it is crushed and loaded onto a belt that carries it toward the surface.</p><p class="note">Real time.</p>',
+    pose() { const R = M_; const x = R ? R.afcX[NSH - 1] : F2().ac, y = yS(x, HG[0]); return { p: V3(x + 128, y + 5.6, -(HG[0] + 5.5)), t: V3(x + 10, y + 2.6, -(HG[0] - 1)) }; },
+    enter() { realTime(base2()); }, xr: 0, rock: false, lbl: [7] });
+// the section cut: everything nearer than one shield's edge is cut away, so a single support is seen side-on, as in a diagram
+const iCut = Math.round((dS(0.6) - b0) / SHW), dCut = b0 + iCut * SHW, dSec = dCut;
+const secPose = (dist, up, dx, el) => () => { const st = machineState, a = st ? st.ref : F2().ac, y = yS(a, dCut), half = dist * Math.tan(15 * deg) * camera.aspect;
+  const tx = a - dx + (camera.aspect > 1 ? -0.22 * half : 0);
+  return { p: V3(tx - 2, y + up + dist * Math.sin(el * deg), -(dCut - dist)), t: V3(tx, y + up, -dCut - 3) }; };
+S({ part: 2, mode: 'long', html: '<p>Behind the machine, each support lowers, steps forward and resets against the roof. The conveyor is pushed after it.</p><p class="note">Time-lapse: two passes. Cut-away through one support.</p>',
+    pose: secPose(44, 5.5, 6, 10), noRubble: true, enter() { sectFix = { d: dCut, side: 1 }; }, update(p) { lapse(K0, 0.45, K0 + 2, 0.45, p); }, xr: 0, rock: true, cut: true, lbl: [1, 2, 3, 5] });
+S({ part: 2, mode: 'long', html: '<p>Behind the supports the roof is left to fall. The rock above sags into the space, breaking as it bends.</p><p class="note">Time-lapse: ten passes, about 35 feet of advance.</p>',
+    pose: secPose(150, 18, 34, 7), enter() { sectFix = { d: dCut, side: 1 }; }, update(p) { lapse(K0 + 2, 0.45, K0 + 12, 0.45, p); }, xr: 0, rock: true, cut: true, lbl: [3, 4, 5] });
+S({ part: 2, mode: 'long', html: '<p>Each pass moves the face 42 inches. Panel 75 took about 3,200 passes, around the clock.</p>',
+    pose() { const { ac } = F2(), y = yS(ac, dSec); return { p: V3(ac - 160, y + 260, -(dSec - 420)), t: V3(ac - 40, y + 30, -dSec) }; },
+    enter() { sectFix = { d: dCut, side: 1 }; storyRun = true; play(false); }, xr: 0, rock: true, cut: true, lbl: [] });
+S({ part: 3, title: true, mode: 'house', html: '<p class="kicker">Part three</p><h2>A house above</h2><p>A house in the village, drawn from several in Oak Forest. Not any one house.</p>' });
+const hp = (dx, dy, dz, tx = 0, ty = 8, tz = 0) => () => { const fwd = V3(0, 0, 1).applyAxisAngle(V3(0, 1, 0), -HROT), rgt = V3(1, 0, 0).applyAxisAngle(V3(0, 1, 0), -HROT);
+  const c = V3(HX, Y(HZ), -HD), at = (a, b, e) => c.clone().addScaledVector(rgt, a).add(V3(0, b, 0)).addScaledVector(fwd, e); return { p: at(dx, dy, dz), t: at(tx, ty, tz) }; };
+// a view of a ground crack from the side of the house: by its panel-frame centre
+const hpAt = (dh, dd, back, up, side = 0) => () => { const [x, z] = fromHD(HX + dh, HD + dd), g = gLoc(x, z), gc = gLoc(x + side, z + back); return hp(x + side, Math.max(g, gc) + up, z + back, x, g + 0.5, z)(); };
+const day = d => tOfDate(dateOfT(tHouse) + d * DAY);
+const NOTE_SUMMER = '<p class="note">An example of how ground movement over a longwall panel affects a house; not a record of any one house or day.</p>';
+S({ part: 3, mode: 'house', html: '<p>Two weeks before the face arrives, nothing has changed. The face is about 800 feet away, coming from beyond the road.</p>' + NOTE_SUMMER,
+    pose: hp(58, 24, 100, -2, 5, 12), hl: ['road', 'well', 'level'], update(p) { houseDay(-14); } });
+S({ part: 3, mode: 'house', html: '<p>Days before it arrives, the ground ahead of the face begins to stretch. Cracks open across the road and the yard, running parallel to the face.</p>',
+    pose: hp(-20, 46, 120, -6, 0, 52), hl: ['road', 'road2', 'rcrack', 'crack'], update(p) { houseDay(lerp(-10, -1, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>Stretching opens fractures in the rock, and groundwater can drain away through them. The level in the well drops; it may go dry.</p><p>The mine operator must supply water, often from a tank, until the supply is restored or replaced.</p><p class="note">Some wells recover after mining; others do not. Over I-79, a West Virginia University study measured the water table falling by up to fifty feet above two of the longwall panels that undermined the highway (cited in Giordano, <i>Carbon Footprints</i>, 2025). Over longwall panels in 2013–18, about one water supply in seven undermined had a reported effect (PA DEP Act 54 report).</p>',
+    pose: hp(84, 13, 34, 26, 3, -3), hl: ['well', 'tank'], well: true, update(p) { houseDay(lerp(-6, 2.5, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>As the face passes beneath, the stretched ground pulls away from the foundation. The foundation cracks, and the porch and its steps pull away from the house.</p>',
+    pose: hp(-58, 9, 34, -16, 2, 4), hl: ['gap', 'steps', 'fcrack'], update(p) { houseDay(lerp(0, 4, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>The walls rack. Cracks step through the brick from the corners of the windows, and the chimneys lean away from the gables.</p>',
+    pose: hp(70, 18, 34, 14, 12, 2), hl: ['stair', 'chim'], update(p) { houseDay(lerp(3, 9, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>Inside, door frames go out of square: doors stick or will not close. Plaster cracks from the corners of doors and ceilings.</p><p class="note">Sticking doors and windows and cracked walls are among the “material damage” PA DEP lists. Owners of undermined houses in Greene County described the same: plaster still cracked and doors still sticking years after repairs (Giordano, <i>Carbon Footprints</i>, 2025).</p>',
+    pose() { const R = HH.roomBox; return R ? hp(R.cx - 1, FL + 5.2, D_ / 2 + 14, R.cx - 1.5, FL + 4.6, R.z0)() : hp(-11, 6, 30)(); }, room: true, hl: ['door', 'plaster'],
+    update(p) { houseDay(lerp(6, 12, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>Behind the face the ground squeezes back together. Some cracks close; pavement buckles into a ridge.</p><p>Three weeks after the face passed, the house is about a foot lower.</p><p class="note">White line: where the ground met the foundation before mining.</p>',
+    pose() { const c = gCracks.find(q => q.kind === 'road2'); return c ? hpAt(c.dh, c.dd, 26, 7, 24)() : hp(-60, 14, 130)(); }, hl: ['bump', 'road2'],
+    update(p) { houseDay(lerp(10, 24, smoothS(p))); } });
+S({ part: 3, mode: 'house', html: '<p>It keeps sinking for months, to about four feet below where it was built. A new water line is laid from the road.</p><p class="note">Modelled: Knothe-type profile, 4 ft at the panel centre; most of it over about seven months (U.S. Bureau of Mines study, Greene County). The damage shown is typical of reports over longwall panels, not a record of any house.</p>',
+    pose: hp(-40, 9, 46, -18, 1.5, 10), hl: ['level', 'drop', 'line'], line: true,
+    update(p) { if (p < 0.45) houseDay(lerp(24, 120, smoothS(p / 0.45))); else houseEnd(); } });
+S({ part: 4, title: true, mode: 'land', html: '<p class="kicker">Panel 75 today</p><h2>The whole panel</h2><p>The coal is gone. The ground above it sank.</p>' });
+S({ part: 4, title: false, end: true, mode: 'land', html: '<h2>Look around</h2><p>Drag to turn the model, scroll or pinch to zoom.</p><div class="chips"><button data-go="countymap">Explore the county map</button><button data-go="top">Start again</button></div><details><summary>Sources and notes</summary><p>' + (document.querySelector('footer details p') || { innerHTML: '' }).innerHTML + '</p></details>',
+    pose: poseLand(45, -20, () => tgt0(), 0), enter() { setT(LASTT()); setGround(0.6); } });
+
+// ---------- state setters used by the steps
+function setGround(v) { gIn.value = v; gIn.oninput(); }
+function setT(x) { if (Math.abs(x - tPos) > 1e-5) setTime(x); }
+function realTime(t) { storyRun = false; sectFix = null; passSeconds = REAL_PASS_S; setTime(t); play(true); }
+function lapse(k0_, f0, k1, f1, p) { play(false); storyRun = true; setT(lerp(tForPass(k0_, f0), tForPass(k1, f1), p)); }
+function houseStepFlags() { const s = stepsDef[curI] || {}; if (!houseBuilt) return s;
+  HH.room.visible = !!s.room; HH.frontL.visible = !s.room; return s; }
+function houseDay(dd) { const s = houseStepFlags(); dHouse = dd; setT(day(dd)); houseUpdate(faceH('75', tPos), s); readout(); }
+function houseEnd() { const s = houseStepFlags(); dHouse = 400; setT(LASTT()); houseUpdate(1e7, s); readout(); }
+// house labels: those listed for the step, placed on the feature (moved down with the ground where it sinks)
+function houseLabels() {
+  const s = stepsDef[curI] || {}, want = new Set(mode === 'house' && houseBuilt && !s.title ? (s.hl || []) : []);
+  if (!houseBuilt) return;
+  const sinkY = (p) => { const h = p[0], d = -p[2]; return [p[0], p[1] - subAt(h, d) * SUB.x, p[2]]; };
+  const W = (x, y, z, sink = true) => { const p = toW(x, y, z); return sink ? sinkY(p) : p; };
+  const ctr = c => { const m = c.pts[Math.floor(c.pts.length / 2)]; return W(m[0], gLoc(m[0], m[1]) + 0.6, m[1]); };
+  const R = HH.roomBox, D = HH.door, L = HH.lbl;
+  const pos = {
+    level: W(-W_ / 2 - 0.6, gLoc(-W_ / 2 - 0.6, D_ / 2 + 0.6) + 0.1, D_ / 2 + 0.6, false),
+    well: W(HH.well.x, HH.well.g + 2.6, HH.well.z), tank: HH.tank.visible ? W(HH.tank.position.x, HH.tank.position.y + 7, HH.tank.position.z) : null,
+    road: (() => { const [x, z] = fromHD(HX - 56, HD + 34); return W(x, gLoc(x, z) + 1, z); })(),
+    road2: (() => { const [x, z] = fromHD(HX - 84, HD + 76); return W(x, gLoc(x, z) + 1, z); })(),
+    gap: W(-W_ / 2 - 1.2, gLoc(-W_ / 2 - 1.2, -2) + 0.4, -2), steps: W(2.5, FL + 0.6, D_ / 2 + 9.8),
+    fcrack: W(-W_ / 2 - 0.5, FL - 0.9, 6), chim: W(W_ / 2 + 1.8, FL + R_ + 4.6, 0), stair: W(19.5, FL + 7.2, D_ / 2 + 0.4),
+    door: W(R.cx - 2.5 + 1.6, R.y0 + 7.4, R.z0 + 0.3), plaster: W(R.cx + 0.8, R.y1 - 0.8, R.z0 + 0.3),
+    crack: ctr(gCracks[0]), rcrack: ctr(gCracks.find(q => q.kind === 'road')),
+    bump: (() => { const c = gCracks.find(q => q.kind === 'road2'); return c ? ctr(c) : null; })(),
+    line: (() => { const [x, z] = fromHD(HX - 40, HD); return W(-W_ / 2 - 7, gLoc(-W_ / 2 - 7, 30) + 0.8, 30); })(),
+    drop: W(-W_ / 2 - 0.6, gLoc(-W_ / 2 - 0.6, D_ / 2 + 0.6) - subAt(HX, HD) / 2, D_ / 2 + 0.6, false),
+  };
+  const sk = subAt(HX, HD);
+  L.drop.element.firstChild.textContent = `${sk.toFixed(1)} ft lower`;
+  for (const [k, o] of Object.entries(L)) {
+    let on = want.has(k) && !!pos[k];
+    if (k === 'tank') on = on && HH.tank.visible;
+    if (k === 'bump') on = on && bumpMesh.visible;
+    if ((k === 'crack' || k === 'rcrack') && on) on = gCracks.some(c => c.mesh.visible);
+    if (k === 'drop') on = on && sk > 0.4;
+    o.visible = on; if (on) o.position.set(...pos[k]); else o.element.style.display = 'none';
+  }
+}
+// the ground around the house, finer than the landscape grid, with the roads, the creek, a drive and summer grass painted in; leafy trees
+// and shrubs. All sink with the ground.
+let localG = null;
+const densify = (pts, step) => { const out = []; for (let i = 0; i < pts.length - 1; i++) { const a = pts[i], b = pts[i + 1], n = Math.max(1, Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / step));
+  for (let k = 0; k < n; k++) out.push([a[0] + (b[0] - a[0]) * k / n, a[1] + (b[1] - a[1]) * k / n]); } if (pts.length) out.push(pts[pts.length - 1]); return out; };
+function buildLocal() {
+  if (localG) return; localG = new THREE.Group(); scene.add(localG);
+  const R_ = 340, ST = isPhone ? 4 : 2.5, N = Math.round(2 * R_ / ST) + 1, pos = new Float32Array(N * N * 3), col = new Float32Array(N * N * 3), idx = [];
+  const segD = (px, py, ax, ay, bx, by) => { const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy, t = L ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / L)) : 0; return Math.hypot(px - ax - t * dx, py - ay - t * dy); };
+  const segs = []; for (const r of M.roads) for (let k = 0; k < r.pts.length - 1; k++) { const a = r.pts[k], b = r.pts[k + 1]; if (Math.hypot(a[0] - HX, a[1] - HD) < R_ + 200) segs.push([a[0], a[1], b[0], b[1], r.major ? 18 : 14]); }
+  const ssg = M.streams.filter(q => Math.hypot(q[0] - HX, q[1] - HD) < R_ + 100).map(q => [q[0], q[1], q[3], q[4]]);
+  // the drive: from beside the house to the nearest road (gravel)
+  const [ax_, az_] = [W_ / 2 + 5, -4], [rx, rz] = fromHD(HX - 55, HD - 6), A = toHD(ax_, az_), Bp = toHD(ax_ + 2, rz - 2);
+  const drive = [A[0], A[1], Bp[0], Bp[1]];
+  const walk = (() => { const a = toHD(0, D_ / 2 + 14), b = toHD(0, rz - 3); return [a[0], a[1], b[0], b[1]]; })();
+  const c = new THREE.Color(), grass = [0xA4AA86, 0x9EA57F, 0xA8AE8B, 0xA0A782].map(h => new THREE.Color(h)), far = new THREE.Color(0xC4C6B2);
+  const foot = (h, d) => { const v = V3(h - HX, 0, -(d - HD)).applyAxisAngle(V3(0, 1, 0), HROT); return Math.abs(v.x) < W_ / 2 + 3 && v.z > -D_ / 2 - 3 && v.z < D_ / 2 + 12; };
+  const foot2 = (h, d) => { const v = V3(h - HX, 0, -(d - HD)).applyAxisAngle(V3(0, 1, 0), HROT); return Math.abs(v.x) < W_ / 2 + 30 && v.z > -D_ / 2 - 30 && v.z < D_ / 2 + 30; };
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const h = HX - R_ + j * ST, d = HD - R_ + i * ST, k = i * N + j, z = zg(h, d);
+    pos[k * 3] = h; pos[k * 3 + 1] = Y(z) + 0.02; pos[k * 3 + 2] = -d;
+    const n1 = hsh(Math.floor(h / 11) * 31 + Math.floor(d / 11), 41), n2 = hsh(Math.floor(h / 2.5) * 17 + Math.floor(d / 2.5), 42);
+    c.copy(grass[Math.floor(n1 * 4)]).multiplyScalar(0.94 + 0.1 * n2);
+    let rd = 1e9, rw = 8; for (const sg of segs) { const q = segD(h, d, sg[0], sg[1], sg[2], sg[3]); if (q < rd) { rd = q; rw = sg[4]; } }
+    let wd = 1e9; for (const sg of ssg) wd = Math.min(wd, segD(h, d, ...sg));
+    const dv = segD(h, d, ...drive), wk = segD(h, d, ...walk);
+    if (foot2(h, d)) wd = 1e9;                     // the small run mapped across this lot is left out at the composite house
+    if (wd < 6.5) c.setHex(0x8C9572).multiplyScalar(0.9 + 0.1 * n2);
+    else if (rd < rw / 2 + 4) c.setHex(0xA8A595);
+    else if (dv < 5) c.setHex(0xB2A992).multiplyScalar(0.92 + 0.12 * n2);
+    else if (wk < 2.2) c.setHex(0xB9B2A2);
+    else if (foot(h, d)) c.multiplyScalar(0.93);
+    const e = Math.hypot(h - HX, d - HD) / R_; if (e > 0.78) c.lerp(far, smoothS((e - 0.78) / 0.22));
+    col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
+  }
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < N - 1; j++) { const a = i * N + j, b = a + 1, cc = a + N, dd = cc + 1;
+    if (Math.hypot(-R_ + j * ST + ST / 2, -R_ + i * ST + ST / 2) > R_) continue; idx.push(a, b, cc, b, dd, cc); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setIndex(idx); g.computeVertexNormals();
+  const gm = sinkify(new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 1, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 }));
+  { const gmesh = new THREE.Mesh(g, gm); gmesh.renderOrder = 3; localG.add(gmesh); }
+  // roads and the creek as ribbons (sharp edges), drawn over the local ground
+  { const rm = sinkify(new THREE.MeshBasicMaterial({ color: 0x5C5955, transparent: true, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -8, side: THREE.DoubleSide }));
+    const cm = sinkify(new THREE.MeshBasicMaterial({ color: 0x5B7FA3, transparent: true, polygonOffset: true, polygonOffsetFactor: -3, polygonOffsetUnits: -8, side: THREE.DoubleSide }));
+    const inR = p => Math.hypot(p[0] - HX, p[1] - HD) < R_ - 6;
+    for (const r of M.roads) { let run = [];
+      const flush = () => { if (run.length > 1) { const pts = run.map(p => fromHD(p[0], p[1])); const m = new THREE.Mesh(stripGeo(pts, pts.map(() => r.major ? 18 : 14), 0.32), rm); m.renderOrder = 4; localG.add(m); } run = []; };
+      for (const p of densify(r.pts, 4)) { if (inR(p)) run.push(p); else flush(); } flush(); }
+    for (const ch of STREAMS) { let run = [];
+      const flush = () => { if (run.length > 1) { const pts = run.map(p => fromHD(p[0], p[1])); const m = new THREE.Mesh(stripGeo(pts, pts.map(() => 4.5), 0.3), cm); m.renderOrder = 4; localG.add(m); } run = []; };
+      for (const p of densify(ch, 3)) { if (inR(p) && !foot2(p[0], p[1])) run.push(p); else flush(); } flush(); } }
+  // leafy trees (trunk and a crown of a few lumps) and shrubs along the foundation; placed away from the house, roads, water and drive
+  const P = [], Cc = [], Nn = [], add = (geo, col_, m4) => { geo.applyMatrix4(m4); const ng = geo.toNonIndexed(); ng.computeVertexNormals();
+    P.push(...ng.attributes.position.array); Nn.push(...ng.attributes.normal.array); for (let i = 0; i < ng.attributes.position.count; i++) Cc.push(col_.r, col_.g, col_.b); geo.dispose(); ng.dispose(); };
+  const M4 = (x, y, z, sx, sy, sz, ry = 0) => new THREE.Matrix4().compose(V3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(0, ry, 0)), V3(sx, sy, sz));
+  const crowns = [0x7E8A66, 0x74805E, 0x88936F, 0x7A8762, 0x6E7A5A].map(h => new THREE.Color(h)), bark = new THREE.Color(0x5E5246);
+  let n = 0;
+  for (let q = 0; q < 1400 && n < (isPhone ? 40 : 85); q++) {
+    const h = HX - R_ + hsh(q, 51) * 2 * R_, d = HD - R_ + hsh(q, 52) * 2 * R_, rr = Math.hypot(h - HX, d - HD);
+    if (rr > R_ * 0.9 || rr < 40) continue;
+    const [lx, lz] = fromHD(h, d); if (lx > -W_ / 2 - 22 && lx < W_ / 2 + 26 && lz > -D_ / 2 - 30 && lz < D_ / 2 + 22) continue;
+    let rd = 1e9; for (const sg of segs) rd = Math.min(rd, segD(h, d, sg[0], sg[1], sg[2], sg[3]) - sg[4] / 2); if (rd < 14) continue;
+    let wd = 1e9; for (const sg of ssg) wd = Math.min(wd, segD(h, d, ...sg)); if (wd < 8 || segD(h, d, ...drive) < 14 || segD(h, d, ...walk) < 10) continue;
+    n++;
+    const H = 30 + hsh(q, 53) * 34, y0 = Y(zg(h, d)), r0 = 0.7 + hsh(q, 54) * 0.6, cw = H * (0.28 + hsh(q, 57) * 0.1);
+    add(new THREE.CylinderGeometry(r0 * 0.7, r0, H * 0.5, 6), bark, M4(h, y0 + H * 0.25, -d, 1, 1, 1));
+    const cc_ = crowns[Math.floor(hsh(q, 55) * crowns.length)];
+    for (let b = 0; b < 5; b++) { const a = b * 1.26 + hsh(q, 60 + b) * 0.8, rr2 = b === 0 ? 0 : cw * 0.55, sz = cw * (b === 0 ? 0.95 : 0.62 + hsh(q, 70 + b) * 0.2);
+      add(new THREE.IcosahedronGeometry(1, 1), c.copy(cc_).multiplyScalar(0.9 + hsh(q, 80 + b) * 0.2), M4(h + Math.cos(a) * rr2, y0 + H * (0.62 + (b ? 0.08 * hsh(q, 90 + b) : 0.12)), -d + Math.sin(a) * rr2, sz, sz * 0.85, sz)); }
+  }
+  // shrubs along the front and ends of the house
+  for (const [k, x, z] of [[0, -W_ / 2 - 9, -D_ / 2 - 9], [1, W_ / 2 + 4, D_ / 2 + 4], [2, W_ / 2 + 6, -D_ / 2 - 2], [3, -W_ / 2 - 4, -D_ / 2 - 3], [4, W_ / 2 + 5, -D_ / 2 + 2]]) { const [h, d] = toHD(x, z), s_ = 1.4 + hsh(k, 95) * 0.8;
+    add(new THREE.IcosahedronGeometry(1, 1), c.copy(crowns[k % 5]).multiplyScalar(0.85), M4(h, Y(zg(h, d)) + s_ * 0.6, -d, s_ * 1.3, s_, s_ * 1.2)); }
+  const tg = new THREE.BufferGeometry(); tg.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); tg.setAttribute('normal', new THREE.Float32BufferAttribute(Nn, 3)); tg.setAttribute('color', new THREE.Float32BufferAttribute(Cc, 3));
+  localG.add(new THREE.Mesh(tg, sinkify(new THREE.MeshLambertMaterial({ vertexColors: true }))));
+  localG.visible = false;
+}
+// readout: day, face distance, how far the house has sunk and tilted, and (from the well step) a cut-away gauge of the well
+function readout() {
+  if (mode !== 'house') { RO.hidden = true; return; }
+  RO.hidden = false;
+  const f = faceH('75', tPos), s = subAt(HX, HD), s1 = subAt(HX - 21, HD), s2 = subAt(HX + 21, HD), s3 = subAt(HX, HD - 10), s4 = subAt(HX, HD + 10);
+  const tilt = Math.atan(Math.hypot((s2 - s1) / 42, (s4 - s3) / 20)) / deg, dist = Math.round(f - HX);
+  const head = dHouse > 300 ? '<b>Months later</b><br>Face long gone' : `<b>Day ${dHouse >= 0 ? '+' : '−'}${Math.abs(Math.round(dHouse))}</b><br>` + (dist < 0 ? `Face ${-dist} ft away, approaching` : `Face ${dist} ft past the house`);
+  let html = head + `<br>House sunk <b>${s.toFixed(1)} ft</b> · tilt ${tilt.toFixed(2)}°`;
+  const st = stepsDef[curI] || {};
+  if (houseBuilt && (st.well || (dHouse > -6 && curI > stepsDef.findIndex(q => q.well) && stepsDef.findIndex(q => q.well) > 0))) {
+    const lv = dHouse > 300 ? 0 : housePhase((f - HX) / SUB.r).well, wy = 18 + (1 - lv) * 64, dry = lv < 0.03;
+    html += `<div class="well"><svg viewBox="0 0 120 110" width="120" height="110" aria-hidden="true">
+      <rect x="0" y="14" width="120" height="96" fill="#C9B79A"/><rect x="0" y="40" width="120" height="70" fill="#A89880"/><rect x="0" y="72" width="120" height="38" fill="#8F826F"/>
+      <path d="M0 14 H120" stroke="#6F8B52" stroke-width="4"/>
+      ${[[20, 44], [70, 52], [36, 80], [92, 86]].map(([x, y]) => `<path d="M${x} ${y} l6 5 l-3 6 l5 6" stroke="#3a3128" stroke-width="${(1 - lv) * 1.6 + 0.2}" fill="none" opacity="${0.25 + 0.75 * (1 - lv)}"/>`).join('')}
+      <rect x="54" y="4" width="12" height="104" fill="#E9E6DC" stroke="#6A6E70" stroke-width="2"/>
+      <rect x="56" y="${wy}" width="8" height="${108 - wy}" fill="#5B7FA3"/>
+      <path d="M48 18 H72" stroke="#1B1B1B" stroke-dasharray="2 2" stroke-width="1"/></svg>
+      <span>Water in the well<br><b>${dry ? 'dry' : lv > 0.97 ? 'normal' : 'falling'}</b></span></div>`;
+  }
+  RO.innerHTML = html;
+}
+
+let gateRoof = null, gateRoofX = -1e9;
+function buildRoof() {
+  const R = M_; if (!R) return; const x0 = R.afcX[NSH - 1] - 300;
+  if (gateRoof && Math.abs(x0 - gateRoofX) < 60) return;
+  if (gateRoof) { scene.remove(gateRoof); gateRoof.geometry.dispose(); }
+  gateRoofX = x0; const P = [], NU = 40, NV = 6, dA = b1 + 0.5, dB = HG[2] + 12;
+  const v = (u, w) => { const h = x0 + 1020 * u / NU, d = dA + (dB - dA) * w / NV; return [h, Y(seam(h, d)) + 7.05, -d]; };
+  for (let u = 0; u < NU; u++) for (let w = 0; w < NV; w++) { const a = v(u, w), b = v(u + 1, w), c = v(u + 1, w + 1), d = v(u, w + 1); P.push(...a, ...b, ...c, ...a, ...c, ...d); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals();
+  gateRoof = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0x5A5650, side: THREE.DoubleSide })); scene.add(gateRoof);
+}
+// ---------- modes: the land (overview), the longwall (close-up), the house (land at true vertical scale, the house built)
+let mode = 'land';
+function setMode(m) {
+  if (m === mode) return;
+  const prev = mode; mode = m;
+  if (m === 'map') { play(false); storyRun = false; renderer.clippingPlanes = []; document.getElementById('labels').style.display = 'none'; window.__skip3D = true;
+    document.body.classList.remove('p2'); if (house) house.visible = false; if (houseBuilt) { houseUpdate(faceH('75', tPos)); houseLabels(); } RO.hidden = true; return; }
+  window.__skip3D = false;
+  play(false); storyRun = false; sectFix = null;
+  if (m === 'long') { if (!shearMode) setShearMode(true); play(false); passSeconds = REAL_PASS_S; colReal = true; if (M_) setPalette('real'); styleLong(true); }
+  else if (shearMode) { setShearMode(false); play(false); styleLong(false); }
+  renderer.clippingPlanes = []; lblSet.clear(); document.body.classList.toggle('p2', m === 'long');
+  if (m === 'house') { buildHouse(); buildLocal(); }
+  house.visible = m === 'house';
+  if (houseBuilt && m !== 'house') { houseUpdate(faceH('75', tPos)); houseLabels(); }
+  SUB.x = m === 'house' ? 1 : 10;
+  layerOn.labels = m === 'land'; setLayerVis('labels', m === 'land'); document.getElementById('labels').style.display = m === 'long' ? 'none' : '';
+  for (const n of ['trace', 'walls', 'cracks']) setLayerVis(n, m === 'land');
+  setLayerVis('gates', m !== 'house');
+  slabMat.visible = m === 'land'; coalSlabMat.visible = m !== 'house';
+  // underground: the surface is hidden; at the house: solid ground, neighbouring buildings faded
+  for (const n of ['ground', 'built']) setLayerVis(n, m !== 'long');
+  for (const n of ['sinkC', 'box', 'neighIn']) setLayerVis(n, m === 'land');
+  if (m === 'house') setGround(1);
+  groundMat.depthWrite = m !== 'house'; groundMat.needsUpdate = true;      // at the house the finer local ground (drawn after) always shows over it
+  renderer.setClearColor(0x24211d, m === 'long' ? 1 : 0);
+  for (const bm of [wallBMat, roofBMat]) { bm.transparent = m === 'house'; bm.opacity = m === 'house' ? 0.35 : 1; bm.depthWrite = m !== 'house'; bm.needsUpdate = true; }
+  if (m === 'long') buildRoof(); if (gateRoof) gateRoof.visible = m === 'long';
+  setLayerVis('lines', m !== 'house'); setLayerVis('trees', m !== 'house'); if (localG) localG.visible = m === 'house';
+  controls.minDistance = m === 'land' ? 250 : m === 'long' ? 15 : 20;
+  setTime(tPos); if (m === 'long' && M_) setPalette('real'); readout();
+}
+
+// ---------- build the scroll
+const storyEl = document.getElementById('story');
+stepsDef.forEach((s, i) => {
+  const sec = document.createElement('section'); sec.className = 'step' + (s.title ? ' title' : '') + (s.end ? ' end' : ''); sec.dataset.i = i;
+  sec.innerHTML = `<div class="card">${s.html}</div>`; storyEl.appendChild(sec); s.el = sec;
+});
+let offs = [];
+function measure() { offs = stepsDef.map(s => ({ top: s.el.offsetTop, h: s.el.offsetHeight })); }
+measure(); addEventListener('resize', measure);
+buildMap2d();
+for (const b of document.querySelectorAll('.chips button')) b.onclick = () => explore(b.dataset.go);
+const nextBtn = document.getElementById('next');
+function goStep(i) { i = Math.max(0, Math.min(stepsDef.length - 1, i)); const o = offs[i]; scrollTo({ top: o.top + o.h * 0.55 - innerHeight / 2, behavior: reduceMotion ? 'auto' : 'smooth' }); }
+nextBtn.onclick = () => goStep(curI + 1);
+addEventListener('keydown', e => {
+  if (!window.__storyLocked || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); goStep(curI + 1); }
+  else if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); goStep(curI - 1); }
+});
+// p1Village: the time the face reached the composite house
+tHouse = tForH(HX); p1Village = tHouse;
+
+// ---------- each frame: where are we in the story, what to show, where to look
+let curI = -1, camP = null, camT = null, exploring = false, exPose = null, exT = 0, lastF = 0;
+const dimEl = document.getElementById('dim'), progEl = document.getElementById('progbar'), partEl = document.getElementById('progpart');
+const PARTS = ['The Pittsburgh seam', 'The panel beneath the land', 'The longwall', 'A house above', 'Explore'];
+function poseOf(i) {
+  const s = stepsDef[i]; if (!s || !s.pose) return null;
+  const P = s.pose(); if (!(P.p && P.t)) return null;
+  // portrait phones: the land is shown closer, the house from further back
+  if (camera.aspect < 0.8) {
+    const far = P.p.distanceTo(P.t) > 9000;
+    const k = s.mode === 'land' ? (far ? 0.85 : 1.5) : s.mode === 'house' ? 2.7 : 1;
+    if (k !== 1) P.p = P.t.clone().add(P.p.clone().sub(P.t).multiplyScalar(k));
+  }
+  return P;
+}
+// portrait phones: the cards sit at the bottom, so the picture is lifted into the upper part of the screen
+function phoneView() {
+  if (innerWidth < innerHeight) camera.setViewOffset(innerWidth, innerHeight, 0, innerHeight * 0.10, innerWidth, innerHeight);
+  else camera.clearViewOffset();
+}
+addEventListener('resize', () => setTimeout(phoneView, 0)); phoneView();
+function storyFrame(now) {
+  const dt = lastF ? Math.min(0.1, (now - lastF) / 1000) : 0; lastF = now;
+  const probe = scrollY + innerHeight / 2;
+  let i = 0; for (let k = 0; k < offs.length; k++) if (offs[k].top <= probe) i = k;
+  const o = offs[i], p = clamp01((probe - o.top) / o.h), s = stepsDef[i];
+  // title cards: the scene fades out and back in; the mode changes while hidden
+  let want = s.mode, dim = 0;
+  if (s.title && i > 0) { want = p < 0.5 ? stepsDef[i - 1].mode : s.mode; dim = clamp01(1 - Math.abs(p - 0.5) / 0.3); }
+  if (i === 0) dim = 0;
+  dimEl.style.opacity = dim;
+  if (want !== mode && (dim > 0.97 || !s.title || i === 0)) { setMode(want); camP = null; }
+  if (i !== curI) {
+    curI = i;
+    sectFix = null;
+    if (s.enter) s.enter();
+    if (s.rock !== undefined) layerOn.rock = s.rock;
+    coalSlabMat.visible = mode === 'long' || (mode === 'land' && s.coal !== false);
+    if (M_) M_.coalStrip.visible = s.strip !== false;
+    lblSet.clear(); for (const k of (s.lbl || [])) lblSet.add(k);
+    if (mode === 'long' && s.cut) { secClip.constant = -dCut + 0.05; renderer.clippingPlanes = [secClip]; } else renderer.clippingPlanes = [];
+    partEl.textContent = PARTS[s.part] || '';
+    if (mode !== 'house') RO.hidden = true;
+  }
+  if (s.update && !s.title) s.update.call(s, p, dt);
+  if (s.map) s.map(p);
+  if (s.handoff) mapView('cumb', 'cumb', 1);
+  { const t = mode === 'map' ? 0 : s.handoff ? smoothS((p - 0.06) / 0.5) : 1;
+    MAP2.el.style.opacity = 1 - t; MAP2.el.style.visibility = t >= 1 ? 'hidden' : 'visible'; renderer.domElement.style.opacity = t;
+    document.getElementById('labels').style.opacity = smoothS((t - 0.6) / 0.4); }
+  if (s.title && i === 0 && s.enter && Math.abs(tPos) > 1e-4) s.enter();
+  RO.style.opacity = dim > 0.3 ? 0 : 1;
+  houseLabels();
+  if (houseBuilt) for (const m of houseLineMats) m.resolution.set(innerWidth, innerHeight);
+  // the end: hand over the controls
+  const ex = !!s.end && p > 0.3;
+  if (ex !== exploring) {
+    exploring = ex; window.__storyLocked = !ex; document.body.classList.toggle('exploring', ex);
+    controls.enabled = ex; controls.enableDamping = ex && !reduceMotion;
+    if (ex) { controls.target.copy(camT || controls.target); exPose = null; controls.update(); }
+  }
+  progEl.style.width = (100 * (i + p) / (stepsDef.length - 1)) + '%';
+  if (mode === 'map') return;
+  // machine and xray
+  if (mode === 'long') { layerOn.labels = lblSet.size > 0; document.getElementById('labels').style.display = lblSet.size ? '' : 'none'; if (M_) buildRoof(); updateSpall(dt); }
+  if (faceGroup) faceGroup.visible = mode === 'land';
+  XR.uXR.value = exploring ? (mode === 'long' ? 14 + 0.05 * camera.position.distanceTo(controls.target) : 0) : (s.xr || 0);
+  if (exploring && !camP) { const P0 = poseOf(i); if (P0) { camP = P0.p.clone(); camT = P0.t.clone(); camera.position.copy(camP); controls.target.copy(camT); controls.update(); } }
+  if (exploring) {
+    if (exPose) { exT = Math.min(1, exT + dt / 1.4); const e = smoothS(exT); camera.position.lerpVectors(exPose.p0, exPose.p, e); controls.target.lerpVectors(exPose.t0, exPose.t, e); if (exT >= 1) exPose = null; }
+    return;
+  }
+  // camera: glide from the previous step's view during the first half of the step, then hold
+  let P = window.__poseFix ? window.__poseFix() : poseOf(s.title ? (p < 0.5 ? i - 1 : i + 1) : i) || poseOf(i - 1) || { p: camera.position.clone(), t: controls.target.clone() };
+  if (!s.title && i > 0 && !stepsDef[i - 1].title && stepsDef[i - 1].mode === s.mode) {
+    const Q = poseOf(i - 1); if (Q) { const e = smoothS(clamp01(p / 0.5)); P = { p: Q.p.clone().lerp(P.p, e), t: Q.t.clone().lerp(P.t, e) }; }
+  }
+  if (!camP || dim > 0.97) { camP = P.p.clone(); camT = P.t.clone(); }
+  else { const k = 1 - Math.exp(-dt * 4.5); camP.lerp(P.p, k); camT.lerp(P.t, k); }
+  camera.position.copy(camP); controls.target.copy(camT); camera.lookAt(camT);
+  for (const m of houseLineMats) m.resolution.set(innerWidth, innerHeight);
+}
+function explore(where) {
+  if (where === 'top') { scrollTo({ top: 0, behavior: 'auto' }); return; }
+  if (where === 'countymap') {            // the county map (/map/), opened in place over the story; Esc or Close returns
+    const X = document.getElementById('mapx'), f = X.querySelector('iframe');
+    if (!f.src) f.src = '../map/#oak-forest';
+    X.hidden = false; document.body.classList.add('mapx'); X.querySelector('button').focus();
+  }
+}
+{ const X = document.getElementById('mapx'), close = () => { X.hidden = true; document.body.classList.remove('mapx'); };
+  X.querySelector('button').onclick = close; addEventListener('keydown', e => { if (e.key === 'Escape' && !X.hidden) close(); }); }
+if (new URLSearchParams(location.search).has('debug')) window.__story = { day, tForH, dateOfT, tOfDate, faceH: x => faceH('75', x), get tHouse() { return tHouse; }, setMode, explore, get mode() { return mode; }, F2, yS, dCut, V3, get M_() { return M_; }, get ms() { return machineState; } };

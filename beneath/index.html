@@ -93,6 +93,8 @@
     .timeline { left:10px; right:10px; bottom:auto; top:calc(var(--nav-h) + 50px); padding:4px 7px; font-size:12px; gap:6px; }
     .timeline input[type=range] { width:auto; flex:1; min-width:80px; }
     .timeline output { min-width:0; flex-basis:100%; order:3; }
+    .timeline { flex-wrap:wrap; }
+    .speeds > span { display:none; }
   }
   @media (prefers-reduced-motion: reduce) { .lbl { transition:none; } }
 </style>
@@ -139,6 +141,7 @@
       <label><input type="checkbox" data-layer="sink" checked> Ground sinking (subsidence, drawn 10×)</label>
       <label><input type="checkbox" data-layer="cracks" checked> Broken rock above the panel</label>
       <label><input type="checkbox" data-layer="box" checked> Block sides and seam</label>
+      <label><input type="checkbox" data-layer="rock" checked> Rock in section (Shearer close-up)</label>
       <label><input type="checkbox" data-layer="labels" checked> Labels</label>
     </div>
   </details>
@@ -146,15 +149,15 @@
 <div class="timeline" role="group" aria-label="Mining over time">
   <button id="play" type="button" aria-label="Play the mining sequence">▶</button>
   <button id="shear" type="button" aria-pressed="false" title="Close-up: follow the shearer and shields along the face, at true size">Shearer</button>
-  <span class="speeds" id="speeds" role="group" aria-label="Speed of the shearer"><span>One pass in</span><button type="button" data-s="30" aria-pressed="true" title="About 70 times real speed">30 s</button><button type="button" data-s="120" aria-pressed="false" title="About 17 times real speed">2 min</button><button type="button" data-s="420" aria-pressed="false" title="About 5 times real speed">7 min</button></span>
+  <span class="speeds" id="speeds" role="group" aria-label="Speed of the shearer"><span>One pass in</span><button type="button" data-s="30" aria-pressed="true" title="About 70 times real speed">30 s</button><button type="button" data-s="120" aria-pressed="false" title="About 17 times real speed">2 min</button><button type="button" data-s="420" aria-pressed="false" title="About 5 times real speed">7 min</button><button type="button" id="realcol" aria-pressed="false" title="Machinery in the colours seen in footage of the Cumberland longwall: orange shearer, yellow shields">Real colours</button></span>
   <input id="when" type="range" min="0" max="10" step="0.01" value="10" aria-label="Date" aria-describedby="whenv">
   <output id="whenv" for="when" aria-live="polite"></output>
 </div>
 <div id="tip" role="tooltip"></div>
 <footer>
-  <div class="cap" id="cap">Panel 75 (red), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
+  <div class="cap" id="cap">Panel 75 (red; grey while the timeline plays: coal not yet mined), seen through the ground at its true depth: 11,221 ft long (2.1 miles), mined 2022–23, 600–800 ft below the surface. Dotted: its outline on the ground above.<span id="vecap"></span></div>
   <details><summary>Sources and notes</summary>
-    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Longwall in the "Shearer" close-up, at true size: a generic double-drum shearer and two-leg shields 1.75 m wide (about 240 across the face), with the face conveyor; behind the shearer each shield lowers, moves forward one web and resets, and the conveyor is then pushed over. The shearer cuts a 42-inch web on each pass across the face, in both directions (Cumberland's practice as reported in American Longwall Magazine, 2005), so panel 75 took about 3,200 passes; its position along the face is worked out from the face advance, not recorded. A real pass took about 35 minutes. Gate roads: three entries on each side of the panel with their pillars and crosscuts, measured on sheet 31-4 and continued at the same spacing beyond the sheet; a sketch, not a survey. Pillars are drawn as tall as the panel. Subsidence is modelled, not measured: about 4 ft at the panel centre (55% of a 7 ft mining height), reaching about 200 ft beyond the edges (15° angle of draw), developing over about seven months after the face passes; drawn 10× deeper. Cracks above the panel show the broken rock over a longwall in a general way. <a href="../about/#beneath" style="pointer-events:auto;color:inherit">More on sources and methods</a>. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
+    <p>Ground: USGS 3DEP lidar. Seam: PA DEP coal seam elevations (Cumberland Mine maps). Panels: PA DEP longwall mining panels. Streams traced from lidar. Trees: PEMA 2022 orthophoto; heights estimated. Buildings: Oak Forest traced from the 2022 orthophoto; elsewhere Microsoft building footprints. Roads, power lines: orthophoto, OpenStreetMap. No vertical exaggeration unless "3×" is chosen; the panel is drawn 10× its 7 ft height (seam height estimated); tree and building heights are estimates. Longwall face positions at month ends: Cumberland Mine subsidence map, sheet 31-4; between month ends the face is drawn moving at an even pace, and where a panel's first or last stretch has no date, its timing is estimated. Neighbouring panels: PA DEP longwall panels, each placed on its own fit to the seam elevations. Longwall in the "Shearer" close-up, at true size: a generic double-drum ranging shearer (spiral drums with picks, water sprays) and two-leg shields 1.75 m wide (about 240 across the face) with face sprags, control units and hoses, modelled on footage of the Cumberland longwall ("Real colours" shows the orange shearer and yellow shields seen there); behind the shearer each shield lowers, moves forward one web and resets, and the conveyor is then pushed over. Cut coal falls onto the face conveyor and is carried to the headgate, where it is crushed and loaded onto the stageloader and the belt. The headgate is taken to be the north side, beside unmined coal, and the tailgate the side next to the mined-out panel 74, as is usual. Miners, the headgate equipment, stoppings, a scoop and the tailgate's standing supports are illustrative. The section beside the shearer shows the coal and the rock above it, as an illustrative column for the Pittsburgh seam (claystone floor; coal with thin partings; draw slate and roof coal; shale, siltstone, sandstone, limestone): behind the shields the lower beds hang, break off and cave in, and the beds above bend down over the gob, opening gaps between them (published studies put the caved zone at 2 to 8 times the mining height). Rock falls, dust and roof breaks are illustrative. The shearer cuts a 42-inch web on each pass across the face, in both directions (Cumberland's practice as reported in American Longwall Magazine, 2005), so panel 75 took about 3,200 passes; its position along the face is worked out from the face advance, not recorded. A real pass took about 35 minutes. Gate roads: three entries on each side of the panel with their pillars and crosscuts, measured on sheet 31-4 and continued at the same spacing beyond the sheet; a sketch, not a survey. Pillars are drawn as tall as the panel. Subsidence is modelled, not measured: about 4 ft at the panel centre (55% of a 7 ft mining height), reaching about 200 ft beyond the edges (15° angle of draw), developing over about seven months after the face passes; drawn 10× deeper. Cracks above the panel show the broken rock over a longwall in a general way. <a href="../about/#beneath" style="pointer-events:auto;color:inherit">More on sources and methods</a>. Made with three.js. <span class="hint">Keys: arrows turn the view, + and − zoom, R resets.</span></p>
   </details>
 </footer>
 
@@ -316,6 +319,10 @@ const treeMat = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: t
 // mined-so-far clipping: one plane per Cumberland panel keeps x (= h) at or behind the longwall face
 const clip = { '75': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9), '74': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9), '73': new THREE.Plane(new THREE.Vector3(-1, 0, 0), 1e9) };
 const slabMat = new THREE.MeshBasicMaterial({ clippingPlanes: [clip['75']], vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.28, depthTest: false, depthWrite: false });
+// the coal of panel 75 not yet mined (ahead of the face), drawn dark: keeps x at or ahead of the face
+const clipUn = new THREE.Plane(new THREE.Vector3(1, 0, 0), -1e12);
+const coalSlabMat = new THREE.MeshBasicMaterial({ clippingPlanes: [clipUn], vertexColors: true, side: THREE.FrontSide, transparent: true, opacity: 0.34, depthTest: false, depthWrite: false,
+  polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 8 });
 const wallMat = new THREE.MeshBasicMaterial({ clippingPlanes: [clip['75']], vertexColors: true, side: THREE.DoubleSide, transparent: true, opacity: 1, depthTest: false, depthWrite: false });
 const faceMat = new THREE.MeshBasicMaterial({ color: C.earth, transparent: true, opacity: 0.35, side: THREE.DoubleSide, depthWrite: false });
 for (const m_ of [groundMat, treeMat, wallMat, faceMat]) sinkify(m_, { tint: m_ === groundMat });
@@ -336,7 +343,7 @@ function meshOf(arr, mat, order = 0) {
 
 // ---------- layers (rebuilt when the vertical scale changes)
 const layers = {};
-const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: false, gates: true, sink: true, cracks: true };
+const layerOn = { trees: true, lines: true, built: true, trace: true, walls: true, box: true, labels: true, neigh: false, gates: true, sink: true, cracks: true, rock: true };
 const labelObjs = [];
 function clearLayers() {
   for (const g of Object.values(layers)) {
@@ -538,6 +545,9 @@ function buildPanel() {
   edge(along(b0, false)); edge(across(a1, false)); edge(along(b1, true)); edge(across(a0, true));
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   const slab = new THREE.Mesh(geo, slabMat); slab.renderOrder = 20; g.add(slab);
+  { const cg = geo.clone(), cc = cg.attributes.color.array, ct = rgb(0x3E3C38), cs = rgb(0x26241F), red = rgb(C.red);
+    for (let i = 0; i < cc.length; i += 3) { const top = Math.abs(cc[i] - red[0]) < 1e-3 && Math.abs(cc[i + 1] - red[1]) < 1e-3, c_ = top ? ct : cs; cc[i] = c_[0]; cc[i + 1] = c_[1]; cc[i + 2] = c_[2]; }
+    const cm = new THREE.Mesh(cg, coalSlabMat); cm.renderOrder = 20; g.add(cm); }
   addLayer('panel', g);
 
   // outline traced on the ground, and the corner lines up to it
@@ -741,6 +751,7 @@ function setTime(x) {
   tPos = Math.min(Math.max(x, 0), STEPS.length - 1);
   const atEnd = tPos >= STEPS.length - 1 - 1e-6;
   for (const id of ['73', '74', '75']) clip[id].constant = atEnd ? 1e9 : faceH(id, tPos);
+  clipUn.constant = atEnd ? -1e12 : -faceH('75', tPos);
   setSubsidence(atEnd);
   if (faceGroup) { scene.remove(faceGroup); faceGroup.traverse(o => { if (o.geometry && o.geometry !== shearerMesh.geometry) o.geometry.dispose(); if (o.material && o.material !== shearerMesh.material && o.material.dispose) o.material.dispose(); if (o.isCSS2DObject) o.element.remove(); }); faceGroup = null; }
   const i = Math.round(tPos), st = STEPS[Math.min(i, STEPS.length - 1)];
@@ -776,6 +787,7 @@ function setTime(x) {
         } else {
           // close-up: the mined slab stops at the caved line behind the shields; the machinery fills the rest
           clip['75'].constant = a0 + WEB * Math.max(0, S_.k - 1) - 19;
+          clipUn.constant = -(a0 + WEB * (S_.k + 1));                // beyond the web being cut on this pass
         }
         shearInfo = S_;
         // the face, carried up to the ground as a faint line
@@ -811,9 +823,9 @@ const shearBtn = document.getElementById('shear'), speedsEl = document.getElemen
 // a real pass: 1,393 ft at about 40 ft a minute (Cumberland, 2005), about 35 minutes
 const REAL_PASS_S = (b1 - b0) / 40 * 60;
 let passSeconds = 30;
-for (const b_ of speedsEl.querySelectorAll('button')) b_.onclick = () => {
+for (const b_ of speedsEl.querySelectorAll('button[data-s]')) b_.onclick = () => {
   passSeconds = +b_.dataset.s;
-  for (const o of speedsEl.querySelectorAll('button')) o.setAttribute('aria-pressed', o === b_);
+  for (const o of speedsEl.querySelectorAll('button[data-s]')) o.setAttribute('aria-pressed', o === b_);
   if (!playing) play(true); else setTime(tPos);
 };
 function shearerWorld() {
@@ -822,14 +834,15 @@ function shearerWorld() {
 }
 function faceView() {               // close to the shearer, from the coal side, a little above, looking back at the face and the shields
   const p = shearerWorld(); if (!p) return;
-  view(9 * Math.PI / 180, 58 * Math.PI / 180, p, isPhone ? 150 : 115);
+  view(15 * Math.PI / 180, 52 * Math.PI / 180, p, isPhone ? 175 : 135);
 }
 function setShearMode(on) {
   shearMode = on; shearBtn.setAttribute('aria-pressed', on); speedsEl.classList.toggle('on', on);
   SLAB = SEAM_FT * (on ? 1 : M.slab_scale);
   // in the close-up the panel and pillars are drawn at true size and hidden behind the machinery where it is in front
-  for (const m_ of [slabMat, gateFill, gateLineMat]) { m_.depthTest = on; m_.needsUpdate = true; }
-  slabMat.opacity = on ? 0.1 : 0.28 + (1 - +gIn.value) * 0.55;
+  for (const m_ of [slabMat, coalSlabMat, gateFill, gateLineMat]) { m_.depthTest = on; m_.needsUpdate = true; }
+  slabMat.opacity = on ? 0.1 : 0.28 + (1 - +gIn.value) * 0.55; slabMat.visible = !on;
+  coalSlabMat.opacity = on ? 0.93 : 0.34 + (1 - +gIn.value) * 0.5;
   camera.near = on ? 1 : 20; camera.far = on ? 80000 : 400000; camera.updateProjectionMatrix();
   controls.minDistance = on ? 20 : 250;
   if (on) {
@@ -841,6 +854,8 @@ function setShearMode(on) {
   if (on) { faceView(); play(true); } else { play(false); showMachine(false); views.reset(); }
 }
 shearBtn.onclick = () => setShearMode(!shearMode);
+const realBtn = document.getElementById('realcol');
+realBtn.onclick = () => { colReal = !colReal; realBtn.setAttribute('aria-pressed', colReal); if (M_) setPalette(colReal ? 'real' : 'poster'); };
 whenIn.oninput = () => { play(false); setTime(+whenIn.value); };
 function tick(now) {
   if (!playing) return;
@@ -910,58 +925,435 @@ const shearerMesh = new THREE.Mesh(new THREE.BoxGeometry(6, 70, 45),
   new THREE.MeshBasicMaterial({ color: C.ink, transparent: true, opacity: 0.9, depthTest: false, depthWrite: false }));
 shearerMesh.renderOrder = 24;
 
-// ---------- the longwall in close-up, at true size (feet). Generic two-leg shields 1.75 m wide and a double-drum ranging
-// shearer, sized for a 7 ft seam. Local frame: x = h (towards the coal), y = up from the seam floor, z = -d.
+// ---------- the longwall in close-up, at true size (feet). Built the first time the close-up is opened, so the page loads as before.
+// Modelled on footage of Iron Senergy's longwall at the Cumberland Mine (company videos): a Joy-type double-drum ranging shearer
+// (orange, yellow spiral drums with picks, water sprays), two-leg shields (yellow, dark canopies, chrome legs, control units with lamps,
+// hoses), a face conveyor with chain and flight bars, miners in dark coveralls with reflective bands, hard hats and cap lamps.
+// Generic machinery sized for a 7 ft seam, not drawings of Cumberland's equipment. Local frame: x = h (towards the coal), y = up from
+// the seam floor (scaled by the vertical exaggeration), z = -d.
 const SHIELD_W = 1.75 / 0.3048, NSH = Math.round(FACE_W / SHIELD_W), SHW = FACE_W / NSH;
 const LAG_SH = 32, RAMP_SH = 14, LAG_AFC = 70, RAMP_AFC = 70;   // ft behind the shearer's centre: shields, then the conveyor (snake)
 const machine = new THREE.Group(); machine.visible = false; scene.add(machine);
-const lam = c => new THREE.MeshLambertMaterial({ color: c });
-const MM = { shield: lam(0xA8A296), shieldD: lam(0x7E796F), legB: lam(0x4A4843), legR: lam(0xE2DED6), afc: lam(0x55524C), body: lam(0x2B2A27),
-             arm: lam(0x45433E), drum: lam(0x8C8880), vane: lam(0x5E5B55), coal: new THREE.MeshLambertMaterial({ color: 0x2A2826, transparent: true, opacity: 0.38, depthWrite: false, side: THREE.DoubleSide }),
-             rock: new THREE.MeshLambertMaterial({ color: 0xB4AFA6 }) };
-const box = (x, y, z) => new THREE.BoxGeometry(x, y, z);
-const IM = (geo, mat, n) => { const m = new THREE.InstancedMesh(geo, mat, n); m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); machine.add(m); return m; };
-const imBase = IM(box(10.5, 1.2, SHW - 0.5), MM.shieldD, NSH), imCanopy = IM(box(16, 0.7, SHW - 0.25), MM.shield, NSH),
-      imCave = IM(box(1, 0.55, SHW - 0.5), MM.shield, NSH), imLemn = IM(box(1, 0.5, SHW - 2.2), MM.shieldD, NSH),
-      imBarrel = IM(new THREE.CylinderGeometry(0.62, 0.62, 1, 12), MM.legB, NSH * 2), imRam = IM(new THREE.CylinderGeometry(0.42, 0.42, 1, 10), MM.legR, NSH * 2),
-      imPan = IM(box(3.3, 0.9, SHW - 0.1), MM.afc, NSH), imSpill = IM(box(0.35, 2.0, SHW - 0.1), MM.afc, NSH),
-      imRelay = IM(box(1, 0.35, 0.8), MM.shieldD, NSH), imCoal = IM(new THREE.PlaneGeometry(SHW + 0.05, 7).rotateY(Math.PI / 2), MM.coal, NSH);
-imCoal.renderOrder = 30;
-const NROCK = isPhone ? 4000 : 7000, ROCK_DH = 5.5, ROCK_ROWS = Math.ceil(NROCK / (NSH * 2));
-const imRock = IM(new THREE.DodecahedronGeometry(1, 0), MM.rock, ROCK_ROWS * NSH * 2);
-const rockCol = new THREE.Color();
-for (let i = 0; i < imRock.count; i++) { const v = 0.82 + ((i * 7919) % 97) / 97 * 0.3; imRock.setColorAt(i, rockCol.setRGB(v, v * 0.98, v * 0.95)); }
-// the shearer
-const shearer = new THREE.Group(); machine.add(shearer);
-const addTo = (g, geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); g.add(m); return m; };
-addTo(shearer, box(2.6, 3.0, 24), MM.body, -2.0, 2.6, 0);                         // body over the conveyor (centre section and motors)
-for (const sgn of [-1, 1]) {
-  addTo(shearer, box(2.9, 3.3, 5), MM.body, -2.0, 2.75, sgn * 13.5);            // haulage units
-  addTo(shearer, box(0.9, 0.9, 1.6), MM.arm, -0.4, 4.3, sgn * 6);               // controls / sprays
-}
-const arms = [], drums = [];
-for (const sgn of [-1, 1]) {
-  const arm = new THREE.Group(); arm.position.set(-0.6, 2.4, sgn * 15.5); shearer.add(arm);
-  addTo(arm, box(1.3, 1.5, 9.5), MM.arm, 0, 0, sgn * 4.75);                       // ranging arm, pivoting at the body
-  const drum = new THREE.Group(); drum.position.set(1.75 + 0.6, 0, sgn * 9.5); arm.add(drum);
-  const spin = new THREE.Group(); drum.add(spin);
-  addTo(spin, new THREE.CylinderGeometry(2.75, 2.75, 3.4, 20).rotateZ(Math.PI / 2), MM.drum, 0, 0, 0);
-  for (let v = 0; v < 4; v++) {                                                    // spiral vanes, drawn as slanted ribs
-    const vane = addTo(spin, box(3.5, 0.35, 1.2), MM.vane, 0, 0, 0);
-    vane.position.set(0, 2.85 * Math.cos(v * Math.PI / 2), 2.85 * Math.sin(v * Math.PI / 2)); vane.rotation.x = v * Math.PI / 2; vane.rotation.y = 0.5;
+const smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
+const hsh = (i, s = 0) => { const x = Math.sin(i * 127.1 + s * 311.7 + 0.123) * 43758.5453; return x - Math.floor(x); };
+// gate roads: entry centre lines (d), nearest the panel first. Headgate = north (beside unmined coal), tailgate = south (beside the
+// mined-out panel 74): the usual arrangement, in which the tailgate entries are the ones next to the previous panel's gob.
+const gateShift = g => { const e = GT.gates[g].entries_d; return g === 'north' ? b1 - Math.min(...e.map(x => x[0])) : b0 - Math.max(...e.map(x => x[1])); };
+const HG = GT.gates.north.entries_d.map(([u, v]) => (u + v) / 2 + gateShift('north')).sort((a, b) => a - b);
+const TG = GT.gates.south.entries_d.map(([u, v]) => (u + v) / 2 + gateShift('south')).sort((a, b) => b - a);
+
+// colours: the site's palette (default) or the machines' colours as filmed underground
+const KEYS = ['sh', 'shD', 'shL', 'shU', 'chrome', 'barrel', 'hose', 'hoseR', 'hoseB', 'valve', 'lamp', 'afc', 'afcD', 'spill', 'flight', 'chain',
+  'body', 'bodyL', 'bodyD', 'arm', 'drum', 'vane', 'pick', 'glass', 'suit', 'band', 'hat', 'skin', 'boot', 'belt', 'frame', 'crush', 'can', 'block', 'motor'];
+const PAL = {
+  poster: { sh: 0xA8A296, shD: 0x7E796F, shL: 0xC2BDB1, shU: 0x5E5B55, chrome: 0xE6E3DC, barrel: 0x4A4843, hose: 0x2E2C29, hoseR: 0x6F6B64, hoseB: 0x55524C,
+    valve: 0x6F6B64, lamp: 0xFBF8F0, afc: 0x6A675F, afcD: 0x45433E, spill: 0x8C8880, flight: 0x2B2A27, chain: 0x3E3C38, body: 0x3A3834, bodyL: 0x5A5750,
+    bodyD: 0x262523, arm: 0x45433E, drum: 0x8C8880, vane: 0x6A675F, pick: 0xD5D2CA, glass: 0xAEB7BC, suit: 0x3E4650, band: 0xDAD8CA, hat: 0xF4F2EC,
+    skin: 0xB89A84, boot: 0x2B2A27, belt: 0x2E2C29, frame: 0x77736B, crush: 0x55524C, can: 0xBDB8AC, block: 0xCFCAC0, motor: 0x55524C },
+  real: { sh: 0xC9A23A, shD: 0x9A7A2B, shL: 0xDDBB55, shU: 0x3E3C38, chrome: 0xCDD1D4, barrel: 0xB8932F, hose: 0x1E1E1E, hoseR: 0xA2352A, hoseB: 0x2F5D8C,
+    valve: 0xC2641F, lamp: 0xFFF5D6, afc: 0x6E6D69, afcD: 0x4A4946, spill: 0xC9A23A, flight: 0x2A2A2A, chain: 0x3A3A3A, body: 0xC8641F, bodyL: 0xDB7C33,
+    bodyD: 0x8C4416, arm: 0xC8641F, drum: 0xB9A245, vane: 0x8C7830, pick: 0xBAB7AF, glass: 0x9FB3BF, suit: 0x27303D, band: 0xC9DB3F, hat: 0xEDEBE4,
+    skin: 0xB08A70, boot: 0x1E1E1E, belt: 0x1F1F1F, frame: 0x8E8C86, crush: 0xC8641F, can: 0xB9B5AC, block: 0xD6D2C8, motor: 0xC8641F },
+};
+const palC = KEYS.map(k => new THREE.Color(PAL.poster[k]));
+const kitGeos = [];
+function paintGeo(g) {      // colour by part, darker low down (coal dust and grime near the floor)
+  const c = g.attributes.color.array, K = g.userData.keys, Yg = g.userData.gy;
+  for (let i = 0; i < K.length; i++) {
+    const col = palC[K[i]], f = Yg[i] > 90 ? 1 : 0.58 + 0.42 * smooth(Yg[i] / 3.2);
+    c[i * 3] = col.r * f; c[i * 3 + 1] = col.g * f; c[i * 3 + 2] = col.b * f;
   }
-  arms.push(arm); drums.push({ g: drum, spin, sgn });
+  g.attributes.color.needsUpdate = true;
 }
-// labels on the machinery (close-up only)
+function setPalette(name) { KEYS.forEach((k, i) => palC[i].setHex(PAL[name][k])); for (const g of kitGeos) paintGeo(g); }
+function TM(x = 0, y = 0, z = 0, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
+  return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), new THREE.Quaternion().setFromEuler(new THREE.Euler(rx, ry, rz)), new THREE.Vector3(sx, sy, sz));
+}
+// a kit gathers simple shapes into one geometry with a colour key per vertex: one draw call per kind of part
+class Kit {
+  constructor(grime = true) { this.p = []; this.n = []; this.k = []; this.y = []; this.grime = grime; }
+  add(geo, key, m, grime = this.grime) {
+    const g = geo.index ? geo.toNonIndexed() : geo; if (m) g.applyMatrix4(m);
+    const P = g.attributes.position.array, N = g.attributes.normal.array, ki = KEYS.indexOf(key);
+    for (let i = 0; i < P.length; i++) { this.p.push(P[i]); this.n.push(N[i]); }
+    for (let i = 0; i < P.length / 3; i++) { this.k.push(ki); this.y.push(grime ? P[i * 3 + 1] : 99); }
+    if (g !== geo) g.dispose(); geo.dispose();
+    return this;
+  }
+  box(w, h, d, key, x, y, z, rx = 0, ry = 0, rz = 0, grime) { return this.add(new THREE.BoxGeometry(w, h, d), key, TM(x, y, z, rx, ry, rz), grime); }
+  cylX(r, len, seg, key, x, y, z, grime) { return this.add(new THREE.CylinderGeometry(r, r, len, seg).rotateZ(Math.PI / 2), key, TM(x, y, z), grime); }
+  cylY(r, len, seg, key, x, y, z, grime) { return this.add(new THREE.CylinderGeometry(r, r, len, seg), key, TM(x, y, z), grime); }
+  cylZ(r, len, seg, key, x, y, z, grime) { return this.add(new THREE.CylinderGeometry(r, r, len, seg).rotateX(Math.PI / 2), key, TM(x, y, z), grime); }
+  rod(ax, ay, az, bx, by, bz, r, key, seg = 6, grime) {
+    const a = new THREE.Vector3(ax, ay, az), b = new THREE.Vector3(bx, by, bz), dir = b.clone().sub(a), len = dir.length();
+    const m = new THREE.Matrix4().compose(a.clone().add(b).multiplyScalar(0.5), new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize()), new THREE.Vector3(1, 1, 1));
+    return this.add(new THREE.CylinderGeometry(r, r, len, seg, 1, true), key, m, grime);
+  }
+  geo() {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.Float32BufferAttribute(this.p, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(this.n, 3));
+    g.setAttribute('color', new THREE.Float32BufferAttribute(new Float32Array(this.p.length), 3));
+    g.userData.keys = Uint8Array.from(this.k); g.userData.gy = Float32Array.from(this.y);
+    paintGeo(g); kitGeos.push(g); return g;
+  }
+}
+const MV = new THREE.MeshLambertMaterial({ vertexColors: true });
+// see-through cut-away: in the close-up, coal and shield canopies between the eye and the point looked at are cut away in a soft
+// hole (screen-door dither, so no sorting is needed), so the shearer can be seen through the seam and from above
+const XR = { uCam: { value: new THREE.Vector3() }, uTgt: { value: new THREE.Vector3() }, uXR: { value: 0 } };
+function xray(mat, margin, tag) {
+  const prev = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => {
+    if (prev) prev(sh, r);
+    Object.assign(sh.uniforms, XR);
+    sh.vertexShader = 'varying vec3 vXw;\n' + sh.vertexShader.replace('#include <project_vertex>', `#include <project_vertex>
+      vec4 _xw = vec4(transformed, 1.0);
+      #ifdef USE_INSTANCING
+        _xw = instanceMatrix * _xw;
+      #endif
+      vXw = (modelMatrix * _xw).xyz;`);
+    sh.fragmentShader = 'uniform vec3 uCam, uTgt; uniform float uXR; varying vec3 vXw;\n' + sh.fragmentShader.replace('#include <clipping_planes_fragment>', `#include <clipping_planes_fragment>
+      if (uXR > 0.0) {
+        vec3 ab = uTgt - uCam; float L = length(ab), t = dot(vXw - uCam, ab) / (L * L);
+        float dd = length(vXw - (uCam + ab * clamp(t, 0.0, 1.0)));
+        float a = (t * L > L - ${margin.toFixed(1)} || t < 0.0) ? 1.0 : smoothstep(uXR * 0.55, uXR, dd);
+        float th = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
+        if (a < th) discard;
+      }`);
+  };
+  mat.customProgramCacheKey = () => 'xray' + tag;
+  return mat;
+}
+const MVX = xray(new THREE.MeshLambertMaterial({ vertexColors: true }), 0, 'mv');
+xray(coalSlabMat, 3, 'coal');
+const _zero = new THREE.Matrix4().makeScale(0, 0, 0);
+const hide = (im, i) => im.setMatrixAt(i, _zero);
+const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _e = new THREE.Euler(), _up = new THREE.Vector3(0, 1, 0), _v = new THREE.Vector3();
+function place(im, i, x, y, z, sx = 1, sy = 1, sz = 1, rz = 0, rx = 0, ry = 0) {
+  _e.set(rx, ry, rz); _q.setFromEuler(_e); _p.set(x, y, z); _s.set(sx, sy, sz); im.setMatrixAt(i, _m.compose(_p, _q, _s));
+}
+function strut(im, i, ax, ay, az, bx, by, bz, r = 1) {             // a unit cylinder from a to b
+  _v.set(bx - ax, by - ay, bz - az); const len = _v.length(); _q.setFromUnitVectors(_up, _v.normalize());
+  _p.set((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2); _s.set(r, len, r); im.setMatrixAt(i, _m.compose(_p, _q, _s));
+}
+let M_ = null;     // everything built for the close-up
 const mLabels = [];
-for (const t of ['Shearer', 'Shields (roof supports)', 'Face conveyor', 'Coal face', 'Gob: the roof caves in behind the shields']) {
+const LABELS = ['Shearer', 'Shields (roof supports)', 'Face conveyor', 'Coal seam, not yet mined', 'Rock above the coal', 'Gob: the roof caves in behind the shields',
+  'Miners', 'Headgate: crusher, stageloader, belt', 'Tailgate'];
+for (const t of LABELS) {
   const el = document.createElement('div'); el.className = 'mlbl'; el.innerHTML = `<span>${t}</span>`;
   const o = new CSS2DObject(el); o.center.set(0, 0); scene.add(o); o.visible = false; mLabels.push(o);
 }
 
+// rock and coal in section: colour by height above the seam floor (illustrative column for the Pittsburgh seam: claystone floor, the
+// coal with thin partings, draw slate and roof coal, shale with a thin rider coal, siltstone, sandstone, shale, limestone)
+const STRATA = [[-10, 0, 0x847E70, 'claystone'], [0, 7, 0x1F1E1C, 'coal'], [7, 8.2, 0x4D4A45, 'draw slate'], [8.2, 9, 0x2A2826, 'roof coal'],
+  [9, 16, 0x77736B, 'shale'], [16, 16.8, 0x2C2A27, 'rider coal'], [16.8, 30, 0x8D8778, 'siltstone'], [30, 44, 0xA89C83, 'sandstone'],
+  [44, 48, 0x76726A, 'shale'], [48, 70, 0xB9B4A7, 'limestone']];
+function bandTexture() {
+  const N = 1024, data = new Uint8Array(N * 4), col = new THREE.Color();
+  for (let i = 0; i < N; i++) {
+    const y = -10 + 80 * (i + 0.5) / N, s = STRATA.find(r => y >= r[0] && y < r[1]) || STRATA[STRATA.length - 1];
+    col.setHex(s[2]);
+    let f = 1;
+    if (s[3] === 'coal') { if (Math.abs(y - 2.1) < 0.07 || Math.abs(y - 4.7) < 0.06) col.setHex(0x5A5751); f = 0.92 + 0.16 * hsh(Math.floor(y * 9)); }   // partings, banded coal
+    else if (s[3] === 'shale' || s[3] === 'siltstone' || s[3] === 'claystone') f = 0.9 + 0.12 * hsh(Math.floor(y * 3.2));                               // laminations
+    else if (s[3] === 'sandstone') f = 0.93 + 0.1 * hsh(Math.floor(y * 1.3));
+    else if (s[3] === 'limestone') f = 0.95 + 0.07 * hsh(Math.floor(y * 0.8));
+    if (Math.abs(y - s[0]) < 0.05 && s[0] > 0) f *= 0.7;                                                                                              // bedding planes
+    data[i * 4] = Math.min(255, col.r * f * 255); data[i * 4 + 1] = Math.min(255, col.g * f * 255); data[i * 4 + 2] = Math.min(255, col.b * f * 255); data[i * 4 + 3] = 255;
+  }
+  const t = new THREE.DataTexture(data, N, 1); t.magFilter = THREE.LinearFilter; t.minFilter = THREE.LinearFilter; t.needsUpdate = true; return t;
+}
+function strataMaterial(tex) {
+  const m = new THREE.MeshLambertMaterial({ color: 0xffffff, side: THREE.DoubleSide });
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uBands = { value: tex };
+    sh.vertexShader = 'attribute float aH; varying float vH; varying vec3 vWp;\n' + sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n vH = aH; vWp = (modelMatrix * vec4(position, 1.0)).xyz;');
+    sh.fragmentShader = 'uniform sampler2D uBands; varying float vH; varying vec3 vWp;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      vec3 bc = texture2D(uBands, vec2((vH + 10.0) / 80.0, 0.5)).rgb;
+      vec2 cell = floor(vec2(vWp.x * 2.3 + vWp.z * 1.7, vH * 6.0));
+      float n = fract(sin(dot(cell, vec2(12.9898, 78.233))) * 43758.5453);
+      vec2 cell2 = floor(vec2(vWp.x * 0.35 + vWp.z * 0.3, vH * 0.9));
+      float n2 = fract(sin(dot(cell2, vec2(39.346, 11.135))) * 43758.5453);
+      diffuseColor.rgb *= bc * (0.93 + 0.07 * n + 0.06 * n2);`);
+  };
+  m.customProgramCacheKey = () => 'strata';
+  return m;
+}
+// one bed (or block) of the section: x from x0 to x1, bottom yb(x) and top yt(x), z from 0 to W; aH = height before sagging (for colour)
+function bedGeo(x0, x1, nx, yb, yt, hb, ht, W) {
+  const P = [], A = [];
+  const q = (a, b, c, d, ha, hb_, hc, hd) => { P.push(...a, ...b, ...c, ...a, ...c, ...d); A.push(ha, hb_, hc, ha, hc, hd); };
+  for (let i = 0; i < nx; i++) {
+    const xa = x0 + (x1 - x0) * i / nx, xb = x0 + (x1 - x0) * (i + 1) / nx, ba = yb(xa), bb = yb(xb), ta = yt(xa), tb = yt(xb);
+    q([xa, ba, 0], [xb, bb, 0], [xb, tb, 0], [xa, ta, 0], hb, hb, ht, ht);           // the section face
+    q([xa, ba, W], [xa, ta, W], [xb, tb, W], [xb, bb, W], hb, ht, ht, hb);
+    q([xa, ta, 0], [xb, tb, 0], [xb, tb, W], [xa, ta, W], ht, ht, ht, ht);
+    q([xa, ba, 0], [xa, ba, W], [xb, bb, W], [xb, bb, 0], hb, hb, hb, hb);
+  }
+  for (const [x, s] of [[x0, -1], [x1, 1]]) { const b = yb(x), t = yt(x);
+    if (s < 0) q([x, b, 0], [x, t, 0], [x, t, W], [x, b, W], hb, ht, ht, hb); else q([x, b, 0], [x, b, W], [x, t, W], [x, t, 0], hb, hb, ht, ht); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.setAttribute('aH', new THREE.Float32BufferAttribute(A, 1));
+  g.computeVertexNormals(); return g;
+}
+// sagging of the beds above the gob, ft, as a function of height y and distance behind the caving line x' (illustrative: caved zone up to
+// ~4 times the mining height; above it the beds break into blocks and bend down, opening gaps between beds)
+const SEC = { W: 120, AHEAD: 110, BACK: 160, TOP: 60, CAVE: -21, P1: 9, P2: 28 };
+const sag0 = y => 34 + (y - 30) * 0.4, sagMax = y => 4.6 - (y - 30) * 0.035;
+const sagAt = (y, xp) => sagMax(y) * smooth((xp - sag0(y)) / 45);
+const fillTop = xp => Math.min(30 - sagAt(30, xp) - 0.3, 1.2 + xp * 0.72);      // top of the caved rock pile
+
+function buildMachine() {
+  const W2 = SHW / 2, small = isPhone;
+  const IM = (geo, mat, n, parent = machine) => { const m = new THREE.InstancedMesh(geo, mat, n); m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); parent.add(m); for (let i = 0; i < n; i++) m.setMatrixAt(i, _zero); return m; };
+  const R = {};
+  // --- shields: base (2.5 m, so the advance ram has a web of travel), canopy, face sprag, caving shield, lemniscate links, two legs
+  const base = new Kit();
+  for (const zc of [-1.42, 1.42]) {
+    base.box(8.0, 1.0, 2.25, 'shD', -13.55, 0.5, zc);
+    base.box(7.6, 0.12, 2.05, 'sh', -13.55, 1.06, zc);
+    base.box(1.4, 0.55, 2.25, 'shD', -9.35, 0.36, zc, 0, 0, -0.32);
+    base.box(1.5, 1.9, 0.45, 'shD', -16.6, 1.45, zc * 1.5);
+    base.cylY(0.78, 0.6, 12, 'shD', -12.2, 1.25, zc * 1.09);
+  }
+  base.box(4.6, 0.55, 0.75, 'barrel', -12.0, 0.55, 0);
+  base.box(1.1, 1.35, 1.45, 'valve', -10.7, 2.55, 0);
+  base.box(0.08, 0.5, 0.8, 'glass', -10.12, 2.7, 0);
+  base.box(0.1, 0.14, 0.4, 'lamp', -10.12, 3.15, 0);
+  base.rod(-10.7, 1.88, 0, -10.7, 1.05, 0, 0.12, 'shD');
+  base.rod(-10.9, 3.2, -0.45, -11.1, 6.0, -0.8, 0.07, 'hose');
+  base.rod(-10.9, 3.2, 0.45, -11.1, 6.0, 0.8, 0.07, 'hoseR');
+  base.rod(-10.7, 3.2, 0.0, -12.2, 3.9, 1.15, 0.06, 'hoseB');
+  base.rod(-9.9, 1.25, -W2 + 0.05, -9.9, 1.25, W2 - 0.05, 0.09, 'hose');
+  base.rod(-10.2, 1.25, -W2 + 0.05, -10.2, 1.25, W2 - 0.05, 0.09, 'hoseB');
+  base.rod(-10.5, 1.25, -W2 + 0.05, -10.5, 1.25, W2 - 0.05, 0.07, 'hoseR');
+  const can = new Kit(false);
+  can.box(15.2, 0.62, SHW - 0.35, 'sh', -9.7, -0.31, 0);
+  can.box(1.75, 0.36, SHW - 0.35, 'sh', -1.2, -0.18, 0);
+  can.box(15.0, 0.1, SHW - 1.0, 'shU', -9.6, -0.67, 0);
+  for (const s of [-1, 1]) { can.box(16.2, 0.78, 0.1, 'shL', -9.1, -0.5, s * (W2 - 0.1)); can.box(15.4, 0.07, 0.35, 'shL', -9.7, 0.02, s * 1.3); }
+  for (let k = 0; k < 4; k++) can.box(0.25, 0.06, SHW - 0.8, 'shL', -15 + k * 3.6, 0.02, 0);
+  can.cylZ(0.38, SHW - 0.8, 10, 'shD', -17.1, -0.5, 0);
+  for (const s of [-1, 1]) can.cylY(0.55, 0.45, 10, 'shD', -8.4, -0.85, s * 1.55);
+  can.box(0.7, 0.1, 0.25, 'lamp', -4.5, -0.74, 0);
+  const spr = new Kit(false); spr.box(0.32, 2.3, SHW - 0.8, 'sh', 0.05, -1.15, 0); spr.box(0.12, 2.1, 0.25, 'shD', -0.12, -1.1, -1.4); spr.box(0.12, 2.1, 0.25, 'shD', -0.12, -1.1, 1.4);
+  const cav = new Kit(false); cav.box(1, 0.55, SHW - 0.45, 'sh', 0, 0, 0); cav.box(1, 0.08, SHW - 1, 'shU', 0, -0.31, 0);
+  for (const s of [-1, 1]) cav.box(1, 0.95, 0.1, 'shL', 0, -0.25, s * (W2 - 0.12));
+  const lem = new Kit(false); lem.box(1, 0.42, SHW - 2.4, 'shD', 0, 0, 0);
+  const bar = new Kit(false); bar.add(new THREE.CylinderGeometry(0.62, 0.62, 1, 12), 'barrel', null); bar.cylY(0.7, 0.08, 12, 'shD', 0, 0.46, 0);
+  const ram = new Kit(false); ram.add(new THREE.CylinderGeometry(0.42, 0.42, 1, 10), 'chrome', null);
+  const relay = new Kit(false); relay.box(1, 0.4, 0.75, 'afcD', 0, 0, 0);
+  R.base = IM(base.geo(), MV, NSH); R.canopy = IM(can.geo(), MVX, NSH); R.spr = IM(spr.geo(), MVX, NSH); R.cav = IM(cav.geo(), MVX, NSH);
+  R.lem = IM(lem.geo(), MV, NSH * 2); R.bar = IM(bar.geo(), MV, NSH * 2); R.ram = IM(ram.geo(), MV, NSH * 2); R.relay = IM(relay.geo(), MV, NSH);
+  // --- face conveyor: line pans with ramp plate, spill plate, cable trough, rack; chain and flight bars
+  const pan = new Kit();
+  pan.box(3.05, 0.5, SHW - 0.05, 'afcD', -2.05, 0.3, 0);
+  pan.box(3.0, 0.14, SHW - 0.05, 'afc', -2.05, 0.95, 0);
+  pan.box(0.75, 0.5, SHW - 0.05, 'spill', -0.3, 0.45, 0, 0, 0, 0.55);
+  pan.box(0.25, 0.85, SHW - 0.05, 'afcD', -3.62, 0.95, 0); pan.box(0.25, 0.85, SHW - 0.05, 'afcD', -0.5, 0.85, 0);
+  pan.box(0.3, 2.3, SHW - 0.05, 'spill', -4.0, 1.4, 0);
+  pan.box(1.15, 0.12, SHW - 0.05, 'spill', -4.7, 2.0, 0); pan.box(0.12, 0.75, SHW - 0.05, 'spill', -5.25, 2.35, 0);
+  pan.box(0.28, 0.32, SHW - 0.4, 'afcD', -3.72, 1.62, 0);
+  for (const zc of [-W2 + 0.1, W2 - 0.1]) pan.box(3.1, 0.22, 0.16, 'afcD', -2.05, 1.0, zc);
+  pan.box(0.16, 0.1, SHW, 'chain', -2.55, 1.06, 0); pan.box(0.16, 0.1, SHW, 'chain', -1.55, 1.06, 0);
+  pan.box(0.7, 0.55, 0.65, 'afcD', -4.45, 0.4, 0);
+  R.pan = IM(pan.geo(), MV, NSH);
+  const fl = new Kit(false); fl.box(2.7, 0.16, 0.26, 'flight', 0, 0, 0);
+  R.NFL = Math.ceil(FACE_W / 3.3); R.flight = IM(fl.geo(), MV, R.NFL);
+  // --- coal and rock
+  const coalMat = new THREE.MeshLambertMaterial({ color: 0x24221F });
+  const coalStripMat = xray(new THREE.MeshLambertMaterial({ color: 0x23211E, polygonOffset: true, polygonOffsetFactor: 2, polygonOffsetUnits: 8 }), 3, 'strip');
+  R.coalStrip = IM(new THREE.BoxGeometry(WEB, 7, SHW + 0.02), coalStripMat, NSH); R.coalStrip.renderOrder = 30;
+  R.coalBed = IM(new THREE.BoxGeometry(2.5, 0.3, SHW + 0.02), coalMat, NSH);
+  const lumpGeo = new THREE.DodecahedronGeometry(0.5, 0);
+  R.NL = small ? 800 : 1500; R.lump = IM(lumpGeo, coalMat, R.NL);
+  R.NF = 160; R.fall = IM(lumpGeo, coalMat, R.NF); R.fallS = Array.from({ length: R.NF }, () => ({ on: false }));
+  R.NB = small ? 300 : 560; R.blump = IM(lumpGeo, coalMat, R.NB);
+  const lc = new THREE.Color();
+  for (const im of [R.lump, R.fall, R.blump]) for (let i = 0; i < im.count; i++) { const v = 0.75 + hsh(i, 3) * 0.5; im.setColorAt(i, lc.setRGB(v, v, v * 0.98)); }
+  // caved rock behind the shields (whole face): slabs on a fixed grid, shown where the shields have moved on
+  const rockMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
+  { const gg = bedGeo(-190, 0, 24, () => 0, x => 0.7 + 2.8 * smooth(-x / 45), 0, 1, SHW + 0.06); gg.translate(0, 0, -(SHW + 0.06) / 2);
+    R.gob = IM(gg, new THREE.MeshLambertMaterial({ color: 0x5F5B53 }), NSH); }
+  R.NROCK = small ? 5000 : 9000; R.ROCK_DH = 5.5; R.ROCK_ROWS = Math.ceil(R.NROCK / (NSH * 2));
+  R.rock = IM(new THREE.DodecahedronGeometry(1, 0), rockMat, R.ROCK_ROWS * NSH * 2);
+  const rockCols = [0x77736B, 0x6A675F, 0x8D8778, 0x5A5751, 0x9A927F].map(h => new THREE.Color(h));
+  for (let i = 0; i < R.rock.count; i++) { const v = 0.88 + hsh(i, 5) * 0.24; R.rock.setColorAt(i, lc.copy(rockCols[Math.floor(hsh(i, 6) * 5)]).multiplyScalar(v)); }
+  // falling rock, and dust where it lands
+  R.NFR = 220; R.frock = IM(new THREE.DodecahedronGeometry(1, 0), rockMat, R.NFR); R.frS = Array.from({ length: R.NFR }, () => ({ on: false }));
+  for (let i = 0; i < R.NFR; i++) R.frock.setColorAt(i, lc.copy(rockCols[Math.floor(hsh(i, 8) * 5)]));
+  const dustMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.22, depthWrite: false });
+  R.NDU = 60; R.dust = IM(new THREE.IcosahedronGeometry(1, 1), dustMat, R.NDU); R.duS = Array.from({ length: R.NDU }, () => ({ on: false })); R.dust.renderOrder = 31;
+  for (let i = 0; i < R.NDU; i++) R.dust.setColorAt(i, lc.setHex(0xC9C4B8));
+  // water sprays at the drums (seen in the footage)
+  const sprayMat = new THREE.MeshBasicMaterial({ color: 0xF4F6F7, transparent: true, opacity: 0.16, depthWrite: false, side: THREE.DoubleSide });
+  R.spray = IM(new THREE.ConeGeometry(1, 1, 10, 1, true).translate(0, -0.5, 0), sprayMat, 6); R.spray.renderOrder = 32;
+  // --- shearer
+  const sh = new THREE.Group(); machine.add(sh); R.shearer = sh;
+  const body = new Kit();
+  body.box(2.8, 2.6, 22, 'body', -2.0, 3.2, 0);
+  for (let k = 0; k < 5; k++) body.box(2.3, 0.1, 3.9, 'bodyL', -2.0, 4.55, -8.8 + k * 4.4);
+  body.box(0.45, 0.45, 22, 'bodyL', -0.62, 4.35, 0, 0, 0, Math.PI / 4);
+  for (let k = 0; k < 4; k++) body.box(0.08, 1.6, 4.2, 'bodyD', -0.58, 3.0, -7.5 + k * 5);
+  body.box(0.1, 0.25, 22, 'bodyD', -3.42, 2.3, 0);
+  for (const s of [-1, 1]) {
+    body.box(3.2, 3.0, 5.0, 'body', -2.1, 3.1, s * 13.6);
+    body.box(2.8, 0.1, 4.4, 'bodyL', -2.1, 4.65, s * 13.6);
+    body.cylX(0.8, 0.7, 12, 'bodyD', -3.85, 2.0, s * 12.6);
+    body.box(0.95, 1.0, 4.6, 'bodyD', -3.75, 1.85, s * 13.6);
+    body.box(0.6, 0.8, 3.0, 'bodyD', -0.25, 1.75, s * 8.5);
+    body.box(0.35, 0.32, 0.22, 'lamp', -2.9, 4.25, s * 16.15);
+    body.box(0.35, 0.32, 0.22, 'lamp', -1.2, 4.25, s * 16.15);
+    body.cylX(0.9, 1.3, 14, 'bodyD', -0.6, 2.6, s * 15.8);
+  }
+  body.box(1.4, 1.2, 2.6, 'body', -3.75, 4.0, 3.6); body.box(0.05, 0.62, 1.5, 'glass', -4.47, 4.1, 3.6);
+  body.box(1.3, 1.0, 2.0, 'body', -3.7, 3.9, -3.8); body.box(0.05, 0.5, 1.1, 'glass', -4.37, 4.0, -3.8);
+  body.box(0.9, 0.7, 1.6, 'bodyD', -3.9, 4.0, 0.3);
+  sh.add(new THREE.Mesh(body.geo(), MV));
+  R.arms = []; R.drums = [];
+  const armK = new Kit(false);
+  armK.box(1.6, 1.45, 9.6, 'arm', 0, 0, 4.8); armK.box(1.65, 0.12, 9.2, 'bodyL', 0, 0.78, 4.8);
+  armK.cylX(1.25, 1.9, 14, 'arm', 0.3, 0, 9.5); armK.cylX(0.9, 1.9, 14, 'bodyD', 0, 0, 0);
+  armK.box(0.25, 0.25, 1.2, 'chrome', -0.95, 0.4, 7.8);
+  const armGeo = armK.geo();
+  // drum: hub, coal-side end ring, three-start spiral vanes, picks on the vane tips and the ring
+  const drum = new Kit(false);
+  drum.cylX(1.55, 3.3, 16, 'drum', 0, 0, 0); drum.cylX(2.62, 0.45, 22, 'drum', 1.45, 0, 0); drum.cylX(1.75, 0.2, 16, 'vane', -1.6, 0, 0);
+  {
+    const P = [], NS = 3, N = 26, wrap = 1.05 * Math.PI, rin = 1.5, rout = 2.5, th = 0.16, xa = -1.6, xb = 1.25;
+    for (let s = 0; s < NS; s++) for (let t = 0; t < N; t++) {
+      const pt = (tt, r, dx) => { const a = s * 2 * Math.PI / NS + wrap * tt / N, x = xa + (xb - xa) * tt / N + dx; return [x, r * Math.cos(a), r * Math.sin(a)]; };
+      const A = pt(t, rin, -th), B = pt(t, rout, -th), C = pt(t + 1, rout, -th), D = pt(t + 1, rin, -th), A2 = pt(t, rin, th), B2 = pt(t, rout, th), C2 = pt(t + 1, rout, th), D2 = pt(t + 1, rin, th);
+      P.push(...A, ...B, ...C, ...A, ...C, ...D, ...A2, ...C2, ...B2, ...A2, ...D2, ...C2, ...B, ...B2, ...C2, ...B, ...C2, ...C);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals(); drum.add(g, 'vane', null);
+    for (let s = 0; s < NS; s++) for (let t = 1; t < N; t += 2) {
+      const a = s * 2 * Math.PI / NS + wrap * t / N, x = xa + (xb - xa) * t / N;
+      drum.add(new THREE.ConeGeometry(0.09, 0.5, 5), 'pick', new THREE.Matrix4().compose(new THREE.Vector3(x, 2.68 * Math.cos(a), 2.68 * Math.sin(a)), new THREE.Quaternion().setFromEuler(new THREE.Euler(a - Math.PI / 2 + 0.35, 0, 0)), new THREE.Vector3(1, 1, 1)));
+    }
+    for (let k = 0; k < 16; k++) { const a = k * Math.PI / 8;
+      drum.add(new THREE.ConeGeometry(0.09, 0.5, 5), 'pick', new THREE.Matrix4().compose(new THREE.Vector3(1.55 + (k % 2) * 0.18, 2.8 * Math.cos(a), 2.8 * Math.sin(a)), new THREE.Quaternion().setFromEuler(new THREE.Euler(a - Math.PI / 2, 0, (k % 2 ? 0.35 : -0.2))), new THREE.Vector3(1, 1, 1))); }
+  }
+  const drumGeo = drum.geo();
+  for (const sgn of [-1, 1]) {
+    const arm = new THREE.Group(); arm.position.set(-0.6, 2.6, sgn * 15.8); sh.add(arm);
+    const am = new THREE.Mesh(armGeo, MV); am.scale.z = sgn; arm.add(am);
+    const dg = new THREE.Group(); dg.position.set(1.75 + 0.6, 0, sgn * 9.5); arm.add(dg);
+    const spin = new THREE.Group(); dg.add(spin); spin.add(new THREE.Mesh(drumGeo, MV));
+    R.arms.push(arm); R.drums.push({ g: dg, spin, sgn });
+  }
+  // trailing cable in its handler, lying in the trough on the spill plate (fixed half and moving half, looped between)
+  const cab = new Kit(false); cab.box(1, 0.42, 0.85, 'flight', 0, 0, 0);
+  R.cable = IM(cab.geo(), MV, 2);
+  // --- gate ends: conveyor drives, headgate stageloader and crusher, belt, monorail and longwall train; tailgate standing supports
+  const head = new Kit();
+  head.box(3.4, 1.4, 9, 'afcD', -2.05, 0.7, -4.5); head.box(3.1, 0.12, 8.6, 'afc', -2.05, 1.45, -4.5);
+  head.box(2.6, 2.4, 2.8, 'motor', -5.0, 1.3, -6.2); head.cylX(1.15, 4.6, 14, 'motor', -8.6, 1.3, -6.2); head.box(0.4, 2.6, 3.0, 'frame', -6.4, 1.4, -6.2);
+  head.box(2.6, 2.4, 2.8, 'motor', 1.4, 1.3, -6.2);
+  R.head = new THREE.Mesh(head.geo(), MV); machine.add(R.head);
+  const tail = new Kit();
+  tail.box(3.4, 1.4, 7, 'afcD', -2.05, 0.7, 3.5); tail.box(2.6, 2.4, 2.8, 'motor', -5.0, 1.3, 4.8); tail.cylX(1.15, 4.6, 14, 'motor', -8.6, 1.3, 4.8);
+  R.tail = new THREE.Mesh(tail.geo(), MV); machine.add(R.tail);
+  const sl = new Kit();
+  sl.box(150, 1.3, 3.4, 'afcD', 71, 0.85, 0); sl.box(150, 0.12, 3.0, 'afc', 71, 1.5, 0);
+  for (const s of [-1, 1]) sl.box(150, 0.6, 0.15, 'spill', 71, 1.85, s * 1.75);
+  sl.box(8.5, 4.6, 6.4, 'crush', 34, 2.5, 0); sl.box(8.6, 0.12, 6.0, 'bodyL', 34, 4.85, 0); sl.cylZ(1.1, 4.5, 14, 'motor', 34, 2.2, -5.2);
+  sl.box(32, 1.2, 3.4, 'afcD', 134, 2.2, 0, 0, 0, 0.1);
+  sl.box(4.5, 3.2, 4.4, 'motor', 152, 3.6, 0); sl.cylZ(1.0, 4.0, 12, 'motor', 152, 3.2, -4.2);
+  sl.box(26, 1.0, 7.0, 'frame', 165, 0.9, 0); sl.cylZ(0.85, 6.4, 12, 'frame', 153, 2.2, 0);
+  for (let k = 0; k < 6; k++) sl.box(0.4, 2.6, 0.4, 'frame', 155 + k * 4.5, 1.6, (k % 2 ? 3.1 : -3.1));
+  // monorail along the entry roof with cables and hoses hanging in loops (festoon)
+  sl.box(420, 0.3, 0.25, 'frame', 205, 6.65, -4.6);
+  for (let k = 0; k < 42; k++) { const x = 5 + k * 10; sl.rod(x, 6.5, -4.6, x, 5.4, -4.6, 0.06, 'frame'); sl.rod(x, 5.4, -4.6, x + 10, 5.4, -4.6, 0.18, k % 3 ? 'hose' : 'hoseR', 6, false); }
+  R.sl = new THREE.Mesh(sl.geo(), MV); machine.add(R.sl);
+  const train = new Kit();
+  train.box(22, 4.3, 7, 'frame', 0, 2.55, 0); for (let k = 0; k < 4; k++) train.box(4.2, 2.8, 0.1, 'afcD', -7.5 + k * 5, 2.7, -3.55);
+  train.box(18, 3.7, 6.6, 'motor', 23, 2.25, 0); train.cylX(1.5, 11, 14, 'chrome', 41, 2.0, -1.6); train.cylX(1.5, 11, 14, 'chrome', 41, 2.0, 1.6);
+  train.box(14, 4.0, 6.6, 'frame', 58, 2.4, 0); train.box(0.1, 1.2, 2.6, 'glass', 58, 3.1, -3.35);
+  for (const x of [-9, 9, 16, 30, 52, 64]) for (const s of [-1, 1]) train.cylZ(0.45, 0.3, 10, 'flight', x, 0.45, s * 3.2);
+  train.rod(-11, 1.0, 1.0, -230, 1.0, 9, 0.12, 'hose'); train.rod(-11, 1.3, 0.5, -230, 1.3, 9.4, 0.1, 'hoseR');
+  R.train = new THREE.Mesh(train.geo(), MV); machine.add(R.train);
+  const beltK = new Kit(false);
+  for (const s of [-1, 1]) beltK.box(1, 0.22, 0.18, 'frame', 0.5, 1.7, s * 3.1);
+  beltK.box(1, 0.08, 4.9, 'belt', 0.5, 2.62, 0); beltK.box(1, 0.06, 4.8, 'belt', 0.5, 0.95, 0);
+  beltK.box(1, 0.35, 1.6, 'flight', 0.5, 2.8, 0);
+  R.belt = new THREE.Mesh(beltK.geo(), MV); machine.add(R.belt);
+  const idl = new Kit(false);
+  idl.cylZ(0.22, 1.7, 8, 'frame', 0, 2.42, 0);
+  idl.add(new THREE.CylinderGeometry(0.22, 0.22, 1.7, 8).rotateX(Math.PI / 2), 'frame', TM(0, 2.72, 1.75, 0.45, 0, 0));
+  idl.add(new THREE.CylinderGeometry(0.22, 0.22, 1.7, 8).rotateX(Math.PI / 2), 'frame', TM(0, 2.72, -1.75, -0.45, 0, 0));
+  idl.box(0.2, 2.1, 0.2, 'frame', 0, 1.2, 3.05); idl.box(0.2, 2.1, 0.2, 'frame', 0, 1.2, -3.05);
+  R.NID = 340; R.idler = IM(idl.geo(), MV, R.NID);
+  // stoppings (block walls) in the headgate crosscuts
+  const stp = new Kit(false); stp.box(18, 7, 0.8, 'block', 0, 3.5, 0); for (let r = 0; r < 9; r++) stp.box(18.02, 0.05, 0.82, 'shU', 0, 0.75 + r * 0.75, 0);
+  R.stopG = []; for (const row of GT.gates.north.rows) {
+    const dm = (row.d0 + row.d1) / 2 + gateShift('north'); let hs = row.crosscuts_h.slice();
+    while (hs[0] > a0 - 400) hs.unshift(hs[0] - row.pitch_ft); while (hs[hs.length - 1] < a1 + 600) hs.push(hs[hs.length - 1] + row.pitch_ft);
+    for (const h of hs) R.stopG.push([h, dm]);
+  }
+  R.stop = IM(stp.geo(), MV, 24);
+  // standing supports ("cans") in the tailgate entry; crushed in the gob behind the face
+  const cans = new Kit(); cans.cylY(1.05, 7, 12, 'can', 0, 3.5, 0); cans.cylY(1.08, 0.15, 12, 'shU', 0, 2.2, 0); cans.cylY(1.08, 0.15, 12, 'shU', 0, 4.8, 0);
+  R.NCAN = 240; R.cans = IM(cans.geo(), MV, R.NCAN);
+  // battery scoop in the supply entry
+  const scoop = new Kit();
+  scoop.box(15, 2.3, 6.4, 'motor', 0, 1.65, 0); scoop.box(14, 0.12, 6.0, 'bodyL', 0, 2.85, 0);
+  scoop.box(4.2, 1.5, 6.8, 'afcD', 9.4, 1.05, 0); scoop.box(3.6, 0.2, 2.8, 'frame', -5, 4.5, 1.6);
+  for (const [x, z] of [[-6.6, 0.4], [-3.4, 2.8], [-6.6, 2.8], [-3.4, 0.4]]) scoop.box(0.15, 1.7, 0.15, 'frame', x, 3.7, z);
+  for (const x of [-4.5, 4.5]) for (const s of [-1, 1]) scoop.cylZ(1.3, 0.9, 14, 'flight', x, 1.3, s * 3.45);
+  scoop.box(0.3, 0.3, 0.3, 'lamp', 7.6, 2.6, -2.6); scoop.box(0.3, 0.3, 0.3, 'lamp', 7.6, 2.6, 2.6);
+  R.scoop = new THREE.Mesh(scoop.geo(), MV); machine.add(R.scoop);
+  // --- miners: body (hard hat, cap lamp, reflective bands, belt with self-rescuer and battery) and legs that swing
+  const wb = new Kit(false);
+  wb.box(1.12, 1.95, 0.68, 'suit', 0, 3.87, 0); wb.box(1.15, 0.16, 0.71, 'band', 0, 3.45, 0); wb.box(1.15, 0.16, 0.71, 'band', 0, 4.25, 0);
+  for (const s of [-1, 1]) { wb.box(0.32, 1.65, 0.34, 'suit', s * 0.74, 3.95, 0.08, -0.12, 0, 0); wb.box(0.34, 0.14, 0.36, 'band', s * 0.74, 3.55, 0.12, -0.12, 0, 0); wb.box(0.26, 0.3, 0.3, 'skin', s * 0.74, 3.0, 0.2); }
+  wb.box(1.18, 0.16, 0.76, 'flight', 0, 2.95, 0); wb.box(0.42, 0.5, 0.26, 'flight', 0.32, 3.1, -0.45); wb.box(0.36, 0.36, 0.26, 'flight', -0.32, 3.05, -0.45);
+  wb.box(0.55, 0.62, 0.6, 'skin', 0, 5.18, 0.02);
+  wb.cylY(0.44, 0.34, 12, 'hat', 0, 5.58, 0); wb.cylY(0.5, 0.06, 14, 'hat', 0, 5.44, 0.04); wb.box(0.2, 0.15, 0.1, 'lamp', 0, 5.52, 0.48);
+  const wl = new Kit(false); wl.box(0.42, 2.6, 0.46, 'suit', 0, -1.3, 0); wl.box(0.44, 0.15, 0.48, 'band', 0, -1.55, 0); wl.box(0.46, 0.36, 0.72, 'boot', 0, -2.7, 0.1);
+  R.NP = 10; R.wBody = IM(wb.geo(), MV, R.NP); R.wLeg = IM(wl.geo(), MV, R.NP * 2);
+  R.wPrev = Array.from({ length: R.NP }, () => ({ x: 0, z: 0, ph: 0, set: false }));
+  // --- the seam floor under the panel and the gate roads (seen through the cut-away and between the pillars)
+  { const NU = 120, NV = 16, h0 = a0 - 400, h1 = a1 + 800, d0 = b0 - 280, d1 = b1 + 240, P = [];
+    const v = (u, w) => { const h = h0 + (h1 - h0) * u / NU, dd = d0 + (d1 - d0) * w / NV; return [h, seam(h, dd) - ZC - 0.04, -dd]; };
+    for (let u = 0; u < NU; u++) for (let w = 0; w < NV; w++) { const A = v(u, w), B = v(u + 1, w), C_ = v(u + 1, w + 1), D = v(u, w + 1); P.push(...A, ...C_, ...B, ...A, ...D, ...C_); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); g.computeVertexNormals();
+    R.floor = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: 0x5C5850, side: THREE.DoubleSide })); machine.add(R.floor); }
+  // --- section through the rock beside the shearer: coal ahead, the beds above, the caved gob behind; on the far side of the shearer
+  const sect = new THREE.Group(); machine.add(sect); R.sect = sect;
+  const smat = strataMaterial(bandTexture());
+  const { W, AHEAD, BACK, TOP, CAVE } = SEC, flat = y => () => y;
+  const addS = g => { const m = new THREE.Mesh(g, smat); sect.add(m); return m; };
+  addS(bedGeo(-BACK, AHEAD, 1, flat(-8), flat(0), -8, 0, W));                        // floor
+  addS(bedGeo(0, AHEAD, 1, flat(0), flat(7), 0, 7, W));                               // coal not yet mined
+  R.lowUnit = addS(bedGeo(0, 1, 1, flat(7), flat(30), 7, 30, W));                      // roof beds over the shields and the coal (scaled)
+  const unit = (yb, yt) => bedGeo(-1, 0, 1, flat(0), flat(yt - yb), yb, yt, W);
+  R.hang1 = addS(unit(8.2, 16)); R.hang2 = addS(unit(16, 30));                          // cantilevers behind the shields
+  const pieceGeo = [unit(8.2, 16), unit(16, 30)]; for (const g of pieceGeo) g.scale(1, 1, 1 / 3);
+  R.pieces = []; for (let k = 0; k < 6; k++) { const m = addS(pieceGeo[k < 3 ? 0 : 1]); m.visible = false; R.pieces.push({ m, on: false, u: k < 3 ? 0 : 1, zi: k % 3 }); }
+  const ragged = x => TOP + 1.2 * Math.sin(x * 0.37) + 0.8 * Math.sin(x * 1.13 + 1);
+  for (const [yb, yt] of [[30, 44], [44, 48], [48, TOP]]) {
+    const top = yt === TOP ? x => ragged(x) - sagAt(yb, CAVE - x) : x => yt - sagAt(yb, CAVE - x);
+    addS(bedGeo(-BACK, AHEAD, 92, x => yb - sagAt(yb, CAVE - x), top, yb, yt === TOP ? 62 : yt, W));
+  }
+  { const gf = new THREE.Mesh(bedGeo(-BACK, CAVE - 2, 40, flat(0), x => Math.max(0.5, fillTop(CAVE - x) - 0.8), 0, 1, W), new THREE.MeshLambertMaterial({ color: 0x67635B, side: THREE.DoubleSide }));
+    gf.position.z = 2.2; sect.add(gf); }
+  // caved rock on the section face, on a fixed (ground) grid; cracks in the bending beds
+  R.NSR = small ? 500 : 900; R.srock = IM(new THREE.BoxGeometry(1, 1, 1), rockMat, R.NSR, sect);
+  for (let i = 0; i < R.NSR; i++) R.srock.setColorAt(i, lc.copy(rockCols[Math.floor(hsh(i, 11) * 5)]).multiplyScalar(0.85 + hsh(i, 12) * 0.25));
+  R.NCR = 90; R.crack = IM(new THREE.BoxGeometry(1, 1, 1), new THREE.MeshLambertMaterial({ color: 0x1E1D1B }), R.NCR, sect);
+  for (const im of Object.values(R)) if (im && im.isInstancedMesh && im.instanceColor) im.instanceColor.needsUpdate = true;
+  R.sectSide = 1; R.lastBreak = [null, null];
+  R.shieldN = new Float32Array(NSH).fill(-1); R.advInt = new Int32Array(NSH).fill(-99);
+  R.shieldH = new Float32Array(NSH); R.afcX = new Float32Array(NSH); R.y0 = new Float32Array(NSH);
+  R.rockKey = ''; R.force = true;
+  return R;
+}
+
 // progress (0-1) of something that happens `lag` ft behind the shearer, ramping over `ramp` ft, at face position d, summed over
 // the passes so far: how many webs the shields / conveyor / coal face at d have moved
-const smooth = t => t <= 0 ? 0 : t >= 1 ? 1 : t * t * (3 - 2 * t);
 function advanced(d, s, k, lag, ramp) {
   let n = Math.max(0, k - 1), part = 0;
   for (const j of [k - 1, k]) {
@@ -972,86 +1364,307 @@ function advanced(d, s, k, lag, ramp) {
   }
   return { n, part };
 }
-const _m = new THREE.Matrix4(), _q = new THREE.Quaternion(), _p = new THREE.Vector3(), _s = new THREE.Vector3(), _e = new THREE.Euler(), _up = new THREE.Vector3(0, 1, 0);
-function place(im, i, x, y, z, sx = 1, sy = 1, sz = 1, rz = 0, rx = 0) {
-  _e.set(rx, 0, rz); _q.setFromEuler(_e); _p.set(x, y, z); _s.set(sx, sy, sz); im.setMatrixAt(i, _m.compose(_p, _q, _s));
+function spragOut(d, s, k) {      // the face sprag folds away as the shearer comes, and is set again once the shield has moved up
+  let r = 0;
+  for (const j of [k - 1, k]) { if (j < 0) continue; const D = s - (j * FACE_W + (j % 2 === 0 ? d - b0 : b1 - d));
+    r = Math.max(r, smooth((D + 34) / 8) * (1 - smooth((D - LAG_SH - RAMP_SH) / 5))); }
+  return r;
 }
-function strut(im, i, ax, ay, az, bx, by, bz, r = 1) {             // a cylinder from a to b
-  _p.set(bx - ax, by - ay, bz - az); const len = _p.length(); _q.setFromUnitVectors(_up, _p.normalize());
-  _s.set(r, len, r); im.setMatrixAt(i, _m.compose(new THREE.Vector3((ax + bx) / 2, (ay + by) / 2, (az + bz) / 2), _q, _s));
+let machineState = null, lastNow = 0, simT = 0, chainOff = 0, beltOff = 0, colReal = false;
+function spawnRock(x, y, z, big) {
+  const R = M_, i = R.frS.findIndex(o => !o.on); if (i < 0) return;
+  const f = Math.random;
+  R.frS[i] = { on: true, x, y, z, vx: -(0.5 + f() * 2.2), vy: 0, vz: (f() - 0.5) * 1.2, ry: f() * 6, rx: f() * 6, w: (f() - 0.5) * 5,
+    sx: big ? 2.2 + f() * 1.6 : 0.4 + f() * 0.9, sy: big ? 0.45 + f() * 0.3 : 0.3 + f() * 0.5, sz: big ? 1.6 + f() * 1.4 : 0.4 + f() * 0.9, land: 0.6 + f() * 1.4, t: 0, down: -1, big };
 }
-const shieldH = new Float32Array(NSH);
-let machineState = null;
+function spawnDust(x, y, z, size) { const R = M_, i = R.duS.findIndex(o => !o.on); if (i < 0) return; R.duS[i] = { on: true, x, y, z, t: 0, size }; }
+
 function updateMachine(h, now) {
+  const R = M_; if (!R) return;
+  const dtr = lastNow ? Math.min(0.1, (now - lastNow) / 1000) : 0; lastNow = now;
+  const run = playing ? dtr : 0; simT += run;
   const S_ = shearerAt(h), s = S_.k * FACE_W + S_.f * FACE_W, k = S_.k, Yv = VE;
   const yAt = (hh, d, up) => Y(seam(hh, d)) + up * Yv;
+  const vShear = FACE_W / passSeconds, vChain = 1.5 * vShear + 6;
+  const dirN = S_.north ? 1 : -1;
+  const idx = d => Math.min(NSH - 1, Math.max(0, Math.floor((d - b0) / SHW)));
+  // --- shields, conveyor pans, the uncut web of coal
   for (let i = 0; i < NSH; i++) {
     const d = b0 + (i + 0.5) * SHW, z = -d;
-    const sh = advanced(d, s, k, LAG_SH, RAMP_SH), cut = advanced(d, s, k, -25, 0), afc = advanced(d, s, k, LAG_AFC, RAMP_AFC);
-    // a shield lowers a little, slides forward one web and is set against the roof again
-    const p = sh.part, lower = p > 0 ? 0.45 * Math.min(1, Math.min(p, 1 - p) * 4) : 0;
-    const ref = a0 + WEB * sh.n, fc = a0 + WEB * cut.n, ac = a0 + WEB * afc.n;
-    shieldH[i] = ref;
-    const y0 = yAt(ref, d, 0), roof = 7 - lower;
-    place(imBase, i, ref - 12.25, y0 + 0.6 * Yv, z, 1, Yv, 1);
-    place(imCanopy, i, ref - 9, y0 + (roof - 0.35) * Yv, z, 1, Yv, 1, -0.02);
-    // caving shield: canopy rear down to the base rear
-    { const ax = ref - 17, ay = roof - 0.6, bx = ref - 19.3, by = 2.2, len = Math.hypot(ax - bx, (ay - by) * Yv);
-      place(imCave, i, (ax + bx) / 2, y0 + (ay + by) / 2 * Yv, z, len, Yv, 1, Math.atan2((ay - by) * Yv, ax - bx)); }
-    { const ax = ref - 16.5, ay = 1.0, bx = ref - 18.4, by = 3.6, len = Math.hypot(ax - bx, (ay - by) * Yv);
-      place(imLemn, i, (ax + bx) / 2, y0 + (ay + by) / 2 * Yv, z, len, Yv, 1, Math.atan2((by - ay) * Yv, bx - ax)); }
-    // two legs, leaning towards the face: outer barrel and chrome ram
-    for (const [j, off] of [[0, -1.55], [1, 1.55]]) {
-      const bx = ref - 11.2, by = 1.2, tx = ref - 7.8, ty = roof - 0.7, mx = bx + (tx - bx) * 0.55, my = by + (ty - by) * 0.55;
-      strut(imBarrel, i * 2 + j, bx, y0 + by * Yv, z + off, mx, y0 + my * Yv, z + off);
-      strut(imRam, i * 2 + j, mx, y0 + my * Yv, z + off, tx, y0 + ty * Yv, z + off);
+    const sh = advanced(d, s, k, LAG_SH, RAMP_SH), cut = advanced(d, s, k, -25, 0), afc = advanced(d, s, k, LAG_AFC, RAMP_AFC), so = spragOut(d, s, k);
+    const ref = a0 + WEB * sh.n, fc = a0 + WEB * cut.n, ac = a0 + WEB * afc.n, y0 = yAt(ref, d, 0);
+    // rock falls behind the shield as it moves up (the roof it held is left unsupported)
+    const ai = Math.floor(sh.n + 0.7);
+    if (R.advInt[i] !== ai) {
+      if (playing && R.advInt[i] === ai - 1 && Math.abs(d - S_.d) < 400) {
+        const n_ = 1 + Math.floor(Math.random() * 2.6);
+        for (let r = 0; r < n_; r++) spawnRock(ref - 19.6 - Math.random() * 2.8, 6.4 + Math.random() * 0.6, z + (Math.random() - 0.5) * SHW, Math.random() < 0.12);
+      }
+      R.advInt[i] = ai;
     }
-    // face conveyor pan with its spill plate, the relay bar to the shield, and the coal face
-    place(imPan, i, ac - 2.05, y0 + 0.45 * Yv, z, 1, Yv, 1);
-    place(imSpill, i, ac - 3.9, y0 + 1.0 * Yv, z, 1, Yv, 1);
-    { const ax = ref - 7, bx = ac - 4.1, len = Math.max(0.2, ax < bx ? bx - ax : 0.2); place(imRelay, i, (ax + bx) / 2, y0 + 0.4 * Yv, z, len, Yv, 1); }
-    place(imCoal, i, fc, y0 + 3.5 * Yv, z, 1, Yv, 1);
+    R.shieldH[i] = ref; R.afcX[i] = ac; R.y0[i] = y0;
+    const key = sh.n * 1e3 + afc.n * 7 + cut.n * 0.1 + so * 1e-3;
+    if (R.shieldN[i] === key && !R.force) continue;
+    R.shieldN[i] = key;
+    const p = sh.part, lower = p > 0 ? 0.45 * Math.min(1, Math.min(p, 1 - p) * 4) : 0, roof = 7 - lower;
+    place(R.base, i, ref, y0, z, 1, Yv, 1);
+    place(R.canopy, i, ref, y0 + roof * Yv, z, 1, Yv, 1, -0.02 * lower);
+    place(R.spr, i, ref - 0.35, y0 + (roof - 0.3) * Yv, z, 1, Yv, 1, 0.22 - 1.7 * so);
+    { const ax = ref - 17.1, ay = roof - 0.6, bx = ref - 19.0, by = 2.3, len = Math.hypot(ax - bx, (ay - by) * Yv);
+      place(R.cav, i, (ax + bx) / 2, y0 + (ay + by) / 2 * Yv, z, len, 1, 1, Math.atan2((ay - by) * Yv, ax - bx)); }
+    for (const [j, a, b] of [[0, [ref - 16.4, 1.0], [ref - 18.3, 3.7]], [1, [ref - 15.6, 1.5], [ref - 17.6, 4.6]]]) {
+      const len = Math.hypot(a[0] - b[0], (a[1] - b[1]) * Yv);
+      place(R.lem, i * 2 + j, (a[0] + b[0]) / 2, y0 + (a[1] + b[1]) / 2 * Yv, z, len, 1, 1, Math.atan2((b[1] - a[1]) * Yv, b[0] - a[0]));
+    }
+    for (const [j, off] of [[0, -1.55], [1, 1.55]]) {
+      const bx = ref - 12.2, by = 1.4, tx = ref - 8.4, ty = roof - 0.9, mx = bx + (tx - bx) * 0.55, my = by + (ty - by) * 0.55;
+      strut(R.bar, i * 2 + j, bx, y0 + by * Yv, z + off, mx, y0 + my * Yv, z + off);
+      strut(R.ram, i * 2 + j, mx, y0 + my * Yv, z + off, tx, y0 + ty * Yv, z + off);
+    }
+    place(R.pan, i, ac, y0, z, 1, Yv, 1);
+    place(R.gob, i, ref - 19.6, y0, z, 1, Yv, 1);
+    { const ax = ref - 9.6, bx = ac - 4.4, len = Math.max(0.2, bx - ax); place(R.relay, i, ax + len / 2, y0 + 0.55 * Yv, z, len, Yv, 1); }
+    if (cut.n < k + 1 - 1e-6) place(R.coalStrip, i, fc + WEB / 2, y0 + 3.5 * Yv, z, 1, Yv, 1); else hide(R.coalStrip, i);
   }
-  // the caved roof behind the shields: blocks on a fixed grid, shown where the shields have moved on
-  const kk = Math.floor((Math.min(...shieldH) - 19 - a0) / ROCK_DH);
-  let idx = 0;
-  for (let r = 0; r < ROCK_ROWS; r++) for (let c = 0; c < NSH * 2; c++, idx++) {
-    const cell = kk - r, hc = a0 + cell * ROCK_DH, ii = Math.floor(c / 2);
-    let hsh = (cell * 92821 + c * 68917) % 1000 / 1000; const rr = () => (hsh = (hsh * 9301 + 0.4927) % 1);
-    const hh = hc + rr() * ROCK_DH, d = b0 + (c + rr()) * SHW / 2;
-    if (hh > shieldH[ii] - 19.5 || cell < 0) { place(imRock, idx, 0, -1e5, 0, 0, 0, 0); continue; }
-    const sz = 0.6 + rr() * 1.6, depth = shieldH[ii] - 19.5 - hh, pile = Math.min(1, depth / 40);
-    const yy = rr() * (1.5 + 4 * pile) + sz * 0.5;
-    _e.set(rr() * 6, rr() * 6, rr() * 6); _q.setFromEuler(_e); _p.set(hh, yAt(hh, d, 0) + yy * Yv, -d); _s.set(sz * (0.8 + rr() * 0.6), sz * 0.6 * Yv, sz * (0.8 + rr() * 0.6));
-    imRock.setMatrixAt(idx, _m.compose(_p, _q, _s));
+  R.force = false;
+  // coal bed on the pans between the shearer and the headgate
+  const loadFrom = Math.max(b0, S_.d - 26);
+  for (let i = 0; i < NSH; i++) { const d = b0 + (i + 0.5) * SHW; if (d > loadFrom) place(R.coalBed, i, R.afcX[i] - 2.05, R.y0[i] + 1.12 * Yv, -d, 1, Yv, 1); else hide(R.coalBed, i); }
+  // flight bars and coal lumps, moving with the chain towards the headgate
+  chainOff = (chainOff + run * vChain) % FACE_W;
+  for (let f = 0; f < R.NFL; f++) { const d = b0 + ((f * 3.3 + chainOff) % FACE_W), ii = idx(d); place(R.flight, f, R.afcX[ii] - 2.05, R.y0[ii] + 1.12 * Yv, -d, 1, Yv, 1); }
+  const spL = FACE_W / R.NL;
+  for (let i = 0; i < R.NL; i++) {
+    const d = b0 + ((i * spL + chainOff + hsh(i, 1) * spL) % FACE_W);
+    if (d < loadFrom) { hide(R.lump, i); continue; }
+    const ii = idx(d), lat = -3.2 + 2.3 * hsh(i, 2), sz = 0.28 + 0.5 * hsh(i, 4) ** 2, hgt = 1.25 + (1 - ((lat + 2.05) / 1.3) ** 2) * 0.55 * hsh(i, 5);
+    place(R.lump, i, R.afcX[ii] + lat, R.y0[ii] + hgt * Yv, -d, sz, sz * 0.75, sz, hsh(i, 6) * 6, hsh(i, 7) * 6);
   }
-  for (const m of [imBase, imCanopy, imCave, imLemn, imBarrel, imRam, imPan, imSpill, imRelay, imCoal, imRock]) m.instanceMatrix.needsUpdate = true;
-  // the shearer rides on the conveyor; the leading drum cuts the roof coal, the trailing drum the floor coal
-  const d = S_.d, afcS = a0 + WEB * advanced(d, s, k, LAG_AFC, RAMP_AFC).n, y0 = yAt(afcS, d, 0);
-  shearer.position.set(afcS, y0, -d); shearer.scale.set(1, Yv, 1);
-  const dirN = S_.north ? 1 : -1;
-  for (const [ai, arm] of arms.entries()) {
+  // --- shearer, riding on the conveyor; the leading drum cuts the roof coal, the trailing drum the floor coal
+  const d = S_.d, si = idx(d), afcS = a0 + WEB * advanced(d, s, k, LAG_AFC, RAMP_AFC).n, y0 = yAt(afcS, d, 0);
+  R.shearer.position.set(afcS, y0, -d); R.shearer.scale.set(1, Yv, 1);
+  const drumW = [];
+  for (const [ai, arm] of R.arms.entries()) {
     const sgn = ai === 0 ? -1 : 1, lead = sgn === -dirN;                         // the arm towards the travel direction leads (z = -d, so north is -z)
-    const yc = lead ? 7 - 2.75 : 2.75, ang = Math.asin(Math.max(-1, Math.min(1, (yc - 2.4) / 9.5)));
+    const yc = lead ? 7 - 2.75 : 2.75, ang = Math.asin(Math.max(-1, Math.min(1, (yc - 2.6) / 9.5)));
     arm.rotation.x = (sgn > 0 ? -1 : 1) * ang;
-    drums[ai].spin.rotation.x = (now / 1000) * 6.3 * (lead ? 1 : -1);
-    drums[ai].g.rotation.x = -arm.rotation.x;
+    R.drums[ai].spin.rotation.x += run * 6.3 * (lead ? 1 : -1);
+    R.drums[ai].g.rotation.x = -arm.rotation.x;
+    drumW.push({ x: afcS + 1.75, y: yc, z: -d + sgn * (15.8 + 9.5 * Math.cos(ang)), lead });
   }
-  machineState = { d, afcS, y0, ref: shieldH[Math.min(NSH - 1, Math.max(0, Math.floor((d - b0) / SHW)))], S_ };
-  // labels
-  const lab = [[afcS - 2, y0 + 5.6 * Yv, -d], null, null, null, null];
-  const iBehind = Math.min(NSH - 1, Math.max(0, Math.floor((d - b0) / SHW) - dirN * 12)), dB = b0 + (iBehind + 0.5) * SHW;
-  lab[1] = [shieldH[iBehind] - 9, yAt(shieldH[iBehind], dB, 0) + 7.6 * Yv, -dB];
-  const iA = Math.min(NSH - 1, Math.max(0, Math.floor((d - b0) / SHW) - dirN * 22)), dA = b0 + (iA + 0.5) * SHW;
-  lab[2] = [a0 + WEB * advanced(dA, s, k, LAG_AFC, RAMP_AFC).n - 2, yAt(shieldH[iA], dA, 0) + 1.2 * Yv, -dA];
-  const iC = Math.min(NSH - 1, Math.max(0, Math.floor((d - b0) / SHW) + dirN * 10)), dC = b0 + (iC + 0.5) * SHW;
-  lab[3] = [a0 + WEB * advanced(dC, s, k, -25, 0).n + 0.5, yAt(shieldH[iC], dC, 0) + 7.2 * Yv, -dC];
-  lab[4] = [shieldH[iBehind] - 45, yAt(shieldH[iBehind], dB, 0) + 6 * Yv, -dB];
-  mLabels.forEach((o, i) => o.position.set(...lab[i]));
+  // water sprays from the arms onto the drums
+  drumW.forEach((dw, j) => {
+    const sz = Math.sign(dw.z + d) || 1, ang = sz > 0 ? -Math.PI / 2 + 0.3 : Math.PI / 2 - 0.3;
+    for (let m = 0; m < 3; m++) {
+      const fl = 0.85 + 0.3 * Math.sin(now * 0.02 + m * 2 + j), sp = playing ? 1 : 0.6;
+      _q.setFromEuler(_e.set(ang, 0, 0)); _p.set(dw.x - 1.4 + m * 1.3, y0 + (dw.y + 0.4) * Yv, dw.z - sz * 3.6); _s.set(1.2 * fl * sp, 3.0 * sp, 1.2 * fl * sp);
+      R.spray.setMatrixAt(j * 3 + m, _m.compose(_p, _q, _s));
+    }
+  });
+  // trailing cable: fixed in the trough from mid-face to the loop, then moving with the shearer
+  { const mid = (b0 + b1) / 2, loop = (mid + d) / 2, ax = R.afcX[idx(loop)] - 4.7, y = R.y0[idx(loop)];
+    place(R.cable, 0, ax, y + 2.3 * Yv, -(mid + loop) / 2, 1, Yv, Math.abs(loop - mid) + 0.1);
+    place(R.cable, 1, ax, y + 2.78 * Yv, -(loop + d) / 2, 1, Yv, Math.abs(d - loop) + 0.1); }
+  // coal thrown from the drums onto the conveyor
+  if (run > 0) {
+    let nSp = Math.min(12, Math.round(run * 90 * Math.min(1, vShear / 20 + 0.4)));
+    while (nSp-- > 0) {
+      const j = R.fallS.findIndex(o => !o.on); if (j < 0) break;
+      const dw = drumW[Math.random() < 0.6 ? (drumW[0].lead ? 0 : 1) : (drumW[0].lead ? 1 : 0)], f = Math.random;
+      R.fallS[j] = { on: true, x: dw.x - 1.2 + f() * 2.2, y: dw.y + (f() - 0.6) * 2.6, z: dw.z + (f() - 0.5) * 4.5, vx: -(3 + f() * 5), vy: f() * 3 - 0.5, vz: (f() - 0.5) * 3, t: 0, sz: 0.25 + f() * 0.45, landed: -1 };
+    }
+  }
+  for (let j = 0; j < R.NF; j++) {
+    const o = R.fallS[j]; if (!o.on) { hide(R.fall, j); continue; }
+    o.t += run;
+    if (o.landed < 0) {
+      o.vy -= 32 * run; o.x += o.vx * run; o.y += o.vy * run; o.z += o.vz * run; const ii = idx(-o.z);
+      if (o.x < R.afcX[ii] - 3.3) { o.x = R.afcX[ii] - 3.3; o.vx = 0; }
+      if (o.y < 1.25) { o.y = 1.25; o.landed = o.t; }
+    } else { o.z -= vChain * run; if (o.t - o.landed > 0.6) { o.on = false; hide(R.fall, j); continue; } }
+    const ii = idx(-o.z); place(R.fall, j, o.x, R.y0[ii] + o.y * Yv, o.z, o.sz, o.sz, o.sz, o.t * 7, o.t * 5);
+  }
+  // --- caved rock behind the shields: blocks on a fixed grid, shown where the shields have moved on (recomputed only when they move)
+  let minSh = 1e9; for (let i = 0; i < NSH; i++) minSh = Math.min(minSh, R.shieldH[i]);
+  const rk = R.shieldH[0] + ':' + minSh + ':' + R.shieldH[NSH - 1] + ':' + Math.round(S_.d / 20) + ':' + Yv;
+  if (rk !== R.rockKey) {
+    R.rockKey = rk;
+    const kk = Math.floor((minSh - 19 - a0) / R.ROCK_DH); let n = 0;
+    for (let r = 0; r < R.ROCK_ROWS; r++) for (let c = 0; c < NSH * 2; c++, n++) {
+      const cell = kk - r, hc = a0 + cell * R.ROCK_DH, ii = Math.floor(c / 2);
+      let hs_ = (cell * 92821 + c * 68917) % 1000 / 1000; const rr = () => (hs_ = (hs_ * 9301 + 0.4927) % 1);
+      const hh = hc + rr() * R.ROCK_DH, dd = b0 + (c + rr()) * SHW / 2;
+      if (hh > R.shieldH[ii] - 19.8 || cell < 0) { hide(R.rock, n); continue; }
+      const sz = 0.45 + rr() ** 1.6 * 2.3, depth = R.shieldH[ii] - 19.8 - hh, base_ = 0.7 + 2.8 * smooth(depth / 45);
+      const yy = base_ - 0.4 + rr() * 0.8 + sz * 0.15;
+      _e.set((rr() - 0.5) * 1.1, rr() * 6, (rr() - 0.5) * 1.1); _q.setFromEuler(_e); _p.set(hh, yAt(hh, dd, 0) + yy * Yv, -dd); _s.set(sz * (0.9 + rr() * 0.9), sz * (0.3 + rr() * 0.25) * Yv, sz * (0.7 + rr() * 0.7));
+      R.rock.setMatrixAt(n, _m.compose(_p, _q, _s));
+    }
+    R.rock.instanceMatrix.needsUpdate = true;
+  }
+  // falling rock and dust
+  for (let j = 0; j < R.NFR; j++) {
+    const o = R.frS[j]; if (!o.on) { hide(R.frock, j); continue; }
+    o.t += run;
+    if (o.down < 0) {
+      o.vy -= 32 * run; o.x += o.vx * run; o.y += o.vy * run; o.z += o.vz * run; o.rx += o.w * run;
+      if (o.y < o.land) { o.y = o.land; o.down = o.t; if (o.big || Math.random() < 0.35) spawnDust(o.x, o.y, o.z, o.big ? 3.5 : 1.8); }
+    }
+    const age = o.down < 0 ? 0 : o.t - o.down, fade = age > 2.5 ? Math.max(0, 1 - (age - 2.5)) : 1;
+    if (fade <= 0) { o.on = false; hide(R.frock, j); continue; }
+    _e.set(o.rx, o.ry, 0); _q.setFromEuler(_e); const ii = idx(-o.z);
+    _p.set(o.x, R.y0[ii] + (o.y - (1 - fade) * 0.8) * Yv, o.z); _s.set(o.sx * fade, o.sy * fade * Yv, o.sz * fade); R.frock.setMatrixAt(j, _m.compose(_p, _q, _s));
+  }
+  for (let j = 0; j < R.NDU; j++) {
+    const o = R.duS[j]; if (!o.on) { hide(R.dust, j); continue; }
+    o.t += run; if (o.t > 1.6) { o.on = false; hide(R.dust, j); continue; }
+    const sc = o.size * (0.4 + o.t * 0.9), ii = idx(-o.z);
+    place(R.dust, j, o.x, R.y0[ii] + (o.y + o.t * 0.8) * Yv, o.z, sc, sc * 0.6, sc);
+  }
+  R.floor.scale.y = Yv;
+  // --- gate ends
+  const acH = R.afcX[NSH - 1], acT = R.afcX[0];
+  R.head.position.set(acH, yAt(acH, b1, 0), -b1); R.head.scale.y = Yv;
+  R.tail.position.set(acT, yAt(acT, b0, 0), -b0); R.tail.scale.y = Yv;
+  const yH = yAt(acH, HG[0], 0);
+  R.sl.position.set(acH, yH, -HG[0]); R.sl.scale.y = Yv;
+  R.train.position.set(acH + 225, yAt(acH + 225, HG[1], 0), -HG[1]); R.train.scale.y = Yv;
+  const bStart = acH + 178, bLen = Math.max(10, Math.min(1500, a1 + 600 - bStart));
+  R.belt.position.set(bStart, yAt(bStart, HG[0], 0), -HG[0]); R.belt.scale.set(bLen, Yv, 1);
+  { let n = 0; for (let x = Math.ceil(bStart / 5) * 5; x < bStart + bLen && n < R.NID; x += 5, n++) place(R.idler, n, x, yAt(x, HG[0], 0), -HG[0], 1, Yv, 1); for (; n < R.NID; n++) hide(R.idler, n); }
+  { let n = 0; for (const [hc, dm] of R.stopG) { if (hc < acH + 15 || hc > acH + 1700 || n >= 24) continue; place(R.stop, n++, hc, yAt(hc, dm, 0), -dm, 1, Yv, 1); } for (; n < 24; n++) hide(R.stop, n); }
+  { let n = 0; const st = 7;
+    for (let x = Math.ceil((acT - 60) / st) * st; x < acT + 760 && n < R.NCAN - 1; x += st) for (const dd of [TG[0] - 4.2, TG[0] + 4.2]) {
+      const crushed = x < acT - 22, j = Math.round(x / st) * 2 + (dd > TG[0] ? 1 : 0);
+      place(R.cans, n++, x + (hsh(j, 9) - 0.5) * 1.2, yAt(x, dd, 0), -dd, 1, (crushed ? 0.55 : 1) * Yv, 1, crushed ? (hsh(j, 10) - 0.5) * 0.5 : 0, crushed ? (hsh(j, 13) - 0.5) * 0.4 : 0); }
+    for (; n < R.NCAN; n++) hide(R.cans, n); }
+  // coal on the stageloader and the belt, out towards the mains
+  beltOff = (beltOff + run * vChain) % 1e6;
+  { const L1 = 152, L = L1 + bLen, sp = L / R.NB;
+    for (let i = 0; i < R.NB; i++) {
+      const sx = (i * sp + beltOff + hsh(i, 14) * sp) % L, onBelt = sx > L1 + 26;
+      const x = acH - 2 + sx + (onBelt ? (sx - L1 - 26) * 0.35 : 0);
+      if (x > bStart + bLen) { hide(R.blump, i); continue; }
+      const yy = onBelt ? 2.95 : 1.65 + (sx > 118 ? Math.min(1.7, (sx - 118) / 32 * 1.7) : 0), lat = (hsh(i, 15) - 0.5) * (onBelt ? 1.6 : 2.4), sz = 0.3 + 0.45 * hsh(i, 16);
+      place(R.blump, i, x, yAt(x, HG[0], 0) + yy * Yv, -HG[0] + lat, sz, sz * 0.7, sz, hsh(i, 17) * 6, hsh(i, 18) * 6);
+    } }
+  // --- miners (walkway between the shield legs and the spill plate; gate roads)
+  const walk = dd => { const ii = idx(dd); return [R.afcX[ii] - 7.0, R.y0[ii]]; };
+  const people = [];
+  const clampD = v => Math.min(b1 - 6, Math.max(b0 + 6, v));
+  { const d1 = clampD(d + 30), [x1, y1] = walk(d1); people.push([x1, y1, -d1, Math.PI]); }             // shearer operators, upwind (headgate side)
+  { const d2 = clampD(d + 54), [x2, y2] = walk(d2); people.push([x2, y2, -d2, Math.PI]); }
+  { const d3 = clampD(d - dirN * (LAG_SH + 6)), [x3, y3] = walk(d3); people.push([x3, y3, -d3, dirN > 0 ? Math.PI : 0]); }   // shield operator
+  { const per = 2 * 360 / 2.6, u = (simT % per) / per, tri = u < 0.5 ? u * 2 : 2 - u * 2, d4 = clampD(b1 - 30 - tri * 360), [x4, y4] = walk(d4);  // foreman
+    people.push([x4, y4, -d4, u < 0.5 ? 0 : Math.PI]); }
+  people.push([acH + 22, yAt(acH + 22, HG[0] + 5.8, 0), -(HG[0] + 5.8), Math.PI / 2 + 0.6]);              // headgate operator by the crusher
+  people.push([acH + 238, yAt(acH + 238, HG[1] - 5.2, 0), -(HG[1] - 5.2), Math.PI]);                      // electrician at the power centre
+  { const per = 2 * 420 / 2.4, u = (simT % per) / per, tri = u < 0.5 ? u * 2 : 2 - u * 2, x = acH + 200 + tri * 420;    // belt examiner
+    people.push([x, yAt(x, HG[0] + 6.2, 0), -(HG[0] + 6.2), u < 0.5 ? Math.PI / 2 : -Math.PI / 2]); }
+  people.push([acT + 5, yAt(acT + 5, TG[0] + 2, 0), -(TG[0] + 2), Math.PI]);                               // tailgate
+  { const half = 560 / 7 + 6, u = simT % (2 * half), tt = u < half ? u : 2 * half - u, pos = Math.min(1, Math.max(0, (tt - 3) / (half - 6))), x = acH + 60 + pos * 560;
+    const yS = yAt(x, HG[1], 0); R.scoop.position.set(x, yS, -HG[1]); R.scoop.scale.y = Yv;           // scoop and its driver
+    people.push([x - 5, yS + 0.9 * Yv, -HG[1] + 1.6, Math.PI / 2, true]); }
+  for (let j = 0; j < R.NP; j++) {
+    const P = people[j]; if (!P) { hide(R.wBody, j); hide(R.wLeg, j * 2); hide(R.wLeg, j * 2 + 1); continue; }
+    const [x, y, z, yaw, seated = false] = P, pv = R.wPrev[j];
+    const step = pv.set ? Math.hypot(x - pv.x, z - pv.z) : 0, v = run > 0 ? step / run : 0;
+    pv.x = x; pv.z = z; pv.set = true;
+    if (v < 9) pv.ph += Math.min(step, 3) / 2.4 * Math.PI; else pv.ph = 0.9;
+    const sw = seated ? 0 : (v > 0.2 ? Math.sin(pv.ph) * 0.45 : 0);
+    _q.setFromEuler(_e.set(0, yaw, 0)); _p.set(x, y, z); _s.set(1, 1, 1); R.wBody.setMatrixAt(j, _m.compose(_p, _q, _s));
+    for (const [l, side] of [[0, -1], [1, 1]]) {
+      _v.set(side * 0.3, 2.9, 0).applyQuaternion(_q); _p.set(x + _v.x, y + _v.y, z + _v.z);
+      _q2.setFromEuler(_e.set(seated ? -1.4 : side * sw, 0, 0)); _q2.premultiply(_q);
+      R.wLeg.setMatrixAt(j * 2 + l, _m.compose(_p, _q2, _s));
+    }
+  }
+  // --- the section beside the shearer, on the side away from the viewer (or where there is room for it in the panel)
+  const sect = R.sect; sect.visible = layerOn.rock !== false;
+  R.secInfo = null;
+  if (sect.visible) {
+    let side = camera.position.z < -d ? -1 : 1;                  // the camera is on the larger-d side -> the section goes to the smaller-d side
+    const room = sd => sd > 0 ? b1 - (d + 30) : (d - 30) - b0;
+    if (room(side) < SEC.W * 0.6) side = -side;
+    const dP = d + side * 30, dMid = Math.min(b1 - 1, Math.max(b0 + 1, dP + side * SEC.W / 2)), iw = idx(dMid);
+    const fcw = a0 + WEB * advanced(dMid, s, k, -25, 0).n, caveW = R.shieldH[iw] - 19.5, CL = caveW - fcw;
+    const ys = yAt(fcw, dP, 0), slope = (seam(fcw + 50, dP) - seam(fcw - 50, dP)) / 100 * Yv;
+    sect.position.set(fcw, ys, -dP); sect.scale.set(1, Yv, side > 0 ? -1 : 1); sect.rotation.set(0, 0, Math.atan(slope));
+    R.lowUnit.position.x = CL; R.lowUnit.scale.x = SEC.AHEAD - CL;
+    // the roof beds hang behind the shields and break off as the face moves on (periodic weighting)
+    for (const [m, P, omin, yb, u] of [[R.hang1, SEC.P1, 1.2, 8.2, 0], [R.hang2, SEC.P2, 5, 16, 1]]) {
+      const ph = (caveW - a0) / P, nb = Math.floor(ph), O = omin + (ph - nb) * P;
+      m.position.set(CL, yb, 0); m.scale.x = O; m.rotation.z = -0.012 * (O / P);
+      if (R.lastBreak[u] !== null && nb > R.lastBreak[u] && playing && nb - R.lastBreak[u] < 3)
+        for (const pc of R.pieces) if (pc.u === u) { pc.on = true; pc.t = -pc.zi * 0.18; pc.xw = caveW - omin; pc.len = P; pc.yb = yb; }
+      R.lastBreak[u] = nb;
+    }
+    for (const pc of R.pieces) {
+      if (!pc.on) { pc.m.visible = false; continue; }
+      pc.t += run; const t = Math.max(0, pc.t);
+      const rot = Math.min(0.35, t * t * 1.2), drop = t > 0.45 ? 16 * (t - 0.45) ** 2 : 0, xl = pc.xw - fcw;
+      const bottom = pc.yb - Math.min(drop, pc.yb - fillTop(pc.len / 2) + (pc.u ? 6 : 2)), fade = t > 1.6 ? Math.max(0, 1 - (t - 1.6) / 1.2) : 1;
+      if (fade <= 0) { pc.on = false; pc.m.visible = false; continue; }
+      pc.m.visible = true; pc.m.position.set(xl, bottom - (1 - fade) * 3, pc.zi * SEC.W / 3); pc.m.scale.set(pc.len, Math.max(0.05, fade), 1); pc.m.rotation.z = rot;
+    }
+    // caved rock and cracks, anchored to the ground (world x), so they stay put as the face moves away
+    let n = 0; const cw = 2.8;
+    const xs0 = Math.floor((fcw - SEC.BACK) / cw), xs1 = Math.floor(caveW / cw);
+    for (let ix = xs1; ix >= xs0 && n < R.NSR; ix--) {
+      const xw = ix * cw + hsh(ix, 20) * 0.8, xp = caveW - xw; if (xp < 0) continue;
+      const top = fillTop(xp);
+      const nb = Math.ceil(top / 1.7);
+      for (let iy = 0; iy < nb && n < R.NSR; iy++) {
+        const r1 = hsh(ix * 31 + iy, 21), r2 = hsh(ix * 17 + iy, 22), r3 = hsh(ix * 7 + iy, 23), r4 = hsh(ix * 13 + iy, 24);
+        const big = r4 < 0.18 && xp > 8, w = big ? 3 + r2 * 4 : 0.7 + r2 * 2.6, hh = big ? 0.9 + r3 * 1.4 : 0.4 + r3 * 1.3;
+        const ys_ = Math.min(top - hh * 0.3, (iy + r1) * top / nb);
+        place(R.srock, n++, xw - fcw + (r4 - 0.5) * 2.2, ys_, 0.3 + r3 * 2.8, w, hh, 0.8 + r1 * 2.6, (r1 - 0.5) * 1.6, (r2 - 0.5) * 1.2, (r3 - 0.5) * 1.4);
+      }
+    }
+    for (; n < R.NSR; n++) hide(R.srock, n);
+    n = 0;
+    for (const [yb, yt] of [[30, 44], [44, 48], [48, 59]]) {
+      const c0 = Math.floor((fcw - SEC.BACK) / 6.5), c1 = Math.floor((caveW - sag0(yb) + 4) / 6.5);
+      for (let c = c0; c <= c1 && n < R.NCR; c++) {
+        const xw = c * 6.5 + hsh(c, yb) * 3, xp = caveW - xw; if (xp < sag0(yb) - 4) continue;
+        const sg = sagAt(yb, xp), op = Math.min(1, (xp - sag0(yb) + 4) / 30);
+        place(R.crack, n++, xw - fcw, (yb + yt) / 2 - sg, 0.4, 0.12 + 0.3 * op, (yt - yb) * (0.5 + 0.45 * hsh(c, yb + 1)), 1.2, (hsh(c, yb + 2) - 0.5) * 0.4);
+      }
+    }
+    for (; n < R.NCR; n++) hide(R.crack, n);
+    R.secInfo = { CL, fcw };
+  }
+  for (const im of [R.gob, R.base, R.canopy, R.spr, R.cav, R.lem, R.bar, R.ram, R.pan, R.relay, R.coalStrip, R.coalBed, R.flight, R.lump, R.fall, R.blump, R.frock, R.dust, R.spray, R.cable, R.idler, R.stop, R.cans, R.wBody, R.wLeg, R.srock, R.crack]) im.instanceMatrix.needsUpdate = true;
+  machineState = { d, afcS, y0, ref: R.shieldH[si], S_ };
+  // labels: only those near the view
+  const lab = [];
+  lab[0] = [afcS - 2, y0 + 5.6 * Yv, -d];
+  const iB = idx(d - dirN * 12 * SHW), dB = b0 + (iB + 0.5) * SHW;
+  lab[1] = [R.shieldH[iB] - 9, R.y0[iB] + 7.6 * Yv, -dB];
+  const iA = idx(d - dirN * 22 * SHW), dA = b0 + (iA + 0.5) * SHW;
+  lab[2] = [R.afcX[iA] - 2, R.y0[iA] + 1.2 * Yv, -dA];
+  if (R.secInfo) {
+    const loc = (x, y) => { _v.set(x, y, SEC.W * 0.3); sect.localToWorld(_v); return [_v.x, _v.y, _v.z]; };
+    lab[3] = loc(40, 3.5); lab[4] = loc(40, 38); lab[5] = loc(R.secInfo.CL - 75, 16);
+  } else {
+    const iC = idx(d + dirN * 10 * SHW), dC = b0 + (iC + 0.5) * SHW;
+    lab[3] = [a0 + WEB * (k + 1) + 6, R.y0[iC] + 6 * Yv, -dC]; lab[4] = null; lab[5] = [R.shieldH[iB] - 45, R.y0[iB] + 6 * Yv, -dB];
+  }
+  lab[6] = [people[0][0], people[0][1] + 6.4, people[0][2]];
+  lab[7] = [acH + 34, yH + 5.5 * Yv, -HG[0]];
+  lab[8] = [acT + 4, yAt(acT, TG[0], 0) + 7.5 * Yv, -TG[0]];
+  const tgt = controls.target;
+  mLabels.forEach((o, i) => {
+    const L_ = lab[i], near = L_ && Math.hypot(L_[0] - tgt.x, L_[2] - tgt.z) < 420;
+    const on = machine.visible && layerOn.labels && !!near;
+    o.visible = on; if (!on) o.element.style.display = 'none'; else o.position.set(...L_);
+  });
 }
 function showMachine(on) {
-  machine.visible = on;
-  for (const o of mLabels) { o.visible = on && layerOn.labels; if (!o.visible) o.element.style.display = 'none'; }
+  if (on && !M_) { M_ = buildMachine(); if (colReal) setPalette('real'); }
+  const was = machine.visible; machine.visible = on && !!M_;
+  if (!machine.visible) for (const o of mLabels) { o.visible = false; o.element.style.display = 'none'; }
+  if (M_ && machine.visible && !was) M_.force = true;
 }
 
 function buildAll() { SU.uY0.value = Y(560); SU.uY1.value = Y(980); clearLayers(); buildGround(); buildTrees(); buildLines(); buildBuilt(); buildBox(); buildPanel(); buildCracks(); buildGates(); buildNeigh(); buildLabels(); if (typeof setTime === 'function' && faceGroup !== undefined) setTime(tPos); }
@@ -1120,7 +1733,7 @@ const gIn = document.getElementById('ground'), gOut = document.getElementById('g
 gIn.oninput = () => {
   const v = +gIn.value; groundMat.opacity = v; groundMat.depthWrite = v > 0.97;
   treeMat.opacity = Math.min(1, v * 1.05); treeMat.depthWrite = v > 0.97;
-  slabMat.opacity = 0.28 + (1 - v) * 0.55;
+  slabMat.opacity = 0.28 + (1 - v) * 0.55; coalSlabMat.opacity = 0.34 + (1 - v) * 0.5;
   gOut.textContent = v > 0.97 ? 'solid' : Math.round((1 - v) * 100) + '% clear';
 };
 
@@ -1129,7 +1742,7 @@ const ve1 = document.getElementById('ve1'), ve3 = document.getElementById('ve3')
 function setVE(v) {
   if (v === VE) return;
   const r = v / VE, dy = controls.target.y * (r - 1);
-  VE = v; buildAll();
+  VE = v; if (M_) { M_.force = true; M_.rockKey = ''; } buildAll();
   controls.target.y += dy; camera.position.y += dy; controls.update();
   ve1.setAttribute('aria-pressed', v === 1); ve3.setAttribute('aria-pressed', v !== 1);
   vecap.textContent = v === 1 ? '' : `  Heights exaggerated ${v}× (trees and buildings not).`;
@@ -1144,10 +1757,11 @@ for (const box of document.querySelectorAll('#layers input')) {
     if (n === 'labels') document.getElementById('labels').style.display = box.checked ? '' : 'none';
     if (n === 'neigh') { setLayerVis('neighIn', !box.checked); resetSteps(); }
     if (n === 'sink') { setLayerVis('sinkC', box.checked); setTime(tPos); }
+    if (n === 'rock') setTime(tPos);
   };
 }
 
-if (new URLSearchParams(location.search).has('debug')) window.__p75 = { view, views, setVE, layers, camera, controls, W, zg, tgt0, setTime, setShearMode, play, layerOn, setLayerVis, SU, STEPS: () => STEPS, get tPos() { return tPos; } };
+if (new URLSearchParams(location.search).has('debug')) window.__p75 = { get M() { return M_; }, state: () => machineState, upd: () => updateMachine(faceH('75', tPos), performance.now()), faceH, a0, WEB, setPass: v => { passSeconds = v; }, setPalette, view, views, setVE, layers, camera, controls, W, zg, tgt0, setTime, setShearMode, play, layerOn, setLayerVis, SU, STEPS: () => STEPS, get tPos() { return tPos; } };
 // house -> parcel links: switched off for now (Julian, 23 Nov 2026); set to true to bring them back
 const PARCEL_LINKS = false;
 const tip = document.getElementById('tip'), ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
@@ -1192,11 +1806,14 @@ renderer.setAnimationLoop((now) => {
   tick(now);
   SU.uTime.value = now / 1000; SU.uPulse.value = playing && !shearMode && !reduceMotion ? 1 : 0;
   // close-up: the camera travels with the shearer (the view can still be turned and zoomed)
+  if (shearMode && machine.visible && !playing) updateMachine(faceH('75', tPos), now);
   if (shearMode && machine.visible) {
     const p = shearerWorld();
     if (p && followAt) { const dlt = p.clone().sub(followAt); controls.target.add(dlt); camera.position.add(dlt); }
     followAt = p;
   } else followAt = null;
+  XR.uXR.value = shearMode && machine.visible ? 14 + 0.05 * camera.position.distanceTo(controls.target) : 0;
+  if (XR.uXR.value > 0) { XR.uCam.value.copy(camera.position); XR.uTgt.value.copy(controls.target); }
   controls.update(); renderer.render(scene, camera); labelRenderer.render(scene, camera);
   if (layerOn.labels && (frame++ % 6 === 0)) declutter();
 });

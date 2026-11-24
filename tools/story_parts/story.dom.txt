@@ -1,0 +1,7 @@
+<div id="map2d" aria-hidden="true"></div>
+<div id="dim"></div>
+<div id="progress"><div id="progbar"></div><span id="progpart"></span></div>
+<div id="readout" hidden></div>
+<main id="story" aria-label="Panel 75: the story"></main>
+<button id="next" type="button" aria-label="Next step">↓</button>
+<div id="mapx" hidden><iframe title="Who owns Greene County: the county map" loading="lazy"></iframe><button type="button">Close map ✕</button></div>
