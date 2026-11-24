@@ -478,11 +478,11 @@ map.on('mousemove','fill',e=>{
  const p=e.features[0].properties;map.getCanvas().style.cursor='pointer';
  if(hov!==p.i){if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=p.i;map.setFeatureState({source:'parcels',id:hov},{hover:true});}
  const nm=isPerson(p.o)&&!SHOW_PRIVATE_NAMES?'Private owner':title(p.o);
- tip.innerHTML=`${esc(nm)} <small>· ${esc(acresTxt(p.a))}</small>`;
+ tip.innerHTML=p.i?`${esc(nm)} <small>· ${esc(acresTxt(p.a))}</small>`:'<small>No county record for this shape</small>';
  const r=map.getContainer().getBoundingClientRect();tip.style.left=(r.left+e.point.x)+'px';tip.style.top=(r.top+e.point.y)+'px';tip.style.display='block';
 });
 map.on('mouseleave','fill',()=>{map.getCanvas().style.cursor='';tip.style.display='none';if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=null;});
-map.on('click','fill',e=>select(e.features[0].properties.i,false));
+map.on('click','fill',e=>{const i=e.features[0].properties.i;if(i)select(i,false)});
 
 // ---------- side panel: search and jump-to ----------
 const items=document.getElementById('items'),q=document.getElementById('q');
@@ -514,7 +514,7 @@ function detailFor(pid){const k=Math.floor(+pid/500);if(!chunkCache[k])chunkCach
 const list=document.getElementById('list'),detail=document.getElementById('detail'),body=document.getElementById('body');
 const TAG={I:'Coal company',C:'Coal company',O:'Coal company',G:'Pennsylvania Game Commission',GC:'Pennsylvania Game Commission',N:''};
 async function select(pid,fly){
- const f=byPid[pid];if(!f)return;sel=pid;const p=f.properties;
+ if(!pid)return;const f=byPid[pid];if(!f)return;sel=pid;const p=f.properties;
  if(map.getLayer('sel'))map.setFilter('sel',['==',['get','i'],pid]);
  if(fly)map.fitBounds(bboxOf(f.geometry),{padding:80,maxZoom:17,duration:reduce?0:700});
  history.replaceState(null,'','#'+pid);
