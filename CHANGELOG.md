@@ -2,6 +2,9 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v2.0.1 (24 Nov 2026)
+- Property map: clicking one of the 298 parcel shapes that have no county record no longer opens an empty panel; the tooltip says there is no county record.
+
 ## v2.0 (24 Nov 2026): the property map covers all of Greene County
 - /map/ is now "Who owns Greene County?": all 29,117 mapped parcels in the county, opening on the whole county (the village view is at /map/#oak-forest). Replaces the village-only map (v1.0–v1.8.1); the old version stays in this repository's history (commit 0e80dd0, file map/index.html) and can be restored.
 - Colours match the county figures: CONSOL / Core and affiliates (blue), Iron Senergy and predecessors (orange), other coal companies including Duquesne Light's Warwick Mine land (mauve); Pennsylvania Game Commission land in green, darker where acquired directly from a coal company; other owners left clear. "Coal, outside village" merged into the company colours; Oak Forest marked by a dashed outline.
