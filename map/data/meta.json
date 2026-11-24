@@ -1,0 +1,21 @@
+{
+ "built": "2026-11-24T01:52:41",
+ "dataset": "v5.6",
+ "parcels": 29117,
+ "groups": {
+  "N": 27628,
+  "GC": 30,
+  "G": 176,
+  "C": 678,
+  "I": 423,
+  "O": 182
+ },
+ "mines": 22,
+ "panels": 523,
+ "minedout": 1,
+ "chunks": 95,
+ "with_mining_context": 17705,
+ "tax_calc_deeds": 7,
+ "simplify_ft": 4.0,
+ "precision": 5
+}

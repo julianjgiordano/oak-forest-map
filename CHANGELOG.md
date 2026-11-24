@@ -1,6 +1,17 @@
-# Change log: Oak Forest village map
+# Change log: Oak Forest project website
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
+
+## v2.0 (24 Nov 2026): the property map covers all of Greene County
+- /map/ is now "Who owns Greene County?": all 29,117 mapped parcels in the county, opening on the whole county (the village view is at /map/#oak-forest). Replaces the village-only map (v1.0–v1.8.1); the old version stays in this repository's history (commit 0e80dd0, file map/index.html) and can be restored.
+- Colours match the county figures: CONSOL / Core and affiliates (blue), Iron Senergy and predecessors (orange), other coal companies including Duquesne Light's Warwick Mine land (mauve); Pennsylvania Game Commission land in green, darker where acquired directly from a coal company; other owners left clear. "Coal, outside village" merged into the company colours; Oak Forest marked by a dashed outline.
+- Switches: mine permit areas (active solid, no longer active dashed), longwall panels (one colour), older mined-out areas, game lands. Base maps unchanged (Map / Topographic / Satellite).
+- "Coal purchases over time" replaces the "year a coal company bought it" colouring: a slider and play button (1940 to today) colour parcels as the county's sales records show coal companies buying them, with a stacked chart of coal-owned acres by company group.
+- Parcel panel: a one- or two-sentence plain-language summary (who bought it, when, from whom, acreage, price and how it is known, 2026-dollar equivalent, later transfers between affiliated companies, what the sellers had paid); facts incl. land use in plain words and mining context (permit area, share above longwall panels and years mined); every recorded sale shown as "from A to B" with a label for how the price is known (stated in the deed, calculated from the transfer tax, county record, one total for N parcels, $0 on file, nominal, between affiliated companies). Oak Forest parcels keep Julian's deed chains.
+- Search by owner or parcel number across the county; "Go to" Oak Forest, Waynesburg and the four operating mines.
+- Data: map/data/ (parcels.json, sales/s*.json loaded on click, mines, panels, mined-out areas, outlines), built by build_web_data.py in the Mac folder "Greene County Web Map/02_Scripts" from dataset v5.6, the coal-map and underground-mines GeoPackages and the village deed data. Owners' names shown as recorded (setting SHOW_PRIVATE_NAMES in map/index.html).
+- Landing page card, navigation labels ("Who owns Greene County") and the About page's property-map section and sources updated; new landing preview image (from Fig. 1 of the county figure series).
+- Not changed: Through Time, Panel 75 in 3D (only the navigation label).
 
 ## v1.8.1 (23 Nov 2026)
 - About page: new section "Coal-company land across the county" with the county-wide results (51,829.9 surface acres, 14.2% of listed surface acreage / 14.1% of the county's land; Iron Senergy and predecessors 4.4%), coal-rights figures, sources, procedure, difficult cases, acreage checks and limits, from the Greene County Coal-Company Land Ownership Dataset v5.6.

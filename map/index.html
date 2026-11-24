@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; connect-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
-<title>Oak Forest, Pennsylvania: Who Owns the Village?</title>
+<title>Who Owns Greene County? Coal-company land in Greene County, Pennsylvania</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="referrer" content="no-referrer-when-downgrade">
-<meta name="description" content="Coal companies own 26 of the 31 parcels in Oak Forest, a 150-year-old village in Greene County, Pennsylvania. An interactive map of who owns the land and how it changed hands.">
-<meta property="og:title" content="Oak Forest, Pennsylvania: Who Owns the Village?">
-<meta property="og:description" content="Coal companies own 26 of the village's 31 parcels. Explore how the land changed hands, deed by deed.">
+<meta name="description" content="Coal companies own about one in seven acres of Greene County, Pennsylvania. An interactive map of who owns the land, how it changed hands, and the mines beneath it.">
+<meta property="og:title" content="Who Owns Greene County?">
+<meta property="og:description" content="Coal companies own about one in seven acres of Greene County, Pennsylvania. Explore who owns each parcel and how it changed hands.">
 <meta property="og:image" content="https://oakforest.juliangiordano.com/og-image.png">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://oakforest.juliangiordano.com/map/">
@@ -18,51 +18,59 @@
 <link href="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.css" rel="stylesheet" integrity="sha384-uTttxo/aOKbdE5RlD/SPzSDoDmNvGlUYPjONi2MN/b7c9HPSvW07OIuyP7uL6jxK" crossorigin="anonymous">
 <script src="https://unpkg.com/maplibre-gl@5.24.1/dist/maplibre-gl.js" integrity="sha384-nXMl9YiLoSG5KBPTFgvxVuIqQQcqIvo0bFrvoEaGJC6r7IibIzF1S36Zbf/sKBtL" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/maplibre-contour@0.1.1/dist/index.min.js" integrity="sha384-f2gK0HoDkM64k6ZBnbv6ZuvMzDqPOwrfTaIU9iv2BN7CWHyyTQJkPC9AoRNuuV39" crossorigin="anonymous"></script>
-<script src="../data.js"></script>
 <link href="../assets/site.css" rel="stylesheet">
 <style>
-:root{--ink:#22201c;--muted:#6b665d;--line:#e4dfd4;--paper:#fbf9f4;--coal:#b8352a;--coal-dk:#7b1e14;--cream:#efe2c2;--cream-dk:#8a7550;--accent:#2c5d73;
- --y1:#67000d;--y2:#cb181d;--y3:#fb6a4a;
+:root{--ink:#22201c;--muted:#6b665d;--line:#e4dfd4;--paper:#fbf9f4;--accent:#2c5d73;
+ --iron:#D55E00;--consol:#0072B2;--other:#B79AAE;--game:#8fbf86;--gamec:#2e6b34;
  --serif:"Source Serif 4",Georgia,serif;--sans:Inter,system-ui,-apple-system,sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;color:var(--ink);font-family:var(--sans);font-size:14px}
-#map{position:absolute;inset:var(--nav-h) 0 0 380px}
-#side{position:absolute;top:var(--nav-h);left:0;bottom:0;width:380px;background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:2}
-header{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+#map{position:absolute;inset:var(--nav-h) 0 0 390px}
+#side{position:absolute;top:var(--nav-h);left:0;bottom:0;width:390px;background:var(--paper);border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:2}
+header{padding:16px 20px 12px;border-bottom:1px solid var(--line)}
 header h1{font-family:var(--serif);font-weight:600;font-size:23px;line-height:1.2;margin:0}
 .lede{margin:8px 0 0;font-family:var(--serif);font-size:15.5px;line-height:1.45}
-.lede b{color:var(--coal-dk)}
-.hrow{display:flex;gap:10px;align-items:center;margin-top:10px;font-size:12.5px}
+.hrow{display:flex;gap:12px;align-items:center;margin-top:8px;font-size:12.5px;flex-wrap:wrap}
 .linkbtn{font:inherit;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
 #sheetbtn{display:none}
 .controls{padding:10px 20px 12px;border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:9px}
 .ctl{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
-.ctl>span{width:62px;flex:none}
+.ctl>span.k{width:62px;flex:none}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden;background:#fff}
 .seg button{font:inherit;font-size:12.5px;border:0;background:none;padding:5px 10px;cursor:pointer;color:var(--muted)}
 .seg button.on{background:var(--ink);color:#fff}
 .seg button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
-.legend{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px;font-size:12.5px}
-.legend span{display:flex;align-items:center;gap:7px}
-.sw{width:15px;height:15px;border-radius:3px;flex:none;border:1.5px solid;display:inline-block}
-.hatch{background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.55) 0 2px,transparent 2px 5px)}
+.legend{display:flex;flex-direction:column;gap:4px;font-size:12.5px}
+.legend .r{display:flex;align-items:center;gap:8px}
+.legend .r em{font-style:normal;color:var(--muted);margin-left:auto;font-size:11.5px;font-variant-numeric:tabular-nums}
+.sw{width:15px;height:15px;border-radius:3px;flex:none;border:1.5px solid rgba(0,0,0,.35);display:inline-block}
+.layers{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12.5px}
+.layers label{display:flex;align-items:center;gap:6px;cursor:pointer}
+.layers input{margin:0;accent-color:var(--ink)}
+.lk{width:18px;height:10px;flex:none;display:inline-block}
+#anim{display:none;flex-direction:column;gap:6px}
+#anim .row{display:flex;align-items:center;gap:8px}
+#play{font:inherit;font-size:13px;border:1px solid var(--ink);background:var(--ink);color:#fff;border-radius:7px;padding:4px 10px;cursor:pointer;min-width:74px}
+#yr{font-family:var(--serif);font-size:26px;font-weight:600;font-variant-numeric:tabular-nums;min-width:66px}
+#slider{flex:1;accent-color:var(--ink)}
+#chart{width:100%;height:74px;display:block}
+.anote{font-size:11.5px;color:var(--muted);line-height:1.4}
 #body{flex:1;overflow-y:auto}
 .search{position:sticky;top:0;background:var(--paper);padding:10px 20px 6px;z-index:1}
 .search input{width:100%;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:7px;background:#fff}
 .search input:focus{outline:2px solid var(--accent);outline-offset:-1px}
 .grp{padding:10px 20px 2px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
-.co{padding:6px 20px 0;font-size:12px;font-weight:600;color:var(--coal-dk)}
 .item{display:flex;gap:10px;align-items:flex-start;padding:7px 20px;cursor:pointer;border-left:3px solid transparent}
 .item:hover,.item:focus{background:#f2eee4;outline:none}
 .item.sel{background:#efe9dc;border-left-color:var(--ink)}
 .item .sw{margin-top:2px}
 .item b{font-weight:500;display:block}.item small{color:var(--muted)}
-.empty{padding:14px 20px;color:var(--muted)}
+.empty,.intro{padding:12px 20px;color:var(--muted);line-height:1.45}
 #detail{padding:16px 20px 28px;display:none}
 #detail h2{font-family:var(--serif);font-size:20px;font-weight:600;margin:0 0 2px;line-height:1.25;outline:none}
 .rec{font-size:12px;color:var(--muted);margin-bottom:6px}
-.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px}
-.tag.coal{background:#f6dcd8;color:var(--coal-dk)}.tag.other{background:#efe6cf;color:#5e4d2c}.tag.nb{background:#e9e9e9;color:#555}
+.tag{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;margin:4px 0 8px;color:#fff}
+.summary{font-family:var(--serif);font-size:15.5px;line-height:1.5;margin:6px 0 10px;padding:10px 12px;background:#f3efe6;border-radius:8px}
 .facts{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:6px 0 12px}
 .facts dt{color:var(--muted)}.facts dd{margin:0}
 .photo{width:100%;border-radius:8px;margin:4px 0 10px;display:block}
@@ -71,18 +79,25 @@ h3{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute
 .tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:2px solid var(--line)}
 .tl li{position:relative;padding:0 0 14px 6px}
 .tl li::before{content:"";position:absolute;left:-21px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--paper);border:2px solid var(--muted)}
-.tl li.coal::before{border-color:var(--coal);background:var(--coal)}
+.tl li.k-I::before{background:var(--iron);border-color:var(--iron)}.tl li.k-C::before{background:var(--consol);border-color:var(--consol)}.tl li.k-O::before{background:var(--other);border-color:var(--other)}
 .tl li.first::before{border-style:dashed}
-.tl .d{font-size:12px;color:var(--muted)}.tl .o{font-weight:500}.tl .m{font-size:12px;color:var(--muted)}
+.tl .d{font-size:12px;color:var(--muted)}
+.tl .x{line-height:1.4}.tl .x .fr{color:var(--muted)}.tl .x b{font-weight:600}
+.tl .m{font-size:12.5px;margin-top:2px}
+.tl .m .adj{color:var(--muted);font-size:12px}
 .tl .m a{color:var(--accent);cursor:pointer;text-decoration:underline}
-.nom{font-size:11px;background:#eee;border-radius:4px;padding:0 4px;color:#555;margin-left:3px}
+.chip{display:inline-block;font-size:11px;border-radius:4px;padding:0 5px;margin-left:4px;background:#ece8df;color:#4d483f;white-space:nowrap}
+.chip.warn{background:#f3e3c8;color:#6b4a12}
+.chip.c{background:#e5e5e5}
 abbr{text-decoration:underline dotted;cursor:help}
 .note{font-size:12px;color:var(--muted);line-height:1.45;margin-top:10px}
 .note a,.about a{color:var(--accent)}
 footer{padding:9px 20px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);line-height:1.4}
 .tip{position:absolute;pointer-events:none;background:rgba(34,32,28,.92);color:#fff;font-size:12px;padding:5px 8px;border-radius:5px;white-space:nowrap;z-index:3;transform:translate(12px,-50%);display:none}
 .tip small{opacity:.75}
-dialog.about{max-width:680px;width:calc(100% - 32px);max-height:86vh;border:0;border-radius:12px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,.3);color:var(--ink)}
+#loading{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(251,249,244,.95);padding:10px 16px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,.15);z-index:4;font-size:13px}
+.draft{background:#7a2e1a;color:#fff;font-size:11.5px;padding:3px 20px}
+dialog.about{max-width:700px;width:calc(100% - 32px);max-height:86vh;border:0;border-radius:12px;padding:0;box-shadow:0 10px 40px rgba(0,0,0,.3);color:var(--ink)}
 dialog.about::backdrop{background:rgba(20,18,15,.45)}
 .about .in{padding:22px 26px 26px;overflow:auto;max-height:86vh;font-size:14px;line-height:1.55}
 .about h2{font-family:var(--serif);font-size:22px;margin:0 0 6px}
@@ -92,12 +107,12 @@ dialog.about::backdrop{background:rgba(20,18,15,.45)}
 .about .x{position:sticky;top:0;float:right;font-size:20px;background:none;border:0;cursor:pointer;color:var(--muted)}
 .maplibregl-ctrl-group button.reset{font-size:15px}
 @media (max-width:760px){
- #map{inset:var(--nav-h) 0 34vh 0;transition:bottom .25s}
- #side{top:auto;height:34vh;width:100%;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12);border-radius:14px 14px 0 0;transition:height .25s}
- body.open #side{height:calc(78vh - var(--nav-h))}body.open #map{bottom:calc(78vh - var(--nav-h))}
+ #map{inset:var(--nav-h) 0 36vh 0;transition:bottom .25s}
+ #side{top:auto;height:36vh;width:100%;border-right:0;border-top:1px solid var(--line);box-shadow:0 -4px 14px rgba(0,0,0,.12);border-radius:14px 14px 0 0;transition:height .25s}
+ body.open #side{height:calc(80vh - var(--nav-h))}body.open #map{bottom:calc(80vh - var(--nav-h))}
  #sheetbtn{display:block;margin:0 auto;width:44px;height:5px;border-radius:3px;background:#cfc9bc;border:0;padding:0;cursor:pointer}
  header{padding:6px 16px 8px}header h1{font-size:18px;margin-top:6px}.lede{font-size:14px}
- .controls{padding:8px 16px}.search{padding:8px 16px 6px}.item,.grp,.co{padding-left:16px;padding-right:16px}#detail{padding:12px 16px 24px}
+ .controls{padding:8px 16px}.search{padding:8px 16px 6px}.item,.grp{padding-left:16px;padding-right:16px}#detail{padding:12px 16px 24px}
  footer{display:none}
  #side{overflow-y:auto}#body{flex:none;overflow:visible}
 }
@@ -107,33 +122,46 @@ dialog.about::backdrop{background:rgba(20,18,15,.45)}
 <body>
 <nav class="site-nav" aria-label="Oak Forest project">
   <a class="home" href="../">Oak Forest</a>
-  <a href="./" aria-current="page"><span class="l">Who owns the village</span><span class="s">Owners</span></a>
+  <a href="./" aria-current="page"><span class="l">Who owns Greene County</span><span class="s">Owners</span></a>
   <a href="../through-time/">Through time</a>
   <a href="../beneath/"><span class="l">Panel 75 in 3D</span><span class="s">Panel 75</span></a>
   <span class="sep"></span>
   <a href="../about/">About</a>
 </nav>
-<div id="map" role="region" aria-label="Map of Oak Forest parcels. The parcel list in the side panel offers the same information."></div>
-<aside id="side" aria-label="Map information and parcel list">
+<div id="map" role="region" aria-label="Map of Greene County parcels colored by owner. The search in the side panel offers the same information."></div>
+<div id="loading">Loading 29,000 parcels…</div>
+<aside id="side" aria-label="Map information and parcel search">
  <header>
   <button id="sheetbtn" aria-label="Expand or collapse panel" aria-expanded="false"></button>
-  <h1>Oak Forest, Pennsylvania</h1>
-  <p class="lede">Coal companies own <b>26 of the village's 31 parcels</b>: 255 of its 474 acres. They bought in three waves: 1998–2003, 2007–2011 and 2016–2021.</p>
-  <div class="hrow"><button class="linkbtn" id="aboutbtn">About this map, sources and data</button><a class="linkbtn" href="../about/#map">Full methods →</a></div>
+  <h1>Who owns Greene County?</h1>
+  <p class="lede">Coal companies own about <b>one in seven acres</b> of Greene County, Pennsylvania: 51,830 acres, or 14.1 percent of its land.</p>
+  <div class="hrow"><button class="linkbtn" id="aboutbtn">About this map, sources and limits</button><a class="linkbtn" href="../about/#map">Full methods →</a></div>
  </header>
  <div class="controls">
-  <div class="ctl"><span>Color by</span><div class="seg" role="group" aria-label="Color parcels by" id="colorby"><button data-c="owner" class="on" aria-pressed="true">Owner today</button><button data-c="year" aria-pressed="false">Year a coal company bought it</button></div></div>
+  <div class="ctl"><span class="k">Show</span><div class="seg" role="group" aria-label="Map mode" id="mode"><button data-m="today" class="on" aria-pressed="true">Owners today</button><button data-m="anim" aria-pressed="false">Coal purchases over time</button></div></div>
   <div class="legend" id="legend" aria-live="polite"></div>
-  <div class="ctl"><span>Base map</span><div class="seg" role="group" aria-label="Base map" id="basemap"><button data-s="streets" class="on" aria-pressed="true">Map</button><button data-s="topo" aria-pressed="false">Topographic</button><button data-s="sat" aria-pressed="false">Satellite</button></div></div>
+  <div id="anim" aria-label="Coal purchases over time">
+   <div class="row"><button id="play" aria-label="Play animation">▶ Play</button><span id="yr" aria-live="polite">1940</span><input id="slider" type="range" min="1940" max="2027" step="1" value="1940" aria-label="Year"></div>
+   <svg id="chart" viewBox="0 0 350 74" preserveAspectRatio="none" role="img" aria-label="Acres owned by coal companies, by year"></svg>
+   <div class="anote" id="acount"></div>
+   <div class="anote">A parcel turns color in the year the county's records show a coal company buying it, and turns back if a coal company sold it to another owner. The county's online records are thin before the 1980s, so earlier coal ownership is undercounted. The last frame ("today") adds parcels coal companies own now but whose purchase is not dated in the records.</div>
+  </div>
+  <div class="layers" id="layers">
+   <label><input type="checkbox" data-l="permits" checked><i class="lk" style="border:2px solid #222"></i>Mine permit areas</label>
+   <label><input type="checkbox" data-l="panels"><i class="lk" style="background:rgba(40,40,40,.45)"></i>Longwall panels</label>
+   <label><input type="checkbox" data-l="minedout"><i class="lk" style="background:repeating-linear-gradient(45deg,#777 0 1.5px,transparent 1.5px 4px);border:1px solid #777"></i>Older mined-out areas</label>
+   <label><input type="checkbox" data-l="game" checked><i class="lk" style="background:var(--game);border:1px solid var(--gamec)"></i>Game lands</label>
+  </div>
+  <div class="ctl"><span class="k">Base map</span><div class="seg" role="group" aria-label="Base map" id="basemap"><button data-s="streets" class="on" aria-pressed="true">Map</button><button data-s="topo" aria-pressed="false">Topographic</button><button data-s="sat" aria-pressed="false">Satellite</button></div></div>
  </div>
  <div id="body">
   <div id="list">
-   <div class="search"><input id="q" type="search" placeholder="Search by owner or parcel number" aria-label="Search parcels"></div>
+   <div class="search"><input id="q" type="search" placeholder="Search by owner or parcel number" aria-label="Search parcels by owner or parcel number"></div>
    <div id="items"></div>
   </div>
   <div id="detail" aria-live="polite"></div>
  </div>
- <footer>Chains of title are partial. Deeds read at the Greene County Recorder of Deeds by Julian Giordano; acreage and coal classification from county assessment records (Nov 2026). <button class="linkbtn" onclick="openAbout()">Method and sources</button></footer>
+ <footer>Surface ownership from Greene County assessment records (Nov 2026); Oak Forest deeds read at the Recorder of Deeds by Julian Giordano; mines from the Pennsylvania DEP. <button class="linkbtn" onclick="openAbout()">Method and sources</button></footer>
 </aside>
 <div class="tip" id="tip"></div>
 
@@ -141,101 +169,221 @@ dialog.about::backdrop{background:rgba(20,18,15,.45)}
  <div class="in">
   <button class="x" onclick="about.close()" aria-label="Close">×</button>
   <h2 id="abouth">About this map</h2>
-  <p>Oak Forest is one of the oldest villages in Greene County, Pennsylvania, settled long before the coal boom of the early twentieth century. Its land now lies within the orbit of the Cumberland Mine, one of the largest underground coal mines in the state. This map shows who owns each parcel in the village today and, for the village's 31 parcels, how each changed hands, deed by deed.</p>
+  <p>This map shows who owns the surface of every parcel in Greene County, Pennsylvania, with land owned by coal companies in color. It began with the village of Oak Forest, where coal companies own 26 of 31 parcels, and asks how far that pattern extends. Click a parcel to see its owner, its recorded sales and the mines beneath it.</p>
   <h4>Key findings</h4>
   <ul>
-   <li>Coal companies own 26 of the village's 31 parcels, covering 255 of its 474 listed acres (54 percent). The share is lower by acreage because several large farm tracts at the village edge remain privately owned.</li>
-   <li>Coal companies first bought village parcels in three waves: 1998–2003, 2007–2011 and 2016–2021. Nine parcels were first bought in 2017 alone.</li>
-   <li>Two parcels were bought by a coal company and later sold back to private owners. In one 1999 sale, the company kept the coal, oil and gas, the right to let the surface subside, a pipeline easement for coal-bed methane, and a right of entry until reclamation was complete.</li>
+   <li>Coal companies own 51,830 acres of Greene County's surface, about one acre in seven (14.1 percent of the county's land area). Two groups hold most of it: CONSOL / Core and affiliates (29,019 acres) and Iron Senergy and its predecessors (16,278 acres). Each owns more of the county than the Pennsylvania Game Commission (16,145 acres).</li>
+   <li>Inside the permit areas of the five operating underground mines, coal companies own 23.9 percent of the land, against 8.8 percent in the rest of the county.</li>
+   <li>Where both dates are known, coal companies bought three in four parcels above longwall panels before the panel beneath was mined (median: two years before).</li>
+   <li>About 1,860 acres of game lands came straight from coal companies, mostly a 2018 donation by CONSOL, CNX and affiliates for an Indiana bat conservation area.</li>
   </ul>
   <h4>What counts as a coal company</h4>
-  <p>An owner counts as a coal company if its principal business is producing coal, or if it is a land-holding affiliate of such a company (for example a "land" subsidiary that holds surface property for a mine). Contractors, utilities and cleanup bodies are not counted. Here the coal owners are all in the ownership chain of the Cumberland and Emerald mines, grouped as <b>Iron Senergy and predecessors</b>. County records still list most parcels under <b>Contura Pennsylvania Land LLC</b> (spelled several ways), a predecessor company in that chain; the map groups the spellings and shows each name as recorded. Earlier coal owners include <b>Pennsylvania Land Holdings</b>. The map shows ownership of the surface only, not of the coal beneath it.</p>
+  <p>An owner counts as a coal company if its principal business is producing coal, or if it is a land-holding affiliate of a coal producer, or if it holds land that was bought for or used in coal mining. Contractors, utilities and cleanup bodies are not counted. Owners are grouped as <b>CONSOL / Core and affiliates</b> (including CNX Land and Consolidation Coal), <b>Iron Senergy and predecessors</b> (the ownership chain of the Cumberland and Emerald mines, including Contura, Alpha, Foundation, RAG, Cyprus and U.S. Steel Mining and their land companies) and <b>other coal companies</b> (including Duquesne Light's Warwick Mine land). The map shows ownership of the surface only, not of the coal beneath it.</p>
   <h4>Sources</h4>
   <ul>
-   <li><b>Deeds</b> for the 31 village parcels, read at the Greene County Recorder of Deeds, Waynesburg, and transcribed by Julian Giordano (137 deed entries, 1898–2022). Each entry gives the deed book and page. Where a deed or the county shows $0 or a nominal sum, the price was calculated from the realty transfer tax recorded on the deed.</li>
-   <li><b>Ownership, acreage and coal classification</b>: Greene County assessment records via Vision Government Solutions, accessed 17–18 November 2026, classified in the Greene County Coal-Company Land Ownership Dataset, version 5.6.</li>
-   <li><b>Parcel boundaries</b>: Pennsylvania Department of Environmental Protection, PA_Parcels map service. Boundaries are approximate and do not always follow current parcel lines.</li>
+   <li><b>Ownership, acreage, sales and land use</b>: Greene County assessment records via Vision Government Solutions, accessed 17–18 November 2026, classified in the Greene County Coal-Company Land Ownership Dataset, version 5.6.</li>
+   <li><b>Oak Forest deeds</b>: the 31 village parcels' deeds, read at the Greene County Recorder of Deeds, Waynesburg, and transcribed by Julian Giordano. Where a deed or the county shows $0 or a nominal sum, the price was calculated from the realty transfer tax recorded on the deed where possible.</li>
+   <li><b>Parcel boundaries</b>: Pennsylvania Department of Environmental Protection, PA_Parcels map service (simplified for the web by about 1 m). Boundaries are approximate.</li>
+   <li><b>Mines</b>: Pennsylvania DEP District Mining Operations: underground mine permit boundaries, longwall panels and mined-out areas (downloaded 22 November 2026).</li>
+   <li><b>Game lands</b>: parcels recorded to the Pennsylvania Game Commission (by name or its Harrisburg headquarters address) in the county records.</li>
+   <li><b>Inflation</b>: U.S. Bureau of Labor Statistics, Consumer Price Index for All Urban Consumers (CPI-U), annual averages; 2026 = January–October average. General inflation, not local land prices.</li>
    <li><b>Base maps</b>: OpenStreetMap contributors via OpenFreeMap; elevation from Mapzen/AWS Terrain Tiles (USGS 3DEP); satellite imagery © Mapbox, © Maxar.</li>
   </ul>
   <h4>Limits</h4>
   <ul>
-   <li><b>Chains of title are partial.</b> Most could be traced further back; none yet reaches the founding of the village.</li>
-   <li><b>Prices are as recorded.</b> $0, $1 and $10 sums are usually mergers, transfers within a family, or nominal "consideration," not sale prices; they are marked "nominal." A deed covering several parcels states one total price for all of them.</li>
-   <li><b>Parcels outside the village</b> show county assessment data only; their deeds have not been researched.</li>
-   <li>Assessment records show the owner of record for taxation, not legal title.</li>
+   <li><b>Sales histories are partial.</b> Outside Oak Forest they come from the county's online records, which mostly begin in the 1980s. The seller shown for a sale is the previous buyer in the record, which is usually but not always the seller on the deed.</li>
+   <li><b>Prices are as recorded.</b> The county often lists $0 where a deed states a real price, and $1 or $10 sums are usually mergers, transfers within a family or company, or nominal "consideration." A deed covering several parcels states one total price.</li>
+   <li>Assessment records show the owner of record for taxation, not legal title. Acreage in the legend is the county's listed acreage.</li>
+   <li>"Inside a mine permit area" is not the same as "above the mine": permits include land that is never mined beneath.</li>
   </ul>
   <h4>Names and privacy</h4>
-  <p>Owners' names come from public deed and tax records. No street addresses are shown. People named on this map, or their families, can ask for a correction or for a name to be withheld.</p>
+  <p>Owners' names come from public deed and tax records and are shown as recorded. No street addresses are shown. People named on this map, or their families, can ask for a correction or for a name to be withheld.</p>
   <h4>Terms</h4>
   <dl>
    <dt>Deed book/page</dt><dd>Where a deed is recorded at the county Recorder of Deeds; "0504/3047" is Deed Book 504, page 3047.</dd>
-   <dt>Consideration</dt><dd>The price stated in a deed.</dd>
-   <dt>et ux</dt><dd>"and wife" (Latin <i>et uxor</i>): the property was conveyed to a married couple.</dd>
-   <dt>et con</dt><dd>"and husband."</dd>
-   <dt>et al</dt><dd>"and others."</dd>
-   <dt>Surface / coal rights</dt><dd>In Greene County the coal was usually sold separately from the land above it, often generations ago. This map concerns the surface.</dd>
+   <dt>et ux / et con / et al</dt><dd>"and wife," "and husband," "and others."</dd>
+   <dt>Permit area</dt><dd>The land a mine is licensed by the DEP to work beneath.</dd>
+   <dt>Longwall panel</dt><dd>A block of coal mined out in one pass by a longwall machine; the ground above it subsides.</dd>
   </dl>
-  <h4>Data and citation</h4>
-  <p>Download: <a href="../data/oak_forest_parcels.geojson" download>parcels (GeoJSON)</a> · <a href="../data/oak_forest_village_deeds.csv" download>village deed histories (CSV)</a>.</p>
-  <p>Cite as: Julian Giordano, "Oak Forest, Pennsylvania: Who Owns the Village?" interactive map, November 2026, https://oakforest.juliangiordano.com/map/.</p>
-  <p class="note">Map and research by Julian Giordano. Version of 21 November 2026; the full methods are on the <a href="../about/">About page</a>; earlier versions are kept on <a href="https://github.com/julianjgiordano/oak-forest-map/commits/main" target="_blank" rel="noopener">GitHub</a>.</p>
+  <h4>Citation</h4>
+  <p>Cite as: Julian Giordano, "Who Owns Greene County?" interactive map, November 2026, https://oakforest.juliangiordano.com/map/.</p>
+  <p class="note">Map and research by Julian Giordano. Version of 24 November 2026 (v2.0). Earlier versions, including the village-only map (v1.8.1), are kept on <a href="https://github.com/julianjgiordano/oak-forest-map/commits/main" target="_blank" rel="noopener">GitHub</a>.</p>
  </div>
 </dialog>
 
 <script>
+// ---------- settings ----------
+const SHOW_PRIVATE_NAMES=true;   // Julian, 24 Nov 2026: names shown as the county records them
 const MAPBOX='pk.eyJ1IjoiampnaW9yZGFubyIsImEiOiJjbXdteTQ3NmUwNGJuMnpvaW9lcGxvdmk5In0.ujgkiJUkOnFg2VDLRX2anA';
-// View: south edge = old Willow Inn land (PID 4826); north edge = Pursley Creek bridge
-const BOUNDS=[[-80.2465,39.8395],[-80.2330,39.8450]];
+const COUNTY=[[-80.5195,39.7207],[-79.9032,40.0206]];
+const OAK=[[-80.2465,39.8395],[-80.2330,39.8450]];
 const FONT=['Noto Sans Regular'];
 const GLYPHS='https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf';
 const STY={
  streets:'https://tiles.openfreemap.org/styles/positron',
  topo:'https://tiles.openfreemap.org/styles/positron',
  sat:{version:8,glyphs:GLYPHS,sources:{sat:{type:'raster',tiles:['https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}@2x.jpg90?access_token='+MAPBOX],tileSize:512,maxzoom:22,attribution:'© <a href="https://www.mapbox.com/about/maps/">Mapbox</a> © Maxar'}},layers:[{id:'sat',type:'raster',source:'sat'}]}};
-const YEARS=[['1998–2003',1998,2005,'#67000d'],['2007–2011',2006,2013,'#cb181d'],['2016–2021',2014,2100,'#fb6a4a']];
+const GR={
+ C:{n:'CONSOL / Core & affiliates',c:'#0072B2',ac:'29,019'},
+ I:{n:'Iron Senergy & predecessors',c:'#D55E00',ac:'16,278'},
+ O:{n:'Other coal companies',c:'#B79AAE',ac:'6,533'},
+ G:{n:'Pennsylvania Game Commission',c:'#8fbf86',ac:'14,287'},
+ GC:{n:'Game land acquired from a coal company',c:'#2e6b34',ac:'1,858'},
+ N:{n:'All other owners',c:'#ffffff',ac:''}};
+const GROUP_PHRASE={I:'a predecessor of Iron Senergy',C:'part of the CONSOL / Core group',O:'a coal company'};
+// CPI-U annual averages (BLS series CUUR0000SA0); 2026 = Jan–Oct average
+const CPI={"1913":9.9,"1914":10.0,"1915":10.1,"1916":10.9,"1917":12.8,"1918":15.1,"1919":17.3,"1920":20.0,"1921":17.9,"1922":16.8,"1923":17.1,"1924":17.1,"1925":17.5,"1926":17.7,"1927":17.4,"1928":17.1,"1929":17.1,"1930":16.7,"1931":15.2,"1932":13.7,"1933":13.0,"1934":13.4,"1935":13.7,"1936":13.9,"1937":14.4,"1938":14.1,"1939":13.9,"1940":14.0,"1941":14.7,"1942":16.3,"1943":17.3,"1944":17.6,"1945":18.0,"1946":19.5,"1947":22.3,"1948":24.1,"1949":23.8,"1950":24.1,"1951":26.0,"1952":26.5,"1953":26.7,"1954":26.9,"1955":26.8,"1956":27.2,"1957":28.1,"1958":28.9,"1959":29.1,"1960":29.6,"1961":29.9,"1962":30.2,"1963":30.6,"1964":31.0,"1965":31.5,"1966":32.4,"1967":33.4,"1968":34.8,"1969":36.7,"1970":38.8,"1971":40.5,"1972":41.8,"1973":44.4,"1974":49.3,"1975":53.8,"1976":56.9,"1977":60.6,"1978":65.2,"1979":72.6,"1980":82.4,"1981":90.9,"1982":96.5,"1983":99.6,"1984":103.9,"1985":107.6,"1986":109.6,"1987":113.6,"1988":118.3,"1989":124.0,"1990":130.7,"1991":136.2,"1992":140.3,"1993":144.5,"1994":148.2,"1995":152.4,"1996":156.9,"1997":160.5,"1998":163.0,"1999":166.6,"2000":172.2,"2001":177.1,"2002":179.9,"2003":184.0,"2004":188.9,"2005":195.3,"2006":201.6,"2007":207.342,"2008":215.303,"2009":214.537,"2010":218.056,"2011":224.939,"2012":229.594,"2013":232.957,"2014":236.736,"2015":237.017,"2016":240.007,"2017":245.12,"2018":251.107,"2019":255.657,"2020":258.811,"2021":270.978,"2022":292.655,"2023":304.702,"2024":313.689,"2025":321.943,"2026":332.769};
+
+// ---------- text helpers ----------
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const tax=t=>String(t||'').replace(/\s/g,'').replace(/\/+$/,'');
-const GL={'et ux':'and wife','et con':'and husband','et al':'and others'};
-function title(s){return String(s||'').toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\b(Llc|Inc|Co|Lp|Ii|Iii|Jr|Sr|Ra)\b/g,m=>m==='Jr'||m==='Sr'?m:m.toUpperCase()).replace(/\bEt (Ux|Al|Con)\b/g,m=>m.toLowerCase())}
-function nameHTML(s){return esc(title(s)).replace(/\bet (ux|al|con)\b/g,m=>`<abbr title="${GL[m]}">${m}</abbr>`)}
-const book=b=>{const [x,y]=String(b||'').split('/');return x&&y?`Deed Book ${+x||x}, page ${+y||y}`:esc(b)};
-const nominal=p=>/^\$?(0|1|10)(\.00)?$/.test(String(p).replace(/,/g,'').trim());
-const byPid={};PARCELS.features.forEach(f=>{byPid[f.properties.pid]=f});
-let style='streets',colorBy='owner',sel=null,hov=null;
-const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const GL={'et ux':'and wife','et con':'and husband','et al':'and others','et vir':'and husband'};
+function title(s){return String(s||'').toLowerCase().replace(/\b([a-z])/g,m=>m.toUpperCase()).replace(/\b(Llc|Lp|Llp|Ii|Iii|Iv|Usa|Cnx|Rag)\b/g,m=>m.toUpperCase()).replace(/\bEt (Ux|Al|Con|Vir)\b/g,m=>m.toLowerCase())}
+function nameHTML(s){return esc(title(s)).replace(/\bet (ux|al|con|vir)\b/g,m=>`<abbr title="${GL[m]}">${m}</abbr>`)}
+const BIZ=/\b(LLC|L L C|INC|CO|CORP|CORPORATION|COMPANY|LP|L P|LTD|LLP|TRUST|TRUSTEE|TRUSTEES|BANK|COMMONWEALTH|COUNTY|TOWNSHIP|TWP|BOROUGH|BORO|ASSOC|ASSOCIATION|CHURCH|UNIVERSITY|COLLEGE|SCHOOL|AUTHORITY|DISTRICT|PARTNERSHIP|PARTNERS|HOLDINGS|LAND|COAL|ENERGY|GAS|RESOURCES|ESTATE|EST|FARM|FARMS|CLUB|UNITED STATES|USA|PENNSYLVANIA|PENNA|DEPT|DEPARTMENT|MINING|MINES|ENTERPRISES|PROPERTIES|REALTY|FOUNDATION|LODGE|CEMETERY|GAME|COMMISSION|RAILROAD|RAILWAY|LINES|POWER|ELECTRIC|WATER|SERVICE|SERVICES|GROUP|FUND|HUNT|SPORTSMEN|FIRE|VFD|HOA|MINISTRIES|COUNCIL|STATE|AGENCY|RANCH|LIMITED)\b/;
+const isPerson=s=>!BIZ.test(String(s||'').toUpperCase());
+// "BRICE CHARLES W JR ET UX" -> "Charles W. Brice Jr. and wife" (people only; anything unusual stays as recorded)
+function natural(s){
+ const raw=String(s||'').trim();if(!raw)return '';
+ if(!isPerson(raw)) return esc(title(raw));
+ if(!SHOW_PRIVATE_NAMES) return 'a private owner';
+ let t=raw.toUpperCase(),tail='';
+ const m=t.match(/\s+ET\s+(UX|AL|CON|VIR)\.?$/);if(m){tail=' '+GL['et '+m[1].toLowerCase()];t=t.slice(0,m.index)}
+ if(/[;&(),\/]|\bAND\b/.test(t)||!/^[A-Z.'\- ]+$/.test(t)) return esc(title(raw));
+ const w=t.split(/\s+/);if(w.length<2||w.length>5||w[0].length<2||w[1].replace('.','').length<2) return esc(title(raw));
+ const last=w[0],suf=[],rest=[];
+ for(const x of w.slice(1)) (/^(JR|SR|II|III|IV)\.?$/.test(x)?suf:rest).push(x);
+ const fix=x=>x.length===1?x+'.':title(x);
+ const sfx=suf.map(x=>/^(JR|SR)/.test(x)?title(x.replace('.',''))+'.':x).join(' ');
+ return esc([...rest.map(fix),title(last),sfx].filter(Boolean).join(' ')+tail);
+}
+const MON=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(iso,long){if(!iso)return 'date not recorded';const [y,m,d]=iso.split('-').map(Number);return long?`${MON[m-1]} ${y}`:`${MS[m-1]} ${d}, ${y}`}
+function parseVDate(s){ // village dates come as "Nov 23, 2010" or "06/05/2017"
+ s=String(s||'').trim();let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);if(m)return `${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}`;
+ m=s.match(/^([A-Za-z]{3})[a-z]*\.? (\d{1,2}), (\d{4})$/);if(m){const i=MS.indexOf(m[1]);if(i>=0)return `${m[3]}-${String(i+1).padStart(2,'0')}-${m[2].padStart(2,'0')}`}
+ return '';}
+const num=p=>{const v=parseFloat(String(p??'').replace(/[$,\s]/g,''));return isFinite(v)?v:null};
+const money=v=>'$'+Math.round(v).toLocaleString('en-US');
+function adj(v,y){if(!v||!y||!CPI[y])return null;return v*CPI[2026]/CPI[y]}
+const book=b=>{const [x,y]=String(b||'').split('/');return x&&y&&+y?`Deed Book ${+x||x}, page ${+y||y}`:''};
+const acresTxt=a=>{const v=parseFloat(a);return isFinite(v)&&v>0?`${v<10?v.toLocaleString('en-US',{maximumFractionDigits:2}):Math.round(v).toLocaleString('en-US')} acre${v===1?'':'s'}`:''};
 
-// elevation + contours (keyless; contours drawn in the browser so they stay sharp)
+// ---------- sales model: one list for county and village records ----------
+// each row: {iso, year, buyer, price, priceText, book, grp (coal group or ''), n (parcels on deed), also[], tax, src}
+function rowsFor(pid,det){
+ if(det.vd&&det.vd.length) return det.vd.map(r=>{
+   const iso=parseVDate(r.date),also=String(r.also||'').split(/[,;]\s*|\s+(?=\d)/).map(x=>x.replace(/[^0-9]/g,'')).filter(x=>x&&x!==pid);
+   return {iso,year:r.year||(iso?+iso.slice(0,4):null),dateText:iso?fmtDate(iso):r.date,buyer:r.owner,price:num(r.price),priceText:r.price||'',book:r.book_page,grp:r.coal?'I':'',n:also.length+1,also,tax:!!r.tax,src:'deed',company:r.company}});
+ return (det.s||[]).map(s=>({iso:s.d,year:s.d?+s.d.slice(0,4):null,dateText:s.d?fmtDate(s.d):'date not recorded',buyer:s.o,price:num(s.p),priceText:s.p,book:s.b,grp:s.k,n:s.n||1,also:[],tax:false,src:'county'}));
+}
+// how the price is known, in words (for the sentence) and as a short label (for the timeline)
+function priceInfo(r,prev){
+ const v=r.price,aff=r.grp&&prev&&prev.grp&&(v===null||v<=10);
+ if(aff) return {s:'in a transfer between affiliated coal companies'+(v===null?'':` recorded at ${money(v)}`),chip:['between affiliated companies','c'],real:false};
+ if(v===null||v===0) return r.src==='deed'?{s:'for a price not stated in the deed',chip:['no price stated','warn'],real:false}
+   :{s:'for a price the county did not record ($0 on file)',chip:['$0 on file: price unknown','warn'],real:false};
+ if(v<=10) return {s:`for a nominal ${money(v)}, not a sale price`,chip:['nominal: not a sale price','warn'],real:false};
+ const a=adj(v,r.year),aT=a&&r.year<2025?` (about ${money(a)} in 2026 dollars)`:'';
+ if(r.n>1) return {s:`for ${money(v)}${aT}, one total price for a deed covering ${r.n} parcels`,chip:[`total for ${r.n} parcels`,'warn'],real:false,adj:a};
+ if(r.tax) return {s:`for ${money(v)}${aT}, a price calculated from the transfer tax paid on the deed`,chip:['calculated from transfer tax',''],real:true,adj:a};
+ return r.src==='deed'?{s:`for ${money(v)}${aT}, the price stated in the deed`,chip:['stated in the deed',''],real:true,adj:a}
+   :{s:`for ${money(v)}${aT}, as recorded by the county`,chip:['county record',''],real:true,adj:a};
+}
+function summary(pid,p,det,R){
+ const ac=acresTxt(p.a),lead=`Parcel ${esc(pid)}${ac?` (${ac})`:''}`;
+ const coalNow=['I','C','O'].includes(p.g);
+ if(coalNow){
+  let j=-1;for(let i=0;i<R.length;i++){if(R[i].grp)j=i;else break}
+  if(j<0) return `${lead} is owned by ${natural(p.o)}, a coal company, but its sales history in these records does not show when a coal company acquired it.`;
+  const a=R[j],prev=R[j+1],pi=priceInfo(a,prev);
+  const when=a.iso?fmtDate(a.iso,true):(a.year?String(a.year):'');
+  const from=prev?natural(prev.buyer):'an earlier owner not named in these records';
+  let s=when?`${lead} has been owned by a coal company since ${when}, when ${natural(a.buyer)}, ${GROUP_PHRASE[a.grp]||'a coal company'}, bought it from ${from} ${pi.s}.`
+   :`${lead} is owned by a coal company: ${natural(a.buyer)}, ${GROUP_PHRASE[a.grp]||'a coal company'}, bought it from ${from} ${pi.s}, on a date the county did not record.`;
+  if(j>0){const last=R[0];s+=` It has since passed between affiliated companies, most recently to ${natural(last.buyer)}${last.year?' in '+last.year:''}.`}
+  if(prev){const pp=R[j+2],pq=priceInfo(prev,pp);if(pq.real&&prev.year) s+=` The ${/ET (UX|AL|CON|VIR)$|;|&| AND /.test(String(prev.buyer).toUpperCase())?'sellers':'seller'} had paid ${money(prev.price)} for it in ${prev.year}.`}
+  return s;
+ }
+ if(p.g==='GC'&&det.pgc){const x=det.pgc,d=parseVDate(x.date);return `${lead} belongs to the Pennsylvania Game Commission, which acquired it${d?' on '+fmtDate(d):''} directly from ${natural(x.seller)}, a coal company, at a recorded price of ${esc(x.price||'$0')}.`}
+ if(p.g==='G'){const a=R[0];return `${lead} belongs to the Pennsylvania Game Commission${/COMMONWEALTH/i.test(p.o)?' (recorded as '+esc(title(p.o))+')':''}${a&&a.iso?', which acquired it in '+fmtDate(a.iso,true):''}${a?(a.price>10?' for '+money(a.price):'; the county did not record a price'):''}${R[1]?' from '+natural(R[1].buyer):''}.`}
+ let s;
+ if(!R.length) s=`${lead} is owned by ${natural(p.o)}; the county's online records show no sales for it.`;
+ else{const a=R[0],pi=priceInfo(a,R[1]);
+  s=`${lead} was last sold ${a.iso?'in '+fmtDate(a.iso,true):(a.year?'in '+a.year:'')} to ${natural(a.buyer)}${R[1]?' by '+natural(R[1].buyer):''} ${pi.s}.`}
+ const cp=(p.cp||[]).filter(x=>x[0]>0&&x[1]>0);
+ if(cp.length){const x=cp[cp.length-1];s+=` A coal company (${GR[x[2]].n}) owned it from ${x[0]} to ${x[1]}.`}
+ return s;
+}
+function miningLine(det){
+ const out=[];
+ if(det.mp) out.push(`Inside the ${esc(det.mp[0])} permit area${det.mp[1]==='former'?' (permit no longer active)':''}`);
+ if(det.mo&&!det.mp) out.push(`Within the old ${esc(det.mo)} (approximate outline of its mined-out area)`);
+ if(det.pn){const n=det.pn,yrs=n.y0?(n.y0===n.y1?` mined in ${n.y0}`:` mined ${n.y0}–${n.y1}`):'',proj=n.st.includes('projected')&&!n.y0?' (projected)':'';
+  out.push(`${n.pct!=null&&n.pct<100?n.pct+'% ('+n.ac+' acres) lies':'All of it lies'} above longwall panels${yrs}${proj}`)}
+ return out;
+}
+function landUse(u){
+ u=String(u||'');const m=u.toUpperCase();let k='';
+ if(/^RES/.test(m))k='Residential';else if(/^AG/.test(m))k='Agricultural';else if(/^COM/.test(m))k='Commercial';else if(/^IND/.test(m))k='Industrial';else if(/^EX/.test(m))k='Exempt';
+ if(k&&/\bVAC\b/.test(m))k+=', vacant';else if(k&&/\b(LB|LBT|B)\b/.test(m))k+=', with buildings';
+ return k?`${k} <span class="chip c" title="county land-use code">${esc(u)}</span>`:esc(u);
+}
+
+// ---------- map ----------
+let style='streets',mode='today',sel=null,hov=null,P=null,byPid={},layersOn={permits:true,panels:false,minedout:false,game:true};
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let dem=null;
 try{dem=new mlcontour.DemSource({url:'https://elevation-tiles-prod.s3.amazonaws.com/terrarium/{z}/{x}/{y}.png',encoding:'terrarium',maxzoom:15,worker:true});dem.setupMaplibre(maplibregl);}catch(e){console.warn('contours unavailable',e)}
-
-const map=new maplibregl.Map({container:'map',style:STY.streets,bounds:BOUNDS,fitBoundsOptions:{padding:24},maxZoom:19.5,attributionControl:{compact:true}});
+const map=new maplibregl.Map({container:'map',style:STY.streets,bounds:COUNTY,fitBoundsOptions:{padding:20},maxZoom:19.5,minZoom:7,attributionControl:{compact:true}});
 map.addControl(new maplibregl.NavigationControl({showCompass:false}),'top-right');
 map.addControl(new maplibregl.ScaleControl({unit:'imperial'}),'bottom-right');
-class Reset{onAdd(m){const d=document.createElement('div');d.className='maplibregl-ctrl maplibregl-ctrl-group';d.innerHTML='<button class="reset" title="Back to village view" aria-label="Back to village view">⌂</button>';d.onclick=()=>m.fitBounds(BOUNDS,{padding:24,animate:!reduce});return d}onRemove(){}}
+class Reset{onAdd(m){const d=document.createElement('div');d.className='maplibregl-ctrl maplibregl-ctrl-group';d.innerHTML='<button class="reset" title="Whole county" aria-label="Back to whole county">⌂</button>';d.onclick=()=>m.fitBounds(COUNTY,{padding:20,animate:!reduce});return d}onRemove(){}}
 map.addControl(new Reset(),'top-right');
 
-function hatch(){ // diagonal-line pattern so coal ownership does not rely on color alone
- const c=document.createElement('canvas');c.width=c.height=12;const x=c.getContext('2d');
- x.strokeStyle='rgba(255,255,255,0.65)';x.lineWidth=2;x.beginPath();x.moveTo(-3,3);x.lineTo(3,-3);x.moveTo(0,12);x.lineTo(12,0);x.moveTo(9,15);x.lineTo(15,9);x.stroke();
- return x.getImageData(0,0,12,12);
+const DATA={};
+const load=n=>fetch('data/'+n+'.json').then(r=>{if(!r.ok)throw new Error(n+' '+r.status);return r.json()});
+const ready=Promise.all(['parcels','mines','panels','minedout','village_outline','county_outline','places'].map(n=>load(n).then(d=>DATA[n]=d))).then(()=>{
+ P=DATA.parcels;P.features.forEach(f=>byPid[f.properties.i]=f);
+ DATA.mines.features.forEach(f=>f.properties.kind=/permit/i.test(f.properties.source)?'permit':'legacy');
+ DATA.mineLabels={type:'FeatureCollection',features:DATA.mines.features.map(f=>({type:'Feature',properties:{label:f.properties.label.replace(/ Mine$/,''),status:f.properties.status,kind:f.properties.kind},geometry:{type:'Point',coordinates:labelPoint(f.geometry)}}))};
+ prepAnim();
+ document.getElementById('loading').remove();
+});
+ready.catch(e=>{document.getElementById('loading').textContent='Could not load the map data ('+e.message+').'});
+
+function ringArea(r){let a=0;for(let i=0,j=r.length-1;i<r.length;j=i++)a+=(r[j][0]+r[i][0])*(r[j][1]-r[i][1]);return a/2}
+function labelPoint(g){ // centroid of the largest outer ring (good enough for mine labels)
+ const polys=g.type==='Polygon'?[g.coordinates]:g.coordinates;let best=polys[0],ba=0;
+ polys.forEach(p=>{const a=Math.abs(ringArea(p[0]));if(a>ba){ba=a;best=p}});
+ const r=best[0];let x=0,y=0,A=0;for(let i=0,j=r.length-1;i<r.length;j=i++){const f=r[j][0]*r[i][1]-r[i][0]*r[j][1];x+=(r[j][0]+r[i][0])*f;y+=(r[j][1]+r[i][1])*f;A+=f}
+ return A?[x/(3*A),y/(3*A)]:r[0];
 }
-function fillColor(){
- if(colorBy==='year'){
-  const y=['to-number',['get','first_coal_year'],0];
-  return ['case',['==',y,0],['match',['get','map_class'],'village_other','#efe2c2','village_coal','#efe2c2','#ffffff'],
-   ['<',y,YEARS[0][2]+1],YEARS[0][3],['<',y,YEARS[1][2]+1],YEARS[1][3],YEARS[2][3]];
- }
- return ['match',['get','map_class'],'village_coal','#b8352a','village_other','#efe2c2','neighbor_coal','#b8352a','#ffffff'];
-}
-function fillOpacity(){
- const sat=style==='sat';
- const base=colorBy==='year'
-  ?['case',['==',['get','in_village'],1],sat?0.7:0.78,sat?0.0:0.12]
-  :['match',['get','map_class'],'village_coal',sat?0.5:0.62,'village_other',sat?0.5:0.7,'neighbor_coal',sat?0.22:0.25,sat?0.0:0.12];
- return ['case',['boolean',['feature-state','hover'],false],0.9,base];
+function bboxOf(g){let b=[180,90,-180,-90];const w=c=>typeof c[0]==='number'?(b=[Math.min(b[0],c[0]),Math.min(b[1],c[1]),Math.max(b[2],c[0]),Math.max(b[3],c[1])]):c.forEach(w);w(g.coordinates);return [[b[0],b[1]],[b[2],b[3]]]}
+
+function hatch(){const c=document.createElement('canvas');c.width=c.height=8;const x=c.getContext('2d');x.strokeStyle='rgba(90,90,90,0.8)';x.lineWidth=1.2;x.beginPath();x.moveTo(-2,2);x.lineTo(2,-2);x.moveTo(0,8);x.lineTo(8,0);x.moveTo(6,10);x.lineTo(10,6);x.stroke();return x.getImageData(0,0,8,8)}
+function todayColor(){const g=layersOn.game;return ['match',['get','g'],'I',GR.I.c,'C',GR.C.c,'O',GR.O.c,'G',g?GR.G.c:'#ffffff','GC',g?GR.GC.c:'#ffffff','#ffffff']}
+function todayOpacity(){const sat=style==='sat',g=layersOn.game;
+ const base=['match',['get','g'],'I',sat?0.7:0.85,'C',sat?0.7:0.85,'O',sat?0.7:0.85,'G',g?(sat?0.55:0.7):0,'GC',g?(sat?0.65:0.8):0,0];
+ const e=['case',['boolean',['feature-state','hover'],false],['max',base,0.35],base];
+ return ['interpolate',['linear'],['zoom'],12,e,16,['*',e,0.62]]}
+const AS=['coalesce',['feature-state','a'],''];
+function animColor(){return ['match',AS,'I',GR.I.c,'C',GR.C.c,'O',GR.O.c,'#bbbbbb']}
+function animOpacity(){const e=['case',['==',AS,''],['case',['boolean',['feature-state','hover'],false],0.3,0],style==='sat'?0.75:0.88];return ['interpolate',['linear'],['zoom'],12,e,16,['*',e,0.62]]}
+function paint(){if(!map.getLayer('fill'))return;
+ map.setPaintProperty('fill','fill-color',mode==='today'?todayColor():animColor());
+ map.setPaintProperty('fill','fill-opacity',mode==='today'?todayOpacity():animOpacity());}
+function vis(id,on){if(map.getLayer(id))map.setLayoutProperty(id,'visibility',on?'visible':'none')}
+function applyLayers(){
+ vis('permit-line',layersOn.permits);vis('permit-line-former',layersOn.permits);vis('mine-lab',layersOn.permits||layersOn.minedout);
+ if(map.getLayer('mine-lab'))map.setFilter('mine-lab',['any',['all',['==',['get','kind'],'permit'],layersOn.permits],['all',['==',['get','kind'],'legacy'],layersOn.minedout]]);
+ vis('legacy-line',layersOn.minedout);vis('minedout',layersOn.minedout);
+ vis('panels',layersOn.panels);vis('panels-line',layersOn.panels);
+ paint();
 }
 function addLayers(){
- if(map.getSource('parcels'))return;
+ if(!P||map.getSource('parcels'))return;
  const sat=style==='sat',topo=style==='topo';
  const before=(map.getStyle().layers.find(l=>l.type==='symbol')||{}).id;
  if(!map.hasImage('hatch'))map.addImage('hatch',hatch());
@@ -244,105 +392,174 @@ function addLayers(){
   map.addLayer({id:'hillshade',type:'hillshade',source:'dem',paint:{'hillshade-exaggeration':0.45,'hillshade-shadow-color':'#5a5040','hillshade-highlight-color':'#ffffff'}},before);
   map.addSource('contours',{type:'vector',maxzoom:15,tiles:[dem.contourProtocolUrl({multiplier:3.28084,overzoom:1,thresholds:{11:[200,1000],12:[100,500],13:[50,250],14:[20,100],15:[10,50]},elevationKey:'ele',levelKey:'level',contourLayer:'contours'})]});
   map.addLayer({id:'contour-lines',type:'line',source:'contours','source-layer':'contours',paint:{'line-color':'#8b6b43','line-opacity':['match',['get','level'],1,0.55,0.3],'line-width':['match',['get','level'],1,1.1,0.55]}},before);
-  map.addLayer({id:'contour-labels',type:'symbol',source:'contours','source-layer':'contours',filter:['>',['get','level'],0],layout:{'symbol-placement':'line','text-size':10,'text-field':['concat',['number-format',['get','ele'],{}],' ft'],'text-font':FONT},paint:{'text-color':'#7a5c37','text-halo-color':'#fff','text-halo-width':1.2}});
  }
- map.addSource('parcels',{type:'geojson',data:PARCELS,promoteId:'pid'});
- map.addLayer({id:'fill',type:'fill',source:'parcels',paint:{'fill-color':fillColor(),'fill-opacity':fillOpacity()}},before);
- map.addLayer({id:'hatch',type:'fill',source:'parcels',filter:['==',['get','map_class'],'village_coal'],paint:{'fill-pattern':'hatch','fill-opacity':colorBy==='owner'?0.5:0}},before);
- map.addLayer({id:'line',type:'line',source:'parcels',paint:{
-  'line-color':['match',['get','map_class'],'village_coal','#7b1e14','village_other','#8a7550',sat?'rgba(255,255,255,.7)':'#8c8c8c'],
-  'line-width':['interpolate',['linear'],['zoom'],14,['case',['==',['get','in_village'],1],0.8,0.5],18,['case',['==',['get','in_village'],1],2,0.8]]}},before);
- map.addLayer({id:'sel',type:'line',source:'parcels',filter:['==',['get','pid'],sel||''],paint:{'line-color':sat?'#ffffff':'#22201c','line-width':3.2}});
- map.addLayer({id:'lab',type:'symbol',source:'parcels',filter:['==',['get','in_village'],1],minzoom:16.3,
-  layout:{'text-field':['get','pid'],'text-size':11,'text-font':FONT},paint:{'text-color':'#22201c','text-halo-color':'rgba(255,255,255,.9)','text-halo-width':1.4}});
+ map.addSource('minedout',{type:'geojson',data:DATA.minedout});
+ map.addLayer({id:'minedout',type:'fill',source:'minedout',paint:{'fill-pattern':'hatch','fill-opacity':sat?0.7:0.45}},before);
+ map.addSource('parcels',{type:'geojson',data:P,promoteId:'i',tolerance:0.2});
+ map.addLayer({id:'fill',type:'fill',source:'parcels',paint:{'fill-color':todayColor(),'fill-opacity':todayOpacity()}},before);
+ map.addLayer({id:'line',type:'line',source:'parcels',minzoom:12,paint:{'line-color':sat?'rgba(255,255,255,.6)':['match',['get','g'],'I','#8a3a00','C','#00466e','O','#7a5f72','#777'],'line-opacity':['interpolate',['linear'],['zoom'],12,0,13.5,0.5,16,0.8],'line-width':['interpolate',['linear'],['zoom'],13,0.3,17,1]}},before);
+ map.addSource('panels',{type:'geojson',data:DATA.panels});
+ map.addLayer({id:'panels',type:'fill',source:'panels',paint:{'fill-color':sat?'#ffffff':'#2a2a2a','fill-opacity':sat?0.3:0.35}});
+ map.addLayer({id:'panels-line',type:'line',source:'panels',paint:{'line-color':sat?'#ffffff':'#2a2a2a','line-width':0.5,'line-opacity':0.6}});
+ map.addSource('mines',{type:'geojson',data:DATA.mines});
+ const mc=sat?'#FFD84D':'#222';
+ map.addLayer({id:'permit-line',type:'line',source:'mines',filter:['all',['==',['get','kind'],'permit'],['==',['get','status'],'active']],paint:{'line-color':mc,'line-width':['interpolate',['linear'],['zoom'],8,1.4,13,2.6]}});
+ map.addLayer({id:'permit-line-former',type:'line',source:'mines',filter:['all',['==',['get','kind'],'permit'],['!=',['get','status'],'active']],paint:{'line-color':mc,'line-width':1.2,'line-dasharray':[3,2],'line-opacity':0.8}});
+ map.addLayer({id:'legacy-line',type:'line',source:'mines',filter:['==',['get','kind'],'legacy'],paint:{'line-color':sat?'#ddd':'#666','line-width':1,'line-dasharray':[1,1.5]}});
+ map.addSource('county',{type:'geojson',data:DATA.county_outline});
+ map.addLayer({id:'county',type:'line',source:'county',paint:{'line-color':sat?'#fff':'#444','line-width':1.6,'line-opacity':0.8}});
+ map.addSource('village',{type:'geojson',data:DATA.village_outline});
+ map.addLayer({id:'village',type:'line',source:'village',paint:{'line-color':sat?'#fff':'#111','line-width':['interpolate',['linear'],['zoom'],10,1,15,2.4],'line-dasharray':[2,1]}});
+ map.addLayer({id:'sel',type:'line',source:'parcels',filter:['==',['get','i'],sel||'__none__'],paint:{'line-color':sat?'#ffffff':'#111','line-width':3.2}});
+ map.addSource('minelab',{type:'geojson',data:DATA.mineLabels});
+ map.addLayer({id:'mine-lab',type:'symbol',source:'minelab',layout:{'text-field':['get','label'],'text-size':['interpolate',['linear'],['zoom'],8,10.5,12,13],'text-font':FONT,'text-allow-overlap':false},
+  paint:{'text-color':sat?'#FFD84D':['match',['get','kind'],'legacy','#555','#222'],'text-halo-color':sat?'rgba(0,0,0,.7)':'rgba(255,255,255,.9)','text-halo-width':1.5}});
+ map.addSource('places',{type:'geojson',data:DATA.places});
+ map.addLayer({id:'places-dot',type:'circle',source:'places',paint:{'circle-radius':4,'circle-color':'#111','circle-stroke-color':'#fff','circle-stroke-width':1.5}});
+ map.addLayer({id:'places-lab',type:'symbol',source:'places',layout:{'text-field':['get','name'],'text-size':13,'text-font':FONT,'text-offset':[0,-1.1],'text-anchor':'bottom'},paint:{'text-color':'#111','text-halo-color':'#fff','text-halo-width':1.6}});
+ applyLayers();
+ if(mode==='anim')setYear(curYear,true);
 }
-map.on('style.load',addLayers);
-map.once('load',()=>{map.resize();if(location.hash&&byPid[location.hash.slice(1)])select(location.hash.slice(1),true);else map.fitBounds(BOUNDS,{padding:24,duration:0});});
+map.on('style.load',()=>ready.then(addLayers));
+map.once('load',()=>ready.then(()=>{map.resize();addLayers();const h=location.hash.slice(1);if(h==='oak-forest')map.fitBounds(OAK,{padding:24,duration:0});else if(h&&byPid[h])select(h,true)}));
 
 function seg(id,attr,cb){const g=document.getElementById(id);g.querySelectorAll('button').forEach(b=>b.onclick=()=>{g.querySelectorAll('button').forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',x===b)});cb(b.dataset[attr])})}
-seg('basemap','s',s=>{if(s===style)return;style=s;map.setStyle(STY[s],{diff:false})});
-seg('colorby','c',c=>{colorBy=c;if(map.getLayer('fill')){map.setPaintProperty('fill','fill-color',fillColor());map.setPaintProperty('fill','fill-opacity',fillOpacity());map.setPaintProperty('hatch','fill-opacity',c==='owner'?0.5:0)}legend();renderList()});
+seg('basemap','s',s=>{if(s===style)return;style=s;hov=null;map.setStyle(STY[s],{diff:false})});
+seg('mode','m',m=>{mode=m;document.getElementById('anim').style.display=m==='anim'?'flex':'none';if(m==='anim'){setYear(curYear,true)}else{stop()}paint();legend()});
+document.querySelectorAll('#layers input').forEach(i=>i.onchange=()=>{layersOn[i.dataset.l]=i.checked;applyLayers();legend()});
 function legend(){
- const L=document.getElementById('legend');
- if(colorBy==='owner')L.innerHTML=`<span><i class="sw hatch" style="background-color:var(--coal);border-color:var(--coal-dk)"></i>Coal company</span><span><i class="sw" style="background:var(--cream);border-color:var(--cream-dk)"></i>Other owner</span><span><i class="sw" style="background:rgba(184,53,42,.3);border-color:rgba(123,30,20,.5)"></i>Coal, outside village</span><span><i class="sw" style="background:rgba(255,255,255,.6);border-color:#999"></i>Other, outside village</span>`;
- else L.innerHTML=YEARS.map(y=>`<span><i class="sw" style="background:${y[3]};border-color:#555"></i>First bought ${y[0]}</span>`).join('')+`<span><i class="sw" style="background:var(--cream);border-color:var(--cream-dk)"></i>Never coal-owned</span><span style="grid-column:1/-1;color:var(--muted)">Village parcels only; years from the deeds.</span>`;
+ const L=document.getElementById('legend');const sw=k=>`<i class="sw" style="background:${GR[k].c}"></i>`;
+ const rows=mode==='today'?['C','I','O'].concat(layersOn.game?['G','GC']:[]).concat(['N']):['C','I','O'];
+ L.innerHTML=rows.map(k=>`<div class="r">${sw(k)}${esc(GR[k].n)}${GR[k].ac&&mode==='today'?`<em>${GR[k].ac} ac</em>`:''}</div>`).join('')
+  +(mode==='today'?`<div class="r" style="color:var(--muted);font-size:11.5px"><i class="lk" style="border-top:2px dashed #111;height:0;width:15px"></i>Oak Forest village</div>`:'');
 }
 legend();
 
+// ---------- animation: coal ownership year by year ----------
+let curYear=1940,timer=null,animPids=[],cur={},series=null;
+const Y0=1940,YN=2027; // 2027 = "today": adds coal parcels with no dated purchase
+function groupAt(cp,y){for(const [s,e,g] of cp){if(s===-1){if(y>=YN)return g;continue}if(s<=y&&(e===0||y<e))return g}return ''}
+function prepAnim(){
+ animPids=P.features.filter(f=>f.properties.cp).map(f=>f.properties.i);
+ series={};['C','I','O'].forEach(k=>series[k]=[]);
+ for(let y=Y0;y<=YN;y++){const t={C:0,I:0,O:0};for(const pid of animPids){const p=byPid[pid].properties,g=groupAt(p.cp,y);if(g)t[g]+=parseFloat(p.a)||0}['C','I','O'].forEach(k=>series[k].push(t[k]))}
+ drawChart();
+}
+function drawChart(){
+ const svg=document.getElementById('chart'),W=350,H=74,n=YN-Y0+1;
+ const tot=i=>series.C[i]+series.I[i]+series.O[i];let mx=0;for(let i=0;i<n;i++)mx=Math.max(mx,tot(i));
+ const x=i=>i/(n-1)*W,y=v=>H-4-(v/mx)*(H-14);let base=new Array(n).fill(0),h='';
+ for(const k of ['C','I','O']){const top=base.map((b,i)=>b+series[k][i]);
+  let d='M'+top.map((v,i)=>x(i).toFixed(1)+','+y(v).toFixed(1)).join('L')+'L'+base.map((v,i)=>[i,v]).reverse().map(([i,v])=>x(i).toFixed(1)+','+y(v).toFixed(1)).join('L')+'Z';
+  h+=`<path d="${d}" fill="${GR[k].c}" opacity=".9"/>`;base=top}
+ h+=`<line id="cy" x1="0" x2="0" y1="0" y2="${H}" stroke="#111" stroke-width="1.2"/>`;
+ h+=`<text x="2" y="9" font-size="9" fill="#6b665d">${Math.round(mx/1000)}k ac</text><text x="2" y="${H-6}" font-size="9" fill="#6b665d" dy="0">${Y0}</text><text x="${W-2}" y="${H-6}" font-size="9" fill="#6b665d" text-anchor="end">today</text>`;
+ svg.innerHTML=h;
+}
+function setYear(y,force){
+ curYear=y;document.getElementById('slider').value=y;document.getElementById('yr').textContent=y>=YN?'Today':y;
+ if(map.getSource('parcels'))for(const pid of animPids){const g=groupAt(byPid[pid].properties.cp,y);if(force||cur[pid]!==g){cur[pid]=g;map.setFeatureState({source:'parcels',id:pid},{a:g})}}
+ const i=y-Y0;if(series){const t=series.C[i]+series.I[i]+series.O[i];
+  document.getElementById('acount').innerHTML=`<b>${Math.round(t).toLocaleString('en-US')} acres</b> owned by coal companies${y>=YN?' today (mapped parcels)':' at the end of '+y+' (mapped parcels, county records)'}`;
+  const ln=document.getElementById('cy');if(ln){const xx=i/(YN-Y0)*350;ln.setAttribute('x1',xx);ln.setAttribute('x2',xx)}}
+}
+function stop(){if(timer){clearInterval(timer);timer=null}const b=document.getElementById('play');b.textContent='▶ Play';b.setAttribute('aria-label','Play animation')}
+document.getElementById('play').onclick=()=>{
+ if(timer)return stop();
+ if(curYear>=YN)setYear(Y0,true);
+ const b=document.getElementById('play');b.textContent='❚❚ Pause';b.setAttribute('aria-label','Pause animation');
+ timer=setInterval(()=>{if(curYear>=YN)return stop();setYear(curYear+1)},reduce?900:380);
+};
+document.getElementById('slider').oninput=e=>{stop();setYear(+e.target.value)};
+
+// ---------- hover, click ----------
 const tip=document.getElementById('tip');
 map.on('mousemove','fill',e=>{
  const p=e.features[0].properties;map.getCanvas().style.cursor='pointer';
- if(hov!==p.pid){if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=p.pid;map.setFeatureState({source:'parcels',id:hov},{hover:true});}
- const yr=colorBy==='year'&&p.first_coal_year?` · coal co. ${p.first_coal_year}`:'';
- tip.innerHTML=`${esc(title(p.owner))} <small>· ${esc(p.pid)}${yr}</small>`;
+ if(hov!==p.i){if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=p.i;map.setFeatureState({source:'parcels',id:hov},{hover:true});}
+ const nm=isPerson(p.o)&&!SHOW_PRIVATE_NAMES?'Private owner':title(p.o);
+ tip.innerHTML=`${esc(nm)} <small>· ${esc(acresTxt(p.a))}</small>`;
  const r=map.getContainer().getBoundingClientRect();tip.style.left=(r.left+e.point.x)+'px';tip.style.top=(r.top+e.point.y)+'px';tip.style.display='block';
 });
 map.on('mouseleave','fill',()=>{map.getCanvas().style.cursor='';tip.style.display='none';if(hov)map.setFeatureState({source:'parcels',id:hov},{hover:false});hov=null;});
-map.on('click','fill',e=>select(e.features[0].properties.pid,false));
+map.on('click','fill',e=>select(e.features[0].properties.i,false));
 
+// ---------- side panel: search and jump-to ----------
 const items=document.getElementById('items'),q=document.getElementById('q');
-function swStyle(p){
- if(colorBy==='year'&&+p.in_village===1){const y=+p.first_coal_year;const c=!y?'var(--cream)':YEARS.find(r=>y<=r[2])[3];return `background:${c};border-color:#555`}
- const c=p.map_class;return c==='village_coal'?'background-color:var(--coal);border-color:var(--coal-dk)':c==='village_other'?'background:var(--cream);border-color:var(--cream-dk)':c==='neighbor_coal'?'background:rgba(184,53,42,.3);border-color:rgba(123,30,20,.5)':'background:#fff;border-color:#999'}
-function itemHTML(p){return `<div class="item${p.pid===sel?' sel':''}" tabindex="0" role="button" data-pid="${esc(p.pid)}"><i class="sw${p.map_class==='village_coal'?' hatch':''}" style="${swStyle(p)}"></i><div><b>${nameHTML(p.owner)}</b><small>Parcel ${esc(p.pid)} · ${esc(p.acres)} ac${p.first_coal_year?` · coal company since ${esc(p.first_coal_year)}`:''}</small></div></div>`}
+const swStyle=g=>`background:${GR[g]?GR[g].c:'#fff'}`;
+function itemHTML(p){return `<div class="item${p.i===sel?' sel':''}" tabindex="0" role="button" data-pid="${esc(p.i)}"><i class="sw" style="${swStyle(p.g)}"></i><div><b>${isPerson(p.o)&&!SHOW_PRIVATE_NAMES?'Private owner':nameHTML(p.o)}</b><small>Parcel ${esc(p.i)} · ${esc(acresTxt(p.a))}${p.v?' · Oak Forest':''}</small></div></div>`}
+const JUMPS=[['Oak Forest village','oak'],['Waynesburg','wb'],['Cumberland Mine','Cumberland Mine'],['Bailey Mine','Bailey Mine'],['Enlow Fork Mine','Enlow Fork Mine'],['Harvey Mine','Harvey Mine']];
 function renderList(){
  const t=q.value.trim().toLowerCase();
- const all=PARCELS.features.map(f=>f.properties).filter(p=>!t||p.pid.includes(t)||String(p.owner).toLowerCase().includes(t)||String(p.company).toLowerCase().includes(t));
- const sort=(a,b)=>(+a.first_coal_year||9999)-(+b.first_coal_year||9999)||String(a.owner).localeCompare(String(b.owner))||a.pid-b.pid;
- let h='';
- const vc=all.filter(p=>p.map_class==='village_coal').sort(sort);
- if(vc.length){h+=`<div class="grp">In the village: coal companies (${vc.length})</div>`;
-  const cos=[...new Set(vc.map(p=>p.company||'Other'))];
-  for(const c of cos){const ps=vc.filter(p=>(p.company||'Other')===c);h+=`<div class="co">${esc(c)} · ${ps.length}</div>`+ps.map(itemHTML).join('')}}
- const vo=all.filter(p=>p.map_class==='village_other').sort(sort);
- if(vo.length)h+=`<div class="grp">In the village: other owners (${vo.length})</div>`+vo.map(itemHTML).join('');
- const nb=all.filter(p=>+p.in_village!==1).sort((a,b)=>String(a.owner).localeCompare(String(b.owner)));
- if(nb.length)h+=`<div class="grp">Surrounding parcels (${nb.length})</div>`+nb.map(itemHTML).join('');
- items.innerHTML=h||'<div class="empty">No parcels match.</div>';
+ if(!t){items.innerHTML=`<div class="intro">Click any parcel on the map, or search by owner or parcel number. Coal-company land is in color; everything else is left clear.</div><div class="grp">Go to</div>`+JUMPS.map(([n,k])=>`<div class="item" tabindex="0" role="button" data-jump="${esc(k)}"><div><b>${esc(n)}</b></div></div>`).join('');return}
+ if(!P){items.innerHTML='<div class="empty">Loading…</div>';return}
+ const rank={I:0,C:0,O:0,GC:1,G:1,N:2};
+ const hits=P.features.map(f=>f.properties).filter(p=>p.i===t||String(p.i).startsWith(t)||String(p.o).toLowerCase().includes(t));
+ hits.sort((a,b)=>(a.i===t?-1:b.i===t?1:0)||rank[a.g]-rank[b.g]||(parseFloat(b.a)||0)-(parseFloat(a.a)||0));
+ items.innerHTML=hits.length?`<div class="grp">${hits.length.toLocaleString('en-US')} parcel${hits.length===1?'':'s'}${hits.length>80?' (showing 80)':''}</div>`+hits.slice(0,80).map(itemHTML).join(''):'<div class="empty">No parcels match.</div>';
 }
-items.addEventListener('click',e=>{const it=e.target.closest('.item');if(it)select(it.dataset.pid,true)});
-items.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();const it=e.target.closest('.item');if(it)select(it.dataset.pid,true)}});
-q.addEventListener('input',renderList);
+function jump(k){
+ if(k==='oak')return map.fitBounds(OAK,{padding:24,duration:reduce?0:900});
+ if(k==='wb')return map.flyTo({center:[-80.185,39.898],zoom:13.5,duration:reduce?0:900});
+ const f=DATA.mines&&DATA.mines.features.find(x=>x.properties.label===k);if(f)map.fitBounds(bboxOf(f.geometry),{padding:30,duration:reduce?0:900});
+}
+items.addEventListener('click',e=>{const it=e.target.closest('.item');if(!it)return;if(it.dataset.jump)jump(it.dataset.jump);else select(it.dataset.pid,true)});
+items.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();e.target.closest('.item')?.click()}});
+q.addEventListener('input',()=>ready.then(renderList));
 renderList();
 
+// ---------- parcel detail ----------
+const chunkCache={};
+function detailFor(pid){const k=Math.floor(+pid/500);if(!chunkCache[k])chunkCache[k]=load('sales/s'+k).catch(()=>({}));return chunkCache[k].then(d=>d[pid]||{})}
 const list=document.getElementById('list'),detail=document.getElementById('detail'),body=document.getElementById('body');
-function bbox(f){let b=[180,90,-180,-90];const w=c=>typeof c[0]==='number'?(b=[Math.min(b[0],c[0]),Math.min(b[1],c[1]),Math.max(b[2],c[0]),Math.max(b[3],c[1])]):c.forEach(w);w(f.geometry.coordinates);return [[b[0],b[1]],[b[2],b[3]]]}
-function select(pid,fly){
+const TAG={I:'Coal company',C:'Coal company',O:'Coal company',G:'Pennsylvania Game Commission',GC:'Pennsylvania Game Commission',N:''};
+async function select(pid,fly){
  const f=byPid[pid];if(!f)return;sel=pid;const p=f.properties;
- if(map.getLayer('sel'))map.setFilter('sel',['==',['get','pid'],pid]);
- const vill=+p.in_village===1,coal=String(p.map_class).endsWith('coal'),deeds=DEEDS[pid]||[];
- let h=`<button class="linkbtn back">← All parcels</button><h2 tabindex="-1">${coal&&p.company?esc(p.company):nameHTML(p.owner)}</h2>`;
- if(coal&&p.company)h+=`<div class="rec">Recorded owner: ${nameHTML(p.owner)}</div>`;
- h+=`<span class="tag ${coal?'coal':vill?'other':'nb'}">${coal?'Coal company · '+esc(p.coal_owner_class||''):vill?'Private owner':'Outside the village'}${!vill&&coal?' · outside village':''}</span>`;
- if(p.photo)h+=`<img class="photo" src="${esc(p.photo)}" alt="Photograph of parcel ${esc(pid)}">`;
- h+=`<dl class="facts"><dt>Parcel</dt><dd>${esc(pid)}</dd><dt>Tax ID</dt><dd>${esc(tax(p.taxid))}</dd><dt>Acreage</dt><dd>${esc(p.acres)} acres (county)</dd>`;
- if(p.first_coal_year)h+=`<dt>Coal company</dt><dd>first bought ${esc(p.first_coal_year)}${coal?'':', later sold to a private owner'}</dd>`;
- if(p.year_built)h+=`<dt>Building</dt><dd>dated ${esc(p.year_built)} (county)</dd>`;
- if(p.owner_1876_atlas)h+=`<dt>1876 atlas</dt><dd>${esc(p.owner_1876_atlas)}</dd>`;
+ if(map.getLayer('sel'))map.setFilter('sel',['==',['get','i'],pid]);
+ if(fly)map.fitBounds(bboxOf(f.geometry),{padding:80,maxZoom:17,duration:reduce?0:700});
+ history.replaceState(null,'','#'+pid);
+ list.style.display='none';detail.style.display='block';detail.innerHTML='<div class="note">Loading…</div>';
+ const det=await detailFor(pid);if(sel!==pid)return;
+ const R=rowsFor(pid,det),coal=['I','C','O'].includes(p.g),vill=!!p.v;
+ const head=coal&&det.vh&&det.vh.company?esc(det.vh.company):(coal?esc(GR[p.g].n):nameHTML(p.o));
+ let h=`<button class="linkbtn back">← Back</button><h2 tabindex="-1">${head}</h2>`;
+ if(coal)h+=`<div class="rec">Recorded owner: ${nameHTML(p.o)}</div>`;
+ const tg=TAG[p.g];
+ if(tg)h+=`<span class="tag" style="background:${p.g==='G'?'#4f8a47':GR[p.g].c}">${esc(tg)}${coal?' · '+esc(GR[p.g].n):''}</span>`;
+ if(vill)h+=` <span class="tag" style="background:#555">Oak Forest village</span>`;
+ h+=`<div class="summary">${summary(pid,p,det,R)}</div>`;
+ if(det.vh&&det.vh.photo)h+=`<img class="photo" src="../${esc(det.vh.photo)}" alt="Photograph of parcel ${esc(pid)}">`;
+ if(det.vh&&det.vh.history_text)h+=`<div class="hist">${esc(det.vh.history_text)}</div>`;
+ h+=`<dl class="facts"><dt>Parcel</dt><dd>${esc(pid)}</dd>${det.t?`<dt>Tax ID</dt><dd>${esc(tax(det.t))}</dd>`:''}<dt>Acreage</dt><dd>${esc(acresTxt(p.a)||'not listed')} (county)</dd>`;
+ if(det.u)h+=`<dt>Land use</dt><dd>${landUse(det.u)}</dd>`;
+ if(det.y)h+=`<dt>Building</dt><dd>dated ${esc(det.y)} (county)</dd>`;
+ const ml=miningLine(det);if(ml.length)h+=`<dt>Mining</dt><dd>${ml.join('; ')}</dd>`;
+ if(det.vh&&det.vh.owner_1876_atlas)h+=`<dt>1876 atlas</dt><dd>${esc(det.vh.owner_1876_atlas)}</dd>`;
  h+='</dl>';
- if(p.history_text)h+=`<div class="hist">${esc(p.history_text)}</div>`;
- if(deeds.length){
-  h+='<h3>Owners over time</h3><ol class="tl">'+deeds.map(r=>{
-   const also=(r.also||'').split(/[,;\s]+/).filter(x=>byPid[x]&&x!==pid);
-   return `<li class="${r.coal?'coal':''}"><div class="d">${esc(r.date)} · ${book(r.book_page)}</div><div class="o">${nameHTML(r.owner)}${r.coal&&r.company?` <span class="nom" title="coal company">coal</span>`:''}</div><div class="m"><abbr title="price stated in the deed">${esc(r.price)||'price not recorded'}</abbr>${nominal(r.price)?'<span class="nom" title="$0, $1 and $10 are usually mergers, family transfers or nominal consideration, not sale prices">nominal</span>':''}${also.length?' · same deed also covered '+also.map(x=>`<a data-go="${x}">${x}</a>`).join(', '):''}</div></li>`}).join('');
-  if(p.earliest_owner)h+=`<li class="first"><div class="d">Earliest owner listed</div><div class="o">${nameHTML(p.earliest_owner)}</div></li>`;
-  h+='</ol><div class="note">This chain of title is partial: earlier owners have not yet been traced. A deed covering several parcels states one total price. Source: deeds at the Greene County Recorder of Deeds, Waynesburg, by book and page as listed.</div>';
- }else if(p.latest_sale_date){
-  h+=`<h3>Latest recorded sale</h3><div>${esc(p.latest_sale_date)} · ${esc(p.latest_sale_price)}</div><div class="note">Outside the village: county assessment data only; deeds not yet researched.</div>`;
+ if(R.length){
+  h+=`<h3>Sales, newest first</h3><ol class="tl">`+R.map((r,i)=>{
+   const prev=R[i+1],pi=priceInfo(r,prev),bk=book(r.book);
+   const seller=prev?`<span class="fr">from</span> ${nameHTML(prev.buyer)} `:'';
+   const also=r.also.filter(x=>byPid[x]);
+   const pr=r.price!==null&&r.price>10?`<b>${money(r.price)}</b>${pi.adj&&r.year<2025?` <span class="adj">≈ ${money(pi.adj)} in 2026 dollars</span>`:''}`:`<b>${esc(r.priceText||'no price')}</b>`;
+   return `<li class="${r.grp?'k-'+r.grp:''}"><div class="d">${esc(r.dateText)}${bk?' · '+bk:''}</div>
+    <div class="x">${seller}<span class="fr">to</span> <b>${nameHTML(r.buyer)}</b>${r.grp?` <span class="chip" style="background:${GR[r.grp].c};color:#fff">coal</span>`:''}</div>
+    <div class="m">${pr}<span class="chip ${pi.chip[1]}">${esc(pi.chip[0])}</span>${also.length?`<div class="adj">Same deed also covered ${also.slice(0,12).map(x=>`<a data-go="${x}">${x}</a>`).join(', ')}${also.length>12?` and ${also.length-12} more`:''}</div>`:''}</div></li>`}).join('');
+  const eo=det.vh&&det.vh.earliest_owner;
+  h+=`<li class="first"><div class="d">Before ${esc(R[R.length-1].dateText)}</div><div class="x">${eo?`Earliest owner listed: ${nameHTML(eo)}`:'Earlier owners are not in these records'}</div></li></ol>`;
+  h+=vill?`<div class="note">From deeds read at the Greene County Recorder of Deeds by Julian Giordano. The chain of title is partial: earlier owners have not yet been traced. The seller shown is the previous buyer in the chain.</div>`
+   :`<div class="note">From the county's online sales records, which mostly begin in the 1980s; deeds not yet researched. The seller shown is the previous buyer in the record. 2026 dollars use the Consumer Price Index (general inflation, not local land prices).</div>`;
  }
- h+=`<div class="note"><a href="${esc(p.url)}" target="_blank" rel="noopener">Greene County assessment record ↗</a></div>`;
- detail.innerHTML=h;list.style.display='none';detail.style.display='block';body.scrollTop=0;
+ h+=`<div class="note">${det.url?`<a href="${esc(det.url)}" target="_blank" rel="noopener">Greene County assessment record ↗</a>`:''}</div>`;
+ detail.innerHTML=h;body.scrollTop=0;
  detail.querySelector('.back').onclick=clearSel;
  detail.querySelectorAll('[data-go]').forEach(a=>a.onclick=()=>select(a.dataset.go,true));
  detail.querySelector('h2').focus({preventScroll:true});
- history.replaceState(null,'','#'+pid);
- if(fly)map.fitBounds(bbox(f),{padding:80,maxZoom:18,duration:reduce?0:700});
 }
 function clearSel(){
- const was=sel;sel=null;if(map.getLayer('sel'))map.setFilter('sel',['==',['get','pid'],'']);
+ sel=null;if(map.getLayer('sel'))map.setFilter('sel',['==',['get','i'],'__none__']);
  detail.style.display='none';list.style.display='block';renderList();
  history.replaceState(null,'',location.pathname+location.search);
- const it=items.querySelector(`[data-pid="${was}"]`);if(it)it.focus();
 }
 const about=document.getElementById('about');
 function openAbout(){about.showModal()}

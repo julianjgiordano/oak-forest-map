@@ -1,0 +1,1 @@
+{"type":"FeatureCollection","features":[{"type":"Feature","properties":{"name":"Waynesburg","kind":"seat","dx":8.0,"dy":-6.0},"geometry":{"type":"Point","coordinates":[-80.18503,39.89785]}},{"type":"Feature","properties":{"name":"Oak Forest","kind":"village","dx":-9.0,"dy":-6.0},"geometry":{"type":"Point","coordinates":[-80.2395,39.8423]}}]}
