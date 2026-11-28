@@ -2,6 +2,10 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## Draft: favicon and 1876 labels (28 Nov 2026, not published)
+- Site icon (favicon.svg, favicon.ico, apple-touch-icon.png: a section through the ground with the coal seam) linked from every page; removes the browser's favicon 404.
+- Through Time: the 1876 street names are now point labels at each street's midpoint, turned to the street, with the modern name on a second line. Broad Street's label used to be dropped because it was longer than the street. Shown from zoom 16 as before.
+
 ## v2.0.1 (24 Nov 2026)
 - Property map: clicking one of the 298 parcel shapes that have no county record no longer opens an empty panel; the tooltip says there is no county record.
 
