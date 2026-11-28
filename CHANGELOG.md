@@ -2,6 +2,13 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## Draft: Through Time, 1939 to 1967 (28 Nov 2026, not published)
+- Four early aerial years added to Through Time, from U.S. Department of Agriculture photographs via Penn Pilot (Pennsylvania Geological Survey and PASDA): 1939 (frame APU-106-8, 25 June 1939), 1950 (APU-4F-41, 2 June 1950), 1958 (APU-3V-134, 27 August 1958) and 1967 (APU-7HH-232 and APU-8HH-13, 4 October 1967). 17 views in all.
+- Placed on the map with a camera model that corrects for the hills (3DEP elevation), fitted to hundreds of automatically matched features per photograph against the 1992 orthophoto and the other early years. Average error about 1.6 m (1967), 3 m (1958), 3 to 4 m (1950) and 4 m (1939); each year's caption gives its method and error.
+- Tiles: through-time/tiles/1939, 1950, 1958, 1967 (zoom 14 to 18).
+- Labelled years on the timeline are now 1876, 1958, 1992, 2010 and 2022 (evenly spaced, so they don't run together on phones). Intro text on Through Time and the landing page now says "aerial photographs from 1939 to 2022".
+- About page: a row per new year in the sources table, "Seventeen views", and the sentence promising the older photographs removed.
+
 ## Draft: favicon and 1876 labels (28 Nov 2026, not published)
 - Site icon (favicon.svg, favicon.ico, apple-touch-icon.png: a section through the ground with the coal seam) linked from every page; removes the browser's favicon 404.
 - Through Time: the 1876 street names are now point labels at each street's midpoint, turned to the street, with the modern name on a second line. Broad Street's label used to be dropped because it was longer than the street. Shown from zoom 16 as before.

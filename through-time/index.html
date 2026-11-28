@@ -76,7 +76,7 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 
 <div id="card">
  <h1>Oak Forest Through Time</h1>
- <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, from the 1876 county atlas to aerial photographs from 1982 to 2022, with more early views to come.</p>
+ <p class="intro">The village of Oak Forest, Greene County, Pennsylvania, from the 1876 county atlas to aerial photographs from 1939 to 2022.</p>
  <div class="seg" role="group" aria-label="View mode" id="mode"><button data-m="timeline" class="on" aria-pressed="true">Timeline</button><button data-m="swipe" aria-pressed="false">Swipe</button><button data-m="lens" aria-pressed="false">Lens</button></div>
  <div class="row" id="pair" style="display:none"><span id="pairlabel">Compare</span><select id="yearA" aria-label="First year"></select><span>with</span><select id="yearB" aria-label="Second year"></select></div>
  <div class="row"><label class="chk"><input type="checkbox" id="outlines"> Property lines</label><label class="chk"><input type="checkbox" id="labels" checked> Place names</label></div>
@@ -93,6 +93,10 @@ label.chk{display:flex;gap:6px;align-items:center;cursor:pointer}
 // Years cut to the village area; tiles in tiles/<id>/{z}/{x}/{y}.webp (made with GDAL from the files in "Oak Forest Through Time").
 const YEARS=[
  {id:'1876',label:'1876',max:19,kind:'atlas',attr:'David Rumsey Map Collection (CC BY-NC-SA)',src:'Village plat, "Oak Forest, Centre Twp.," in Caldwell\'s Illustrated, Historical, Centennial Atlas of Greene County, Pennsylvania (J.A. Caldwell, 1876), p. 124. Scan: <a href="https://www.davidrumsey.com/" target="_blank" rel="noopener">David Rumsey Map Collection</a> (list no. 4974.068), CC BY-NC-SA 3.0.',note:'A drawn map, not a photograph. Fitted to today\'s streets at five points (about 4 m average error); away from the streets, lines and buildings are approximate. Main Street and Broad Street are today\'s Oak Forest Road; Water Street is the lane behind it. The printed scale (260 ft to the inch) is not exact: the plat is drawn at about 177 ft to the inch.'},
+ {id:'1939',label:'1939',max:18,attr:'USDA (Penn Pilot)',src:'U.S. Department of Agriculture aerial photograph, 25 June 1939 (frame APU-106-8), from <a href="https://www.pasda.psu.edu/" target="_blank" rel="noopener">Penn Pilot</a> (Pennsylvania Geological Survey and PASDA)',note:'Placed on the map by matching about 400 points to the 1950 and 1958 photographs, correcting for the hills with an elevation model (about 4 m average error against today\'s ground). Nearly every slope is farmed in contour strips.'},
+ {id:'1950',label:'1950',max:18,attr:'USDA (Penn Pilot)',src:'U.S. Department of Agriculture aerial photograph, 2 June 1950 (frame APU-4F-41), from <a href="https://www.pasda.psu.edu/" target="_blank" rel="noopener">Penn Pilot</a> (Pennsylvania Geological Survey and PASDA)',note:'Placed on the map by matching about 300 points to the 1992, 1958 and 1967 photographs, correcting for the hills (about 3 to 4 m average error).'},
+ {id:'1958',label:'1958',max:18,attr:'USDA (Penn Pilot)',src:'U.S. Department of Agriculture aerial photograph, 27 August 1958 (frame APU-3V-134), from <a href="https://www.pasda.psu.edu/" target="_blank" rel="noopener">Penn Pilot</a> (Pennsylvania Geological Survey and PASDA)',note:'Placed on the map by matching about 230 points to the 1992 and 1967 photographs, correcting for the hills (about 3 m average error).'},
+ {id:'1967',label:'1967',max:18,attr:'USDA (Penn Pilot)',src:'U.S. Department of Agriculture aerial photographs, 4 October 1967 (frames APU-7HH-232 and APU-8HH-13), from <a href="https://www.pasda.psu.edu/" target="_blank" rel="noopener">Penn Pilot</a> (Pennsylvania Geological Survey and PASDA)',note:'Placed on the map by matching about 140 points per photograph to the 1992 orthophoto and correcting for the hills with an elevation model (about 2 m average error). Two overlapping photographs are blended at the west edge. Early autumn: the trees are still in leaf.'},
  {id:'1982',label:'1982',max:18,src:'USGS National High Altitude Photography (NHAP), 1982; color-infrared photograph shown in black and white',note:'Placed on the map by matching it to the 1992 orthophoto (about 3 m average error). The village still lines the road.'},
  {id:'1992',label:'1992',max:18,src:'USGS digital orthophoto, 29 March 1992',note:'Black-and-white aerial photograph, taken before the leaves were out.'},
  {id:'2006',label:'2006',max:18,src:'PAMAP orthoimagery, Pennsylvania, 2006'},
@@ -171,7 +175,7 @@ function render(){
   meta(YEARS[a],YEARS[b]);}
 }
 // ticks and selects
-YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind)s.classList.add('map');if(['1876','1982','1992','2010','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
+YEARS.forEach((y,i)=>{const s=document.createElement('span');s.textContent=y.label;s.style.left=(i/(YEARS.length-1)*100)+'%';if(y.kind)s.classList.add('map');if(['1876','1958','1992','2010','2022'].includes(y.id))s.classList.add('key');s.onclick=()=>{stop();idx=i;render()};$('ticks').appendChild(s);
  ['yearA','yearB'].forEach(k=>{const o=document.createElement('option');o.value=i;o.textContent=y.label;$(k).appendChild(o)})});
 $('slider').max=YEARS.length-1;$('yearA').value=a;$('yearB').value=b;
 $('slider').oninput=e=>{stop();idx=+e.target.value;render()};
