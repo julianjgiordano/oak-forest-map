@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://unpkg.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; connect-src 'self' data: blob: https://tiles.openfreemap.org https://api.mapbox.com https://elevation-tiles-prod.s3.amazonaws.com; worker-src 'self' blob:; child-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'none'">
 <title>Oak Forest Through Time</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="icon" href="../favicon.ico" sizes="16x16 32x32 48x48">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="description" content="See the village of Oak Forest, Greene County, Pennsylvania, from above, from the 1876 county atlas to 2022. Slide through the years, swipe between two, or look through a lens.">
 <meta property="og:title" content="Oak Forest Through Time">
@@ -105,10 +108,17 @@ const YEARS=[
 ];
 // 1876 street names placed on the georeferenced plat (centerlines), shown with the atlas
 const STREETS_1876=[
- ['Main Street (now Oak Forest Road)',[[-80.238856,39.842363],[-80.23819,39.842946],[-80.237264,39.843407]]],
- ['Broad Street (now Oak Forest Road)',[[-80.237264,39.843407],[-80.236521,39.843963]]],
+ ['Main Street\n(now Oak Forest Road)',[[-80.238856,39.842363],[-80.23819,39.842946],[-80.237264,39.843407]]],
+ ['Broad Street\n(now Oak Forest Road)',[[-80.237264,39.843407],[-80.236521,39.843963]]],
  ['Water Street',[[-80.238354,39.842133],[-80.237264,39.843407]]],
  ['South Street',[[-80.238856,39.842363],[-80.238354,39.842133]]]];
+// midpoint (by length) and map angle of a street line, for its 1876 label
+function street1876Label([n,c]){const k=Math.cos(c[0][1]*Math.PI/180),seg=[];let L=0;
+ for(let i=1;i<c.length;i++){const dx=(c[i][0]-c[i-1][0])*k,dy=c[i][1]-c[i-1][1],l=Math.hypot(dx,dy);seg.push([l,dx,dy]);L+=l}
+ let h=L/2,i=0;while(i<seg.length-1&&h>seg[i][0]){h-=seg[i][0];i++}
+ const t=h/seg[i][0],p=[c[i][0]+(c[i+1][0]-c[i][0])*t,c[i][1]+(c[i+1][1]-c[i][1])*t];
+ let r=-Math.atan2(seg[i][2],seg[i][1])*180/Math.PI;if(r>90)r-=180;if(r<-90)r+=180;
+ return{type:'Feature',properties:{n,r},geometry:{type:'Point',coordinates:p}}}
 const AOI=[-80.2500,39.8370,-80.2295,39.8475];
 const VIEW=[[-80.2465,39.8395],[-80.2330,39.8450]];
 const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -121,8 +131,9 @@ function addImagery(m){
   m.addSource('y'+y.id,{type:'raster',tiles:[`tiles/${y.id}/{z}/{x}/{y}.webp`],tileSize:256,minzoom:14,maxzoom:y.max,bounds:AOI,attribution:y.attr||'USGS, USDA, PEMA'});
   m.addLayer({id:'y'+y.id,type:'raster',source:'y'+y.id,layout:{visibility:'none'},paint:{'raster-opacity':0,'raster-opacity-transition':{duration:reduce?0:450},'raster-fade-duration':0}},firstSymbol(m));
  });
- m.addSource('st1876',{type:'geojson',data:{type:'FeatureCollection',features:STREETS_1876.map(([n,c])=>({type:'Feature',properties:{n},geometry:{type:'LineString',coordinates:c}}))}});
- m.addLayer({id:'st1876',type:'symbol',source:'st1876',minzoom:16,layout:{visibility:'none','symbol-placement':'line-center','text-field':['get','n'],'text-font':['Noto Sans Regular'],'text-size':['interpolate',['linear'],['zoom'],16,10,19,14],'text-offset':[0,-1.6],'text-keep-upright':true,'text-allow-overlap':true},paint:{'text-color':'#fff','text-halo-color':'rgba(30,25,20,.85)','text-halo-width':1.6}});
+ m.addSource('st1876',{type:'geojson',data:{type:'FeatureCollection',features:STREETS_1876.map(street1876Label)}});
+ // point labels at each street's midpoint, turned to the street: line-center labels were dropped when the label was longer than the street (Broad St); minzoom stays 16 (labels overlap at 15)
+ m.addLayer({id:'st1876',type:'symbol',source:'st1876',minzoom:16,layout:{visibility:'none','symbol-placement':'point','text-field':['get','n'],'text-font':['Noto Sans Regular'],'text-size':['interpolate',['linear'],['zoom'],16,10,19,14],'text-line-height':1.15,'text-rotate':['get','r'],'text-rotation-alignment':'map','text-anchor':'bottom','text-offset':[0,-0.35],'text-allow-overlap':true,'text-ignore-placement':true},paint:{'text-color':'#fff','text-halo-color':'rgba(30,25,20,.85)','text-halo-width':1.6}});
  m.addSource('parcels',{type:'geojson',data:'../data/oak_forest_parcels.geojson'});
  m.addLayer({id:'parcels',type:'line',source:'parcels',layout:{visibility:'none'},paint:{'line-color':'#fff','line-width':['case',['==',['get','in_village'],1],1.4,0.6],'line-opacity':0.85}});
 }
