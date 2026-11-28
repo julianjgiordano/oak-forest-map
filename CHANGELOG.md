@@ -2,6 +2,11 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v2.2 (28 Nov 2026): Panel 75 story and the realistic close-up
+- New page /story/: guided scroll story with text cards over the 3D scene (overview and time-lapse; the longwall at real speed; a composite house above as the face passes and over the months after), then free exploring with four buttons. Built from /beneath/ by tools/make_story.py. Card text is a first draft. The page is reachable at /story/ but not yet linked from the menu or the landing page.
+- Panel 75 in 3D (/beneath/): the realistic longwall close-up (v1.9, below) and road ends that now meet where mine map sheet 31-4 shows them meeting.
+- About page: a note on coal and rock in the close-up.
+
 ## v2.1 (28 Nov 2026): Through Time from 1939
 - Four early aerial years added to Through Time, from U.S. Department of Agriculture photographs via Penn Pilot (Pennsylvania Geological Survey and PASDA): 1939 (frame APU-106-8, 25 June 1939), 1950 (APU-4F-41, 2 June 1950), 1958 (APU-3V-134, 27 August 1958) and 1967 (APU-7HH-232 and APU-8HH-13, 4 October 1967). 17 views in all.
 - Placed on the map with a camera model that corrects for the hills (3DEP elevation), fitted to hundreds of automatically matched features per photograph against the 1992 orthophoto and the other early years. Average error about 1.6 m (1967), 3 m (1958), 3 to 4 m (1950) and 4 m (1939); each year's caption gives its method and error. Tiles: through-time/tiles/1939, 1950, 1958, 1967 (zoom 14 to 18).
@@ -9,7 +14,7 @@ Every change is a commit on GitHub (Commits tab). To see or restore an earlier v
 - The 1876 street names are now point labels at each street's midpoint, turned to the street, with the modern name on a second line (Broad Street's label used to be dropped). Shown from zoom 16 as before.
 - Site icon (favicon.svg, favicon.ico, apple-touch-icon.png) linked from every page.
 - About page: a row per new year in the Through Time sources table, "Seventeen views", the sentence promising the older photographs removed.
-- Not published in this release: the Panel 75 story and the Panel 75 close-up changes (still on the drafts branch).
+- Not published in this release: the Panel 75 story and the Panel 75 close-up changes (still on this drafts branch).
 
 ## v2.0.1 (24 Nov 2026)
 - Property map: clicking one of the 298 parcel shapes that have no county record no longer opens an empty panel; the tooltip says there is no county record.
@@ -24,6 +29,19 @@ Every change is a commit on GitHub (Commits tab). To see or restore an earlier v
 - Data: map/data/ (parcels.json, sales/s*.json loaded on click, mines, panels, mined-out areas, outlines), built by build_web_data.py in the Mac folder "Greene County Web Map/02_Scripts" from dataset v5.6, the coal-map and underground-mines GeoPackages and the village deed data. Owners' names shown as recorded (setting SHOW_PRIVATE_NAMES in map/index.html).
 - Landing page card, navigation labels ("Who owns Greene County") and the About page's property-map section and sources updated; new landing preview image (from Fig. 1 of the county figure series).
 - Not changed: Through Time, Panel 75 in 3D (only the navigation label).
+
+## v1.9 (built 23 Nov 2026, published 28 Nov 2026 in v2.2): Panel 75 longwall close-up, more realistic
+- Shearer: spiral drums with picks and a cutting ring, ranging arms, haulage units, control boxes, headlights, water sprays, trailing cable in its handler.
+- Shields: two-part base with control unit, lamp and hoses; canopy with side shields and stiffeners; face sprag that folds away as the shearer comes and is set again after the shield moves up; caving shield; two lemniscate links; legs (barrel and chrome ram). Shorter base so the advance ram has a web of travel.
+- Face conveyor: line pans with ramp plate, spill plate, cable trough and rack; chain and moving flight bars; drives at both ends.
+- Coal: thrown from the drums onto the conveyor, carried to the headgate, through the crusher and stageloader and out along the belt.
+- Gate roads: headgate crusher, stageloader, belt tailpiece and belt with idlers, monorail with hanging cables and hoses, power centre and pump station, stoppings in the crosscuts, a scoop in the supply entry; standing supports in the tailgate, crushed behind the face.
+- Miners: shearer operators, a shield operator, a foreman, headgate and tailgate operators, an electrician, a belt examiner, the scoop driver.
+- Section beside the shearer: coal not yet mined and the rock above it (illustrative Pittsburgh-seam column); roof beds hang behind the shields and break off (periodic weighting); caved rock heaps up; higher beds bend down with gaps and cracks. Rock falls behind each shield as it moves up, with dust. Switch: "Rock in section".
+- See-through cut-away in the close-up: coal and canopies between the eye and the shearer fade out. Seam floor under the panel and gate roads.
+- "Real colours" button (close-up): orange shearer and yellow shields, as in footage of the Cumberland longwall. Default stays in the site's palette.
+- Landscape view: the part of panel 75 not yet mined is drawn grey while the timeline plays.
+- Close-up built only when first opened, so the page loads as before. Phone layout of the timeline bar wraps.
 
 ## v1.8.1 (23 Nov 2026)
 - About page: new section "Coal-company land across the county" with the county-wide results (51,829.9 surface acres, 14.2% of listed surface acreage / 14.1% of the county's land; Iron Senergy and predecessors 4.4%), coal-rights figures, sources, procedure, difficult cases, acreage checks and limits, from the Greene County Coal-Company Land Ownership Dataset v5.6.
