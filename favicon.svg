@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Oak Forest site icon: a section through the ground, surface above, the coal seam below -->
+  <clipPath id="r"><rect width="64" height="64" rx="12"/></clipPath>
+  <g clip-path="url(#r)">
+    <rect width="64" height="64" fill="#2c5d73"/>
+    <path d="M0 24 Q16 19 32 23 T64 22 V64 H0 Z" fill="#6f8f4e"/>
+    <path d="M0 29 Q16 25 32 28 T64 27 V64 H0 Z" fill="#c9b48a"/>
+    <path d="M0 37 Q16 34 32 36 T64 35 V64 H0 Z" fill="#a08a66"/>
+    <rect y="44" width="64" height="11" fill="#22201c"/>
+    <rect y="55" width="64" height="9" fill="#8a7a62"/>
+    <path d="M19 23.5 L26 15 L33 23.5 Z" fill="#fbf9f4"/>
+  </g>
+</svg>

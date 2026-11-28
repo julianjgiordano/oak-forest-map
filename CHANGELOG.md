@@ -2,6 +2,15 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v2.1 (28 Nov 2026): Through Time from 1939
+- Four early aerial years added to Through Time, from U.S. Department of Agriculture photographs via Penn Pilot (Pennsylvania Geological Survey and PASDA): 1939 (frame APU-106-8, 25 June 1939), 1950 (APU-4F-41, 2 June 1950), 1958 (APU-3V-134, 27 August 1958) and 1967 (APU-7HH-232 and APU-8HH-13, 4 October 1967). 17 views in all.
+- Placed on the map with a camera model that corrects for the hills (3DEP elevation), fitted to hundreds of automatically matched features per photograph against the 1992 orthophoto and the other early years. Average error about 1.6 m (1967), 3 m (1958), 3 to 4 m (1950) and 4 m (1939); each year's caption gives its method and error. Tiles: through-time/tiles/1939, 1950, 1958, 1967 (zoom 14 to 18).
+- Labelled years on the timeline are now 1876, 1958, 1992, 2010 and 2022 (evenly spaced, so they don't run together on phones). Intro text on Through Time and the landing page: "aerial photographs from 1939 to 2022".
+- The 1876 street names are now point labels at each street's midpoint, turned to the street, with the modern name on a second line (Broad Street's label used to be dropped). Shown from zoom 16 as before.
+- Site icon (favicon.svg, favicon.ico, apple-touch-icon.png) linked from every page.
+- About page: a row per new year in the Through Time sources table, "Seventeen views", the sentence promising the older photographs removed.
+- Not published in this release: the Panel 75 story and the Panel 75 close-up changes (still on the drafts branch).
+
 ## v2.0.1 (24 Nov 2026)
 - Property map: clicking one of the 298 parcel shapes that have no county record no longer opens an empty panel; the tooltip says there is no county record.
 
