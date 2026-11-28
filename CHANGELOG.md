@@ -2,6 +2,11 @@
 
 Every change is a commit on GitHub (Commits tab). To see or restore an earlier version, open a commit and click "Browse files", or ask Claude to restore it. Milestones are listed here by commit.
 
+## v2.2 (28 Nov 2026): Panel 75 story and the realistic close-up
+- New page /story/: guided scroll story with text cards over the 3D scene (overview and time-lapse; the longwall at real speed; a composite house above as the face passes and over the months after), then free exploring with four buttons. Built from /beneath/ by tools/make_story.py. Card text is a first draft. The page is reachable at /story/ but not yet linked from the menu or the landing page.
+- Panel 75 in 3D (/beneath/): the realistic longwall close-up (v1.9, below) and road ends that now meet where mine map sheet 31-4 shows them meeting.
+- About page: a note on coal and rock in the close-up.
+
 ## v2.1 (28 Nov 2026): Through Time from 1939
 - Four early aerial years added to Through Time, from U.S. Department of Agriculture photographs via Penn Pilot (Pennsylvania Geological Survey and PASDA): 1939 (frame APU-106-8, 25 June 1939), 1950 (APU-4F-41, 2 June 1950), 1958 (APU-3V-134, 27 August 1958) and 1967 (APU-7HH-232 and APU-8HH-13, 4 October 1967). 17 views in all.
 - Placed on the map with a camera model that corrects for the hills (3DEP elevation), fitted to hundreds of automatically matched features per photograph against the 1992 orthophoto and the other early years. Average error about 1.6 m (1967), 3 m (1958), 3 to 4 m (1950) and 4 m (1939); each year's caption gives its method and error. Tiles: through-time/tiles/1939, 1950, 1958, 1967 (zoom 14 to 18).
@@ -25,11 +30,7 @@ Every change is a commit on GitHub (Commits tab). To see or restore an earlier v
 - Landing page card, navigation labels ("Who owns Greene County") and the About page's property-map section and sources updated; new landing preview image (from Fig. 1 of the county figure series).
 - Not changed: Through Time, Panel 75 in 3D (only the navigation label).
 
-## Draft: Panel 75 story (24 Nov 2026, not published)
-- New page /story/: guided scroll story with text cards over the 3D scene (overview and time-lapse; the longwall at real speed; a composite house above as the face passes and over the months after), then free exploring with four buttons. Built from /beneath/ by tools/make_story.py.
-- /beneath/: road ends now meet where mine map sheet 31-4 shows them meeting.
-
-## v1.9 (23 Nov 2026): Panel 75 longwall close-up, more realistic
+## v1.9 (built 23 Nov 2026, published 28 Nov 2026 in v2.2): Panel 75 longwall close-up, more realistic
 - Shearer: spiral drums with picks and a cutting ring, ranging arms, haulage units, control boxes, headlights, water sprays, trailing cable in its handler.
 - Shields: two-part base with control unit, lamp and hoses; canopy with side shields and stiffeners; face sprag that folds away as the shearer comes and is set again after the shield moves up; caving shield; two lemniscate links; legs (barrel and chrome ram). Shorter base so the advance ram has a web of travel.
 - Face conveyor: line pans with ramp plate, spill plate, cable trough and rack; chain and moving flight bars; drives at both ends.
